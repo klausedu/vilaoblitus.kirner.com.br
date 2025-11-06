@@ -399,7 +399,9 @@ class UIManager {
         }
 
         document.body.appendChild(this.dragPreview);
-        this.updateDragPreviewPosition(event.clientX, event.clientY);
+        const clientX = event instanceof TouchEvent ? event.changedTouches[0].clientX : event.clientX;
+        const clientY = event instanceof TouchEvent ? event.changedTouches[0].clientY : event.clientY;
+        this.updateDragPreviewPosition(clientX, clientY);
 
         const overlay = this.inventoryOverlay || document.getElementById('inventory-overlay');
         this.inventoryWasOpenOnDrag = !!(overlay && overlay.classList.contains('active'));
@@ -418,7 +420,9 @@ class UIManager {
         event.preventDefault();
         const clientX = event instanceof TouchEvent ? event.changedTouches[0].clientX : event.clientX;
         const clientY = event instanceof TouchEvent ? event.changedTouches[0].clientY : event.clientY;
-        this.updateDragPreviewPosition(event.clientX, event.clientY);
+        const clientX = event instanceof TouchEvent ? event.changedTouches[0].clientX : event.clientX;
+        const clientY = event instanceof TouchEvent ? event.changedTouches[0].clientY : event.clientY;
+        this.updateDragPreviewPosition(clientX, clientY);
     }
 
     endInventoryDrag(event) {
@@ -504,3 +508,4 @@ class UIManager {
 
 // Instância global
 const uiManager = new UIManager();
+window.uiManager = uiManager;
