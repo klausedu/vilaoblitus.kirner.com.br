@@ -371,13 +371,28 @@ class UIManager {
     }
 
     startInventoryDrag(item, event) {
-        if (event.button !== undefined && event.button !== 0) return;
+        let pointerId;
+        let clientX;
+        let clientY;
+
+        if (event instanceof TouchEvent) {
+            const touch = event.changedTouches[0];
+            pointerId = touch.identifier;
+            clientX = touch.clientX;
+            clientY = touch.clientY;
+        } else {
+            if (event.button !== undefined && event.button !== 0) return;
+            pointerId = event.pointerId ?? 0;
+            clientX = event.clientX;
+            clientY = event.clientY;
+        }
+
         event.preventDefault();
         event.stopPropagation();
 
         this.draggedInventoryItem = {
             item,
-            pointerId: event.pointerId
+            pointerId
         };
 
         if (this.dragPreview) {
@@ -399,8 +414,6 @@ class UIManager {
         }
 
         document.body.appendChild(this.dragPreview);
-        const clientX = event instanceof TouchEvent ? event.changedTouches[0].clientX : event.clientX;
-        const clientY = event instanceof TouchEvent ? event.changedTouches[0].clientY : event.clientY;
         this.updateDragPreviewPosition(clientX, clientY);
 
         const overlay = this.inventoryOverlay || document.getElementById('inventory-overlay');
@@ -416,18 +429,46 @@ class UIManager {
     }
 
     handleInventoryDragMove(event) {
-        if (!this.draggedInventoryItem || (event instanceof PointerEvent && event.pointerId !== this.draggedInventoryItem.pointerId)) return;
+        if (!this.draggedInventoryItem) return;
+
+        let clientX;
+        let clientY;
+
+        if (event instanceof TouchEvent) {
+            const touch = Array.from(event.changedTouches).find(t => t.identifier === this.draggedInventoryItem.pointerId);
+            if (!touch) return;
+            clientX = touch.clientX;
+            clientY = touch.clientY;
+        } else {
+            if (event.pointerId !== this.draggedInventoryItem.pointerId) return;
+            clientX = event.clientX;
+            clientY = event.clientY;
+        }
+
         event.preventDefault();
-        const clientX = event instanceof TouchEvent ? event.changedTouches[0].clientX : event.clientX;
-        const clientY = event instanceof TouchEvent ? event.changedTouches[0].clientY : event.clientY;
-        const clientX = event instanceof TouchEvent ? event.changedTouches[0].clientX : event.clientX;
-        const clientY = event instanceof TouchEvent ? event.changedTouches[0].clientY : event.clientY;
         this.updateDragPreviewPosition(clientX, clientY);
     }
 
     endInventoryDrag(event) {
-        const pointerId = event instanceof PointerEvent ? event.pointerId : event.changedTouches?.[0]?.identifier;
-        if (!this.draggedInventoryItem || pointerId !== this.draggedInventoryItem.pointerId) return;
+        if (!this.draggedInventoryItem) return;
+
+        let pointerId;
+        let clientX;
+        let clientY;
+
+        if (event instanceof TouchEvent) {
+            const touch = Array.from(event.changedTouches).find(t => t.identifier === this.draggedInventoryItem.pointerId);
+            if (!touch) return;
+            pointerId = touch.identifier;
+            clientX = touch.clientX;
+            clientY = touch.clientY;
+        } else {
+            pointerId = event.pointerId ?? 0;
+            clientX = event.clientX;
+            clientY = event.clientY;
+        }
+
+        if (pointerId !== this.draggedInventoryItem.pointerId) return;
         event.preventDefault();
 
         const { item } = this.draggedInventoryItem;
@@ -452,8 +493,6 @@ class UIManager {
 
         if (!window.game || !game.canvas) return;
         const rect = game.canvas.getBoundingClientRect();
-        const clientX = event instanceof TouchEvent ? event.changedTouches[0].clientX : event.clientX;
-        const clientY = event instanceof TouchEvent ? event.changedTouches[0].clientY : event.clientY;
         const inside = clientX >= rect.left && clientX <= rect.right &&
             clientY >= rect.top && clientY <= rect.bottom;
 
