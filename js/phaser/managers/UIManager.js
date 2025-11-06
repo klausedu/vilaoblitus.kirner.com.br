@@ -2,6 +2,13 @@
  * UIManager
  * Gerencia interface HTML sobreposta ao Phaser (inventário, notificações, etc)
  */
+const DEBUG_DRAG = true;
+function debugDrag(...args) {
+    if (DEBUG_DRAG) {
+        console.log('[DRAG]', ...args);
+    }
+}
+
 class UIManager {
     constructor() {
         this.createUI();
@@ -354,46 +361,33 @@ class UIManager {
             itemDiv.appendChild(label);
 
         itemDiv.addEventListener('pointerdown', (event) => this.startInventoryDrag(item, event));
-        itemDiv.addEventListener('touchstart', (event) => {
-            event.preventDefault();
-            const touch = event.changedTouches[0];
-            const pointerEvent = new PointerEvent('pointerdown', {
-                pointerId: touch.identifier,
-                clientX: touch.clientX,
-                clientY: touch.clientY,
-                button: 0
-            });
-            this.startInventoryDrag(item, pointerEvent);
-        }, { passive: false });
+        itemDiv.addEventListener('touchstart', (event) => this.startInventoryDrag(item, event), { passive: false });
 
             grid.appendChild(itemDiv);
         });
     }
 
     startInventoryDrag(item, event) {
-        let pointerId;
-        let clientX;
-        let clientY;
-
-        if (event instanceof TouchEvent) {
-            const touch = event.changedTouches[0];
-            pointerId = touch.identifier;
-            clientX = touch.clientX;
-            clientY = touch.clientY;
-        } else {
-            if (event.button !== undefined && event.button !== 0) return;
-            pointerId = event.pointerId ?? 0;
-            clientX = event.clientX;
-            clientY = event.clientY;
-        }
+        const coords = this.getEventCoords(event);
+        if (!coords) return;
 
         event.preventDefault();
         event.stopPropagation();
 
         this.draggedInventoryItem = {
             item,
-            pointerId
+            pointerId: coords.pointerId,
+            lastX: coords.x,
+            lastY: coords.y,
+            loggedMove: false
         };
+
+        debugDrag('start', {
+            itemId: item.id,
+            pointerId: coords.pointerId,
+            x: coords.x,
+            y: coords.y
+        });
 
         if (this.dragPreview) {
             this.dragPreview.remove();
@@ -414,7 +408,7 @@ class UIManager {
         }
 
         document.body.appendChild(this.dragPreview);
-        this.updateDragPreviewPosition(clientX, clientY);
+        this.updateDragPreviewPosition(coords.x, coords.y);
 
         const overlay = this.inventoryOverlay || document.getElementById('inventory-overlay');
         this.inventoryWasOpenOnDrag = !!(overlay && overlay.classList.contains('active'));
@@ -431,44 +425,31 @@ class UIManager {
     handleInventoryDragMove(event) {
         if (!this.draggedInventoryItem) return;
 
-        let clientX;
-        let clientY;
-
-        if (event instanceof TouchEvent) {
-            const touch = Array.from(event.changedTouches).find(t => t.identifier === this.draggedInventoryItem.pointerId);
-            if (!touch) return;
-            clientX = touch.clientX;
-            clientY = touch.clientY;
-        } else {
-            if (event.pointerId !== this.draggedInventoryItem.pointerId) return;
-            clientX = event.clientX;
-            clientY = event.clientY;
-        }
+        const coords = this.getEventCoords(event, this.draggedInventoryItem.pointerId);
+        if (!coords) return;
 
         event.preventDefault();
-        this.updateDragPreviewPosition(clientX, clientY);
+        this.draggedInventoryItem.lastX = coords.x;
+        this.draggedInventoryItem.lastY = coords.y;
+        this.updateDragPreviewPosition(coords.x, coords.y);
+
+        if (!this.draggedInventoryItem.loggedMove) {
+            debugDrag('move', {
+                itemId: this.draggedInventoryItem.item.id,
+                pointerId: this.draggedInventoryItem.pointerId,
+                x: coords.x,
+                y: coords.y
+            });
+            this.draggedInventoryItem.loggedMove = true;
+        }
     }
 
     endInventoryDrag(event) {
         if (!this.draggedInventoryItem) return;
 
-        let pointerId;
-        let clientX;
-        let clientY;
+        const coords = this.getEventCoords(event, this.draggedInventoryItem.pointerId);
+        if (!coords) return;
 
-        if (event instanceof TouchEvent) {
-            const touch = Array.from(event.changedTouches).find(t => t.identifier === this.draggedInventoryItem.pointerId);
-            if (!touch) return;
-            pointerId = touch.identifier;
-            clientX = touch.clientX;
-            clientY = touch.clientY;
-        } else {
-            pointerId = event.pointerId ?? 0;
-            clientX = event.clientX;
-            clientY = event.clientY;
-        }
-
-        if (pointerId !== this.draggedInventoryItem.pointerId) return;
         event.preventDefault();
 
         const { item } = this.draggedInventoryItem;
@@ -493,16 +474,57 @@ class UIManager {
 
         if (!window.game || !game.canvas) return;
         const rect = game.canvas.getBoundingClientRect();
-        const inside = clientX >= rect.left && clientX <= rect.right &&
-            clientY >= rect.top && clientY <= rect.bottom;
+        const inside = coords.x >= rect.left && coords.x <= rect.right &&
+            coords.y >= rect.top && coords.y <= rect.bottom;
 
         if (inside && this.activeScene && typeof this.activeScene.handleInventoryDrop === 'function') {
             const pointerPosition = {
-                x: clientX,
-                y: clientY
+                x: coords.x,
+                y: coords.y
             };
+            debugDrag('drop', {
+                itemId: item.id,
+                pointerPosition,
+                location: this.activeScene?.currentLocation
+            });
             this.activeScene.handleInventoryDrop(item.id, pointerPosition);
+        } else {
+            debugDrag('drop-cancelled', {
+                itemId: item.id,
+                insideCanvas: inside
+            });
+            if (!inside) {
+                uiManager.showNotification('Solte o item sobre a cena.', 2500);
+            }
         }
+    }
+
+    getEventCoords(event, trackedPointerId = null) {
+        if (event instanceof TouchEvent) {
+            const touches = Array.from(event.changedTouches);
+            let touch = null;
+            if (trackedPointerId !== null) {
+                touch = touches.find(t => t.identifier === trackedPointerId) || touches[0];
+            } else {
+                touch = touches[0];
+            }
+            if (!touch) return null;
+            return {
+                x: touch.clientX,
+                y: touch.clientY,
+                pointerId: touch.identifier
+            };
+        }
+
+        if (event.button !== undefined && event.type === 'pointerdown' && event.button !== 0) {
+            return null;
+        }
+
+        return {
+            x: event.clientX,
+            y: event.clientY,
+            pointerId: event.pointerId ?? 0
+        };
     }
 
     updateDragPreviewPosition(x, y) {

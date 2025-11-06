@@ -303,17 +303,34 @@ class LocationScene extends Phaser.Scene {
     createDroppedItemSprite(item, worldX, worldY) {
         const size = item.dropSize || item.size || { width: 80, height: 80 };
 
-        const img = document.createElement('img');
-        img.src = item.image;
-        img.style.width = `${size.width}px`;
-        img.style.height = `${size.height}px`;
-        img.style.pointerEvents = 'auto';
+        let sprite;
 
-        const sprite = this.add.dom(worldX, worldY, img);
-        sprite.setOrigin(0.5);
+        const textureKey = `item_${item.id}`;
+        if (this.textures.exists(textureKey)) {
+            sprite = this.add.image(worldX, worldY, textureKey);
+            sprite.setDisplaySize(size.width, size.height);
+            sprite.setInteractive({ useHandCursor: true });
+            sprite.on('pointerdown', () => this.pickupDroppedItem(item.id));
+        } else if (item.image) {
+            const img = document.createElement('img');
+            img.src = item.image;
+            img.style.width = `${size.width}px`;
+            img.style.height = `${size.height}px`;
+            img.style.pointerEvents = 'auto';
+
+            sprite = this.add.dom(worldX, worldY, img);
+            sprite.addListener('pointerdown');
+            sprite.on('pointerdown', () => this.pickupDroppedItem(item.id));
+        } else {
+            sprite = this.add.text(worldX, worldY, '📦', {
+                fontSize: '28px'
+            });
+            sprite.setInteractive({ useHandCursor: true });
+            sprite.on('pointerdown', () => this.pickupDroppedItem(item.id));
+        }
+
+        sprite.setOrigin?.(0.5);
         sprite.setDepth(90);
-        sprite.addListener('pointerdown');
-        sprite.on('pointerdown', () => this.pickupDroppedItem(item.id));
 
         const label = this.add.text(worldX, worldY + size.height / 2 + 8, item.name || item.id, {
             fontSize: '12px',
@@ -664,6 +681,15 @@ class LocationScene extends Phaser.Scene {
 
         const worldPoint = this.cameras.main.getWorldPoint(localX, localY);
         const bounds = this.getBackgroundBounds();
+        console.log('[DROP]', {
+            itemId,
+            pointer,
+            localX,
+            localY,
+            worldX: worldPoint.x,
+            worldY: worldPoint.y,
+            bounds
+        });
         if (!this.isPointInsideBackground(worldPoint.x, worldPoint.y, bounds)) {
             uiManager.showNotification('Solte o item sobre a cena.', 2500);
             return;
@@ -681,6 +707,8 @@ class LocationScene extends Phaser.Scene {
         } else {
             this.placeItemInScene(itemId, worldPoint, percentPosition);
         }
+
+        console.log('[INVENTORY STATE AFTER DROP]', JSON.parse(JSON.stringify(gameStateManager.state.inventory)));
     }
 
     placeItemInScene(itemId, worldPoint, percentPosition) {
@@ -701,6 +729,7 @@ class LocationScene extends Phaser.Scene {
             return;
         }
 
+        console.log('[DROP] Item colocado na cena:', dropInfo);
         this.renderDroppedItems();
         uiManager.renderInventory();
         uiManager.showNotification(`${dropInfo.name || itemId} foi colocado no cenário.`);
@@ -730,6 +759,7 @@ class LocationScene extends Phaser.Scene {
             return;
         }
 
+        console.log('[DROP] Item posicionado no enigma:', dropInfo);
         this.renderDroppedItems();
         uiManager.renderInventory();
 
