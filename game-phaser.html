@@ -49,21 +49,6 @@
     <script src="js/phaser/scenes/BootScene.js?v=20250216"></script>
     <script src="js/phaser/scenes/LocationScene.v2.js?v=20250216"></script>
 
-    <!-- Authentication Check -->
-    <script>
-        // Check if user is logged in
-        const sessionToken = localStorage.getItem('session_token');
-        const username = localStorage.getItem('username');
-
-        if (!sessionToken) {
-            // Not logged in, redirect to login page
-            window.location.href = 'index.php';
-        } else {
-            // Show username in console
-            console.log('✓ Logged in as:', username);
-        }
-    </script>
-
     <!-- Phaser Config & Start -->
     <script src="js/phaser/config.js"></script>
 </body>
