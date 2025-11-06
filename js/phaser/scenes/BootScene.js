@@ -93,73 +93,56 @@ class BootScene extends Phaser.Scene {
             console.error('❌ Erro ao carregar:', file.key, file.url);
         });
 
-        // Preload all location images
-        this.preloadLocationImages();
-
-        // Preload all item images
-        this.preloadItemImages();
-
-        // Preload puzzle visuals
-        this.preloadPuzzleImages();
+        this.preloadOptimizedAssets();
     }
 
-    preloadLocationImages() {
-        // Use databaseLoader.gameMap (loaded from database or fallback to map.js)
+    preloadOptimizedAssets() {
         const gameMapData = databaseLoader.isLoaded() ? databaseLoader.gameMap : (typeof gameMap !== 'undefined' ? gameMap : {});
 
+        const backgroundSources = new Map();
+        const itemSources = new Map();
+        const puzzleBeforeSources = new Map();
+        const puzzleAfterSources = new Map();
+        const rewardSources = new Map();
 
         Object.keys(gameMapData).forEach(locationId => {
             const location = gameMapData[locationId];
-            if (location.background) {
-                this.load.image(locationId, location.background);
-            } else if (location.image) {
-                this.load.image(locationId, location.image);
+
+            const background = location.background || location.image;
+            if (background && !backgroundSources.has(locationId)) {
+                backgroundSources.set(locationId, background);
             }
-        });
-    }
 
-    preloadItemImages() {
-        // Use databaseLoader.gameMap (loaded from database or fallback to map.js)
-        const gameMapData = databaseLoader.isLoaded() ? databaseLoader.gameMap : (typeof gameMap !== 'undefined' ? gameMap : {});
-
-
-        Object.keys(gameMapData).forEach(locationId => {
-            const location = gameMapData[locationId];
-            if (location.items) {
-                location.items.forEach(item => {
-                    if (item.image && item.id) {
-                        this.load.image('item_' + item.id, item.image);
-                    }
-                });
-            }
-        });
-    }
-
-    preloadPuzzleImages() {
-        const gameMapData = databaseLoader.isLoaded() ? databaseLoader.gameMap : (typeof gameMap !== 'undefined' ? gameMap : {});
-
-        Object.keys(gameMapData).forEach(locationId => {
-            const location = gameMapData[locationId];
-            if (location.puzzle && location.puzzle.visual) {
-                const beforeImage = location.puzzle.visual.beforeImage;
-                const afterImage = location.puzzle.visual.afterImage;
-                if (beforeImage) {
-                    this.load.image(`puzzle_${locationId}_before`, beforeImage);
+            (location.items || []).forEach(item => {
+                if (item.id && item.image && !itemSources.has(item.id)) {
+                    itemSources.set(item.id, item.image);
                 }
-                if (afterImage) {
-                    this.load.image(`puzzle_${locationId}_after`, afterImage);
+            });
+
+            if (location.puzzle && location.puzzle.visual) {
+                const visual = location.puzzle.visual;
+                if (visual.beforeImage && !puzzleBeforeSources.has(locationId)) {
+                    puzzleBeforeSources.set(locationId, visual.beforeImage);
+                }
+                if (visual.afterImage && !puzzleAfterSources.has(locationId)) {
+                    puzzleAfterSources.set(locationId, visual.afterImage);
                 }
             }
 
             const rewardId = location.puzzle?.reward?.id;
             if (rewardId) {
-                let rewardImage = location.puzzle.reward.image;
-                if (!rewardImage) {
-                    rewardImage = `images/items/${rewardId}.png`;
+                const rewardImage = location.puzzle.reward.image || `images/items/${rewardId}.png`;
+                if (!rewardSources.has(rewardId)) {
+                    rewardSources.set(rewardId, rewardImage);
                 }
-                this.load.image(`puzzle_reward_${rewardId}`, rewardImage);
             }
         });
+
+        backgroundSources.forEach((src, key) => this.load.image(key, src));
+        itemSources.forEach((src, id) => this.load.image(`item_${id}`, src));
+        puzzleBeforeSources.forEach((src, id) => this.load.image(`puzzle_${id}_before`, src));
+        puzzleAfterSources.forEach((src, id) => this.load.image(`puzzle_${id}_after`, src));
+        rewardSources.forEach((src, id) => this.load.image(`puzzle_reward_${id}`, src));
     }
 
     async create() {
