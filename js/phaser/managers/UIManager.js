@@ -418,8 +418,10 @@ class UIManager {
 
         document.addEventListener('pointermove', this.boundHandleInventoryDragMove, { passive: false });
         document.addEventListener('pointerup', this.boundEndInventoryDrag, { passive: false });
+        document.addEventListener('pointercancel', this.boundEndInventoryDrag, { passive: false });
         document.addEventListener('touchmove', this.boundHandleInventoryDragMove, { passive: false });
         document.addEventListener('touchend', this.boundEndInventoryDrag, { passive: false });
+        document.addEventListener('touchcancel', this.boundEndInventoryDrag, { passive: false });
     }
 
     handleInventoryDragMove(event) {
@@ -461,8 +463,10 @@ class UIManager {
 
         document.removeEventListener('pointermove', this.boundHandleInventoryDragMove);
         document.removeEventListener('pointerup', this.boundEndInventoryDrag);
+        document.removeEventListener('pointercancel', this.boundEndInventoryDrag);
         document.removeEventListener('touchmove', this.boundHandleInventoryDragMove);
         document.removeEventListener('touchend', this.boundEndInventoryDrag);
+        document.removeEventListener('touchcancel', this.boundEndInventoryDrag);
 
         this.draggedInventoryItem = null;
 
@@ -476,6 +480,14 @@ class UIManager {
         const rect = game.canvas.getBoundingClientRect();
         const inside = coords.x >= rect.left && coords.x <= rect.right &&
             coords.y >= rect.top && coords.y <= rect.bottom;
+
+        debugDrag('end', {
+            itemId: item.id,
+            pointerId: coords.pointerId,
+            x: coords.x,
+            y: coords.y,
+            insideCanvas: inside
+        });
 
         if (inside && this.activeScene && typeof this.activeScene.handleInventoryDrop === 'function') {
             const pointerPosition = {
@@ -517,6 +529,10 @@ class UIManager {
         }
 
         if (event.button !== undefined && event.type === 'pointerdown' && event.button !== 0) {
+            return null;
+        }
+
+        if (trackedPointerId !== null && event.pointerId !== undefined && event.pointerId !== trackedPointerId) {
             return null;
         }
 
