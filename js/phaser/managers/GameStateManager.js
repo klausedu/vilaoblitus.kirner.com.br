@@ -15,6 +15,7 @@ class GameStateManager {
         };
 
         this.callbacks = {};
+        this.normalizeInventory();
     }
 
     /**
@@ -53,14 +54,16 @@ class GameStateManager {
             return false; // Já coletado
         }
 
+        this.normalizeInventory();
+
         this.state.collectedItems.push(item.id);
-        this.state.inventory[item.id] = {
+        this.state.inventory[item.id] = this.normalizeInventoryEntry(item.id, {
             name: item.name,
             description: item.description,
             image: item.image,
             size: item.size || { width: 80, height: 80 },
             status: 'held'
-        };
+        });
 
         if (item.id === 'master_key') {
         this.state.hasKey = true;
@@ -110,6 +113,7 @@ class GameStateManager {
      * Obter dados crus de um item no inventário
      */
     getInventoryItem(itemId) {
+        this.normalizeInventory();
         return this.state.inventory[itemId] || null;
     }
 
@@ -117,6 +121,7 @@ class GameStateManager {
      * Lista os itens que estão com o jogador
      */
     getInventoryArray() {
+        this.normalizeInventory();
         return Object.entries(this.state.inventory)
             .filter(([, item]) => (item.status || 'held') === 'held')
             .map(([id, item]) => ({ id, ...item }));
@@ -126,18 +131,21 @@ class GameStateManager {
      * Lista itens posicionados no cenário atual
      */
     getDroppedItems(locationId) {
+        this.normalizeInventory();
         return Object.entries(this.state.inventory)
             .filter(([, item]) => item.status === 'dropped' && item.dropLocation === locationId)
             .map(([id, item]) => ({ id, ...item }));
     }
 
     isItemAvailable(itemId) {
+        this.normalizeInventory();
         const item = this.state.inventory[itemId];
         if (!item) return false;
         return item.status !== 'used';
     }
 
     isItemPlacedAtLocation(itemId, locationId, requirePuzzleArea = false) {
+        this.normalizeInventory();
         const item = this.state.inventory[itemId];
         if (!item || item.status !== 'dropped') return false;
         if (item.dropLocation !== locationId) return false;
@@ -148,15 +156,25 @@ class GameStateManager {
     }
 
     dropInventoryItem(itemId, locationId, positionPercent, options = {}) {
+        this.normalizeInventory();
+
         const item = this.state.inventory[itemId];
         if (!item || item.status === 'used') {
+            console.warn('[Inventory] Item indisponível para drop:', itemId);
             return null;
         }
 
         item.status = 'dropped';
         item.dropLocation = locationId;
-        item.dropPosition = positionPercent;
-        item.dropSize = options.size || item.size || { width: 80, height: 80 };
+        item.dropPosition = {
+            x: Math.max(0, Math.min(100, Number(positionPercent.x) || 0)),
+            y: Math.max(0, Math.min(100, Number(positionPercent.y) || 0))
+        };
+        const baseSize = options.size || item.size || { width: 80, height: 80 };
+        item.dropSize = {
+            width: Number(baseSize.width) || item.size.width || 80,
+            height: Number(baseSize.height) || item.size.height || 80
+        };
         item.dropInPuzzleArea = !!options.inPuzzleArea;
 
         this.saveProgress(false);
@@ -165,6 +183,7 @@ class GameStateManager {
     }
 
     pickupDroppedItem(itemId) {
+        this.normalizeInventory();
         const item = this.state.inventory[itemId];
         if (!item || item.status !== 'dropped') {
             return null;
@@ -182,6 +201,7 @@ class GameStateManager {
     }
 
     consumeItem(itemId) {
+        this.normalizeInventory();
         const item = this.state.inventory[itemId];
         if (!item) return;
 
@@ -273,6 +293,7 @@ class GameStateManager {
             if (saved) {
                 this.state = JSON.parse(saved);
                 this.normalizeInventory();
+                localStorage.setItem('vila_abandonada_phaser', JSON.stringify(this.state));
                 console.log('✓ Progresso carregado do localStorage');
                 return true;
             }
@@ -298,12 +319,13 @@ class GameStateManager {
 
             const data = await response.json();
             if (data.success && data.data) {
+                const inventory = this.mapInventory(data.data.inventory || {});
                 return {
                     currentLocation: data.data.current_location,
                     visitedLocations: data.data.visited_locations || [],
                     collectedItems: data.data.collected_items || [],
                     solvedPuzzles: data.data.solved_puzzles || [],
-                    inventory: data.data.inventory || {},
+                    inventory,
                     hasKey: data.data.has_key || false,
                     gameCompleted: data.data.game_completed || false
                 };
@@ -334,18 +356,71 @@ class GameStateManager {
     }
 
     normalizeInventory() {
-        if (!this.state.inventory) {
-            this.state.inventory = {};
-            return;
+        this.state.inventory = this.mapInventory(this.state.inventory);
+    }
+
+    mapInventory(rawInventory) {
+        const normalized = {};
+
+        if (Array.isArray(rawInventory)) {
+            rawInventory.forEach(entry => {
+                if (!entry) return;
+                const id = entry.id || entry.itemId || entry.name;
+                if (!id) return;
+                const normalizedEntry = this.normalizeInventoryEntry(id, entry);
+                if (normalizedEntry) {
+                    normalized[id] = normalizedEntry;
+                }
+            });
+        } else if (rawInventory && typeof rawInventory === 'object') {
+            Object.entries(rawInventory).forEach(([id, value]) => {
+                if (!value) return;
+                const normalizedEntry = this.normalizeInventoryEntry(id, { id, ...value });
+                if (normalizedEntry) {
+                    normalized[id] = normalizedEntry;
+                }
+            });
         }
-        Object.values(this.state.inventory).forEach(item => {
-            if (!item.size) {
-                item.size = { width: 80, height: 80 };
-            }
-            if (!item.status) {
-                item.status = 'held';
-            }
-        });
+
+        return normalized;
+    }
+
+    normalizeInventoryEntry(itemId, raw = {}) {
+        if (!itemId) return null;
+
+        const entry = { ...raw };
+
+        entry.id = itemId;
+        entry.name = entry.name || itemId;
+        entry.description = entry.description || '';
+        entry.image = entry.image || '';
+
+        const size = entry.size && typeof entry.size === 'object' ? entry.size : {};
+        entry.size = {
+            width: Number(size.width) || 80,
+            height: Number(size.height) || 80
+        };
+
+        entry.status = entry.status || 'held';
+
+        if (entry.dropPosition && typeof entry.dropPosition === 'object') {
+            entry.dropPosition = {
+                x: Number(entry.dropPosition.x) || 0,
+                y: Number(entry.dropPosition.y) || 0
+            };
+        }
+
+        if (entry.dropSize && typeof entry.dropSize === 'object') {
+            entry.dropSize = {
+                width: Number(entry.dropSize.width) || entry.size.width,
+                height: Number(entry.dropSize.height) || entry.size.height
+            };
+        }
+
+        entry.dropLocation = entry.dropLocation || undefined;
+        entry.dropInPuzzleArea = !!entry.dropInPuzzleArea;
+
+        return entry;
     }
 
     /**
