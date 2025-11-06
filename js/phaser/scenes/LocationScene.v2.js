@@ -662,7 +662,7 @@ class LocationScene extends Phaser.Scene {
         const localX = ((pointer.x - rect.left) / rect.width) * baseWidth;
         const localY = ((pointer.y - rect.top) / rect.height) * baseHeight;
 
-        const worldPoint = this.cameras.main.getWorldPoint(localX, localY, true);
+        const worldPoint = this.cameras.main.getWorldPoint(localX, localY);
         const bounds = this.getBackgroundBounds();
         if (!this.isPointInsideBackground(worldPoint.x, worldPoint.y, bounds)) {
             uiManager.showNotification('Solte o item sobre a cena.', 2500);
