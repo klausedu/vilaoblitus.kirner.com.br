@@ -464,6 +464,17 @@ class UIManager {
         if (!this.draggedInventoryItem) return;
 
         const dragContext = this.draggedInventoryItem;
+        debugDrag('end-event-received', {
+            eventType: event?.type,
+            eventPointerId: event?.pointerId ?? null,
+            trackedPointerId: dragContext.pointerId,
+            targetTag: event?.target?.tagName || null,
+            targetId: event?.target?.id || null,
+            targetClass: event?.target?.className || null,
+            isTouchEvent: event instanceof TouchEvent,
+            changedTouches: event instanceof TouchEvent ? event.changedTouches.length : undefined
+        });
+
         const overlay = this.inventoryOverlay || document.getElementById('inventory-overlay');
         if (this.inventoryWasOpenOnDrag && overlay) {
             overlay.classList.add('active');
@@ -553,6 +564,7 @@ class UIManager {
     }
 
     detachInventoryDragListeners() {
+        debugDrag('listeners-detached');
         document.removeEventListener('pointermove', this.boundHandleInventoryDragMove);
         document.removeEventListener('pointerup', this.boundEndInventoryDrag);
         document.removeEventListener('pointercancel', this.boundEndInventoryDrag);
