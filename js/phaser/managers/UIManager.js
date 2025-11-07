@@ -28,6 +28,7 @@ class UIManager {
         this.puzzleSubmitBtn = null;
         this.puzzleCancelBtn = null;
         this.activePuzzleContext = null;
+        this._ignoreNextPuzzleOverlayClick = false;
         if (typeof gameStateManager !== 'undefined' && gameStateManager.on) {
             gameStateManager.on('inventoryChanged', () => this.renderInventory());
         }
@@ -486,9 +487,12 @@ class UIManager {
         container.appendChild(overlay);
 
         overlay.addEventListener('click', (event) => {
-            if (event.target === overlay) {
-                this.closePuzzleOverlay('backdrop');
+            if (event.target !== overlay) return;
+            if (this._ignoreNextPuzzleOverlayClick) {
+                this._ignoreNextPuzzleOverlayClick = false;
+                return;
             }
+            this.closePuzzleOverlay('backdrop');
         });
 
         this.puzzleOverlay = overlay;
@@ -829,11 +833,16 @@ class UIManager {
         }
 
         this.puzzleOverlay.classList.add('active');
+        this._ignoreNextPuzzleOverlayClick = true;
+        setTimeout(() => {
+            this._ignoreNextPuzzleOverlayClick = false;
+        }, 150);
     }
 
     closePuzzleOverlay(reason = 'cancel') {
         const ctx = this.activePuzzleContext;
         this.activePuzzleContext = null;
+        this._ignoreNextPuzzleOverlayClick = false;
         if (this.puzzleOverlay) {
             this.puzzleOverlay.classList.remove('active');
         }
