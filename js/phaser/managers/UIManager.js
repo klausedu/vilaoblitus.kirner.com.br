@@ -11,7 +11,7 @@ function debugDrag(...args) {
 
 class UIManager {
     constructor() {
-        this.createUI();
+        // Inicializar propriedades ANTES de criar UI
         this.activeScene = null;
         this.draggedInventoryItem = null;
         this.dragPreview = null;
@@ -29,6 +29,10 @@ class UIManager {
         this.puzzleCancelBtn = null;
         this.activePuzzleContext = null;
         this._ignoreNextPuzzleOverlayClick = false;
+
+        // Criar UI (vai popular as propriedades acima)
+        this.createUI();
+
         if (typeof gameStateManager !== 'undefined' && gameStateManager.on) {
             gameStateManager.on('inventoryChanged', () => this.renderInventory());
         }
@@ -435,9 +439,11 @@ class UIManager {
     }
 
     createPuzzleOverlay(container) {
+        console.log('[PUZZLE][UI][INIT]', 'Criando puzzle overlay...');
         const overlay = document.createElement('div');
         overlay.id = 'puzzle-overlay';
         overlay.className = 'phaser-overlay';
+        console.log('[PUZZLE][UI][INIT]', 'Overlay criado:', overlay);
 
         const modal = document.createElement('div');
         modal.className = 'phaser-overlay-content puzzle-modal';
@@ -508,6 +514,17 @@ class UIManager {
         this.puzzleMessageEl = message;
         this.puzzleSubmitBtn = submitBtn;
         this.puzzleCancelBtn = cancelBtn;
+
+        console.log('[PUZZLE][UI][INIT]', 'Elementos salvos:', {
+            overlay: !!this.puzzleOverlay,
+            title: !!this.puzzleTitleEl,
+            question: !!this.puzzleQuestionEl,
+            hint: !!this.puzzleHintEl,
+            inputArea: !!this.puzzleInputArea,
+            message: !!this.puzzleMessageEl,
+            submitBtn: !!this.puzzleSubmitBtn,
+            cancelBtn: !!this.puzzleCancelBtn
+        });
     }
 
     createLocationInfo(container) {
@@ -700,8 +717,12 @@ class UIManager {
         if (this.puzzleQuestionEl) {
             const question = puzzle.question || 'Resolva o enigma para continuar.';
             console.log('[PUZZLE][UI][DEBUG]', 'Definindo pergunta:', question);
+            console.log('[PUZZLE][UI][DEBUG]', 'puzzle.question original:', puzzle.question);
+            console.log('[PUZZLE][UI][DEBUG]', 'typeof puzzle.question:', typeof puzzle.question);
+            console.log('[PUZZLE][UI][DEBUG]', 'puzzle completo:', JSON.stringify(puzzle, null, 2));
             this.puzzleQuestionEl.textContent = question;
             console.log('[PUZZLE][UI][DEBUG]', 'Pergunta definida, textContent:', this.puzzleQuestionEl.textContent);
+            console.log('[PUZZLE][UI][DEBUG]', 'Elemento HTML:', this.puzzleQuestionEl);
         } else {
             console.error('[PUZZLE][UI]', 'puzzleQuestionEl não existe!');
         }
