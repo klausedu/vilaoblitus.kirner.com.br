@@ -137,7 +137,7 @@ class UIManager {
                 background: rgba(244, 67, 54, 0.4);
             }
             .phaser-overlay {
-                position: absolute;
+                position: fixed;
                 top: 0;
                 left: 0;
                 width: 100%;
@@ -147,9 +147,11 @@ class UIManager {
                 justify-content: center;
                 align-items: center;
                 pointer-events: auto;
+                z-index: 10000;
             }
             .phaser-overlay.active {
                 display: flex;
+                pointer-events: auto;
             }
             .phaser-overlay-content {
                 background: #1a1a1a;
@@ -160,6 +162,8 @@ class UIManager {
                 max-height: 80vh;
                 overflow-y: auto;
                 position: relative;
+                pointer-events: auto;
+                z-index: 10001;
             }
             .phaser-close-btn {
                 position: absolute;
@@ -265,6 +269,7 @@ class UIManager {
                 color: #ffffff;
                 outline: none;
                 transition: border-color 0.2s, box-shadow 0.2s;
+                pointer-events: auto;
             }
             .puzzle-input:focus {
                 border-color: #f0a500;
@@ -284,6 +289,7 @@ class UIManager {
                 font-size: 16px;
                 cursor: pointer;
                 transition: transform 0.2s, background 0.2s, border-color 0.2s;
+                pointer-events: auto;
             }
             .phaser-btn-primary {
                 background: linear-gradient(135deg, #f0a500, #f5c75a);
@@ -339,6 +345,7 @@ class UIManager {
                 text-align: left;
                 cursor: pointer;
                 transition: transform 0.15s, border-color 0.15s, background 0.15s;
+                pointer-events: auto;
             }
             .puzzle-choice-btn:hover {
                 transform: translateY(-1px);
@@ -367,6 +374,7 @@ class UIManager {
                 color: #f5ede1;
                 cursor: pointer;
                 transition: transform 0.15s, border-color 0.15s, background 0.15s;
+                pointer-events: auto;
             }
             .puzzle-sequence-btn:hover {
                 transform: translateY(-1px);
@@ -910,6 +918,12 @@ class UIManager {
         setTimeout(() => {
             this._ignoreNextPuzzleOverlayClick = false;
         }, 150);
+
+        // Desabilitar input do Phaser para evitar cliques atravessando o overlay
+        if (this.activeScene && this.activeScene.input) {
+            console.log('[PUZZLE][UI]', 'Desabilitando input do Phaser');
+            this.activeScene.input.enabled = false;
+        }
     }
 
     closePuzzleOverlay(reason = 'cancel') {
@@ -926,6 +940,12 @@ class UIManager {
             this.puzzleInputArea.innerHTML = '';
         }
         this.resetPuzzleOverlay();
+
+        // Reabilitar input do Phaser
+        if (this.activeScene && this.activeScene.input) {
+            console.log('[PUZZLE][UI]', 'Reabilitando input do Phaser');
+            this.activeScene.input.enabled = true;
+        }
 
         if (ctx && typeof ctx.onClose === 'function') {
             try {

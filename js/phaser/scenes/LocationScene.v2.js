@@ -1223,6 +1223,7 @@ class LocationScene extends Phaser.Scene {
             const zone = this.add.zone(x + w / 2, y + h / 2, w, h);
             zone.setInteractive({ useHandCursor: true });
             zone.setOrigin(0.5);
+            zone.setDepth(10); // Baixa prioridade - items devem ter preferência
 
             // Label (nome do destino)
             const labelCenterX = x + w / 2;
@@ -1236,6 +1237,7 @@ class LocationScene extends Phaser.Scene {
             });
             label.setOrigin(0.5);
             label.setAlpha(0); // Invisível por padrão
+            label.setDepth(15); // Acima das zones, mas abaixo dos items
 
             // Hover effects - apenas label
             zone.on('pointerover', () => {
@@ -1304,6 +1306,7 @@ class LocationScene extends Phaser.Scene {
                 // Criar DOMElement
                 element = this.add.dom(x, y, img);
                 element.setOrigin(0.5);
+                element.setDepth(50); // Prioridade sobre hotspots (depth 10)
 
                 // Aplicar perspectiva via Phaser
                 element.setPerspective(800);
@@ -1406,6 +1409,7 @@ class LocationScene extends Phaser.Scene {
                     }
 
                     element.setOrigin(0.5);
+                    element.setDepth(50); // Prioridade sobre hotspots (depth 10)
                     this.applySpriteTransform(element, transform);
 
                     // Make it interactive
@@ -1442,6 +1446,7 @@ class LocationScene extends Phaser.Scene {
                         fontSize: '48px'
                     });
                     element.setOrigin(0.5);
+                    element.setDepth(50); // Prioridade sobre hotspots (depth 10)
                 }
             }
 
