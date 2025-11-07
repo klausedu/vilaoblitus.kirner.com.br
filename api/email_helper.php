@@ -199,3 +199,97 @@ function getWaitlistEmailTemplate($name) {
 </html>
     ';
 }
+
+/**
+ * Template de email de reset de senha
+ */
+function getPasswordResetEmailTemplate($name, $resetLink) {
+    return '
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset de Senha - Vila Abandonada</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #0a0a0a;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #0a0a0a; padding: 40px 20px;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%); border: 2px solid #f0a500; border-radius: 16px; overflow: hidden;">
+
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: rgba(240, 165, 0, 0.1); padding: 30px; text-align: center;">
+                            <h1 style="color: #f0a500; margin: 0; font-size: 32px; text-shadow: 0 0 20px rgba(240, 165, 0, 0.5);">
+                                🏚️ Vila Abandonada
+                            </h1>
+                            <p style="color: #999; margin: 10px 0 0 0; font-size: 14px;">
+                                Reset de Senha
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <h2 style="color: #f0a500; margin: 0 0 20px 0; font-size: 24px;">
+                                Olá, ' . htmlspecialchars($name) . '! 👋
+                            </h2>
+
+                            <p style="color: #e0e0e0; line-height: 1.6; margin: 0 0 20px 0; font-size: 16px;">
+                                Recebemos uma solicitação para resetar a senha da sua conta em <strong style="color: #f0a500;">Vila Abandonada</strong>.
+                            </p>
+
+                            <p style="color: #e0e0e0; line-height: 1.6; margin: 0 0 30px 0; font-size: 16px;">
+                                Clique no botão abaixo para criar uma nova senha:
+                            </p>
+
+                            <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                                <tr>
+                                    <td align="center">
+                                        <a href="' . htmlspecialchars($resetLink) . '" style="display: inline-block; background: linear-gradient(135deg, #f0a500, #f5c75a); color: #0a0a0a; padding: 15px 40px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+                                            Resetar Senha
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <div style="background: rgba(240, 165, 0, 0.1); border-left: 4px solid #f0a500; padding: 20px; margin: 30px 0; border-radius: 4px;">
+                                <p style="color: #f0a500; margin: 0 0 10px 0; font-weight: bold; font-size: 14px;">
+                                    ⏰ IMPORTANTE
+                                </p>
+                                <p style="color: #e0e0e0; margin: 0; font-size: 14px; line-height: 1.6;">
+                                    Este link expira em <strong>1 hora</strong>. Se você não solicitou o reset de senha, ignore este email.
+                                </p>
+                            </div>
+
+                            <p style="color: #999; line-height: 1.6; margin: 20px 0 0 0; font-size: 13px;">
+                                Se o botão não funcionar, copie e cole o link abaixo no seu navegador:
+                            </p>
+                            <p style="color: #666; line-height: 1.6; margin: 5px 0; font-size: 12px; word-break: break-all;">
+                                ' . htmlspecialchars($resetLink) . '
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background: rgba(0, 0, 0, 0.3); padding: 30px; text-align: center; border-top: 1px solid rgba(240, 165, 0, 0.2);">
+                            <p style="color: #666; margin: 0 0 10px 0; font-size: 12px;">
+                                Este email foi enviado porque alguém solicitou o reset de senha para esta conta.
+                            </p>
+                            <p style="color: #666; margin: 0; font-size: 12px;">
+                                © 2025 KIRNER BINARIES. Todos os direitos reservados.
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+    ';
+}
