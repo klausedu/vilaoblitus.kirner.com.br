@@ -632,7 +632,18 @@ class UIManager {
     }
 
     openPuzzleDialog(puzzle, options = {}) {
+        console.log('[PUZZLE][UI][DEBUG]', 'openPuzzleDialog chamado', {
+            puzzle,
+            options,
+            hasOverlay: !!this.puzzleOverlay,
+            hasTitleEl: !!this.puzzleTitleEl,
+            hasQuestionEl: !!this.puzzleQuestionEl,
+            hasHintEl: !!this.puzzleHintEl,
+            hasInputArea: !!this.puzzleInputArea
+        });
+
         if (!puzzle || !this.puzzleOverlay) {
+            console.error('[PUZZLE][UI]', 'Puzzle ou overlay ausente!', { puzzle, overlay: this.puzzleOverlay });
             return;
         }
 
@@ -679,21 +690,34 @@ class UIManager {
 
         if (this.puzzleTitleEl) {
             const title = options.title || puzzle.title || puzzle.name || 'Enigma';
+            console.log('[PUZZLE][UI][DEBUG]', 'Definindo título:', title);
             this.puzzleTitleEl.textContent = title;
+            console.log('[PUZZLE][UI][DEBUG]', 'Título definido, textContent:', this.puzzleTitleEl.textContent);
+        } else {
+            console.error('[PUZZLE][UI]', 'puzzleTitleEl não existe!');
         }
 
         if (this.puzzleQuestionEl) {
-            this.puzzleQuestionEl.textContent = puzzle.question || 'Resolva o enigma para continuar.';
+            const question = puzzle.question || 'Resolva o enigma para continuar.';
+            console.log('[PUZZLE][UI][DEBUG]', 'Definindo pergunta:', question);
+            this.puzzleQuestionEl.textContent = question;
+            console.log('[PUZZLE][UI][DEBUG]', 'Pergunta definida, textContent:', this.puzzleQuestionEl.textContent);
+        } else {
+            console.error('[PUZZLE][UI]', 'puzzleQuestionEl não existe!');
         }
 
         if (this.puzzleHintEl) {
             if (puzzle.hint) {
                 this.puzzleHintEl.style.display = 'block';
                 this.puzzleHintEl.textContent = `Dica: ${puzzle.hint}`;
+                console.log('[PUZZLE][UI][DEBUG]', 'Dica definida:', puzzle.hint);
             } else {
                 this.puzzleHintEl.style.display = 'none';
                 this.puzzleHintEl.textContent = '';
+                console.log('[PUZZLE][UI][DEBUG]', 'Sem dica');
             }
+        } else {
+            console.error('[PUZZLE][UI]', 'puzzleHintEl não existe!');
         }
 
         this.setPuzzleMessage('');
