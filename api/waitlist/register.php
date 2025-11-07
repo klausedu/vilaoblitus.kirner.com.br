@@ -25,7 +25,7 @@ try {
     // Validar formato de email
     $email = filter_var(trim($data['email']), FILTER_VALIDATE_EMAIL);
     if (!$email) {
-        sendResponse(false, null, 'Email inválido');
+        sendResponse(false, null, 'Formato de email inválido. Por favor, digite um email válido.');
     }
 
     $name = trim($data['name']);
