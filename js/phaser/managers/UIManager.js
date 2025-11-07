@@ -847,6 +847,7 @@ class UIManager {
 
     closePuzzleOverlay(reason = 'cancel') {
         const ctx = this.activePuzzleContext;
+        console.log('[PUZZLE][UI]', 'closePuzzleOverlay', reason);
         this.activePuzzleContext = null;
         this._ignoreNextPuzzleOverlayClick = false;
         if (this.puzzleOverlay) {
