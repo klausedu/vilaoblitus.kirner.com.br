@@ -5,6 +5,7 @@ header('Access-Control-Allow-Methods: POST');
 header('Access-Control-Allow-Headers: Content-Type');
 
 require_once '../config.php';
+require_once '../email_helper.php';
 
 try {
     $pdo = getDBConnection();
@@ -53,11 +54,31 @@ try {
     // Log para debug
     error_log("✅ Nova inscrição na waitlist: $name ($email)");
 
+    // Enviar email de confirmação
+    $emailSent = false;
+    if (!empty(SMTP_PASS)) {
+        try {
+            $subject = "Bem-vindo à Lista de Espera - Vila Abandonada 🏚️";
+            $body = getWaitlistEmailTemplate($name);
+            $emailSent = sendEmail($email, $name, $subject, $body);
+        } catch (Exception $e) {
+            error_log("⚠️ Erro ao enviar email: " . $e->getMessage());
+        }
+    } else {
+        error_log("⚠️ SMTP_PASS não configurado - email não enviado");
+    }
+
+    $message = 'Cadastro realizado com sucesso! ';
+    $message .= $emailSent
+        ? 'Você receberá um email de confirmação em breve.'
+        : 'Você receberá um email quando o jogo estiver disponível.';
+
     sendResponse(true, [
         'id' => $pdo->lastInsertId(),
         'name' => $name,
-        'email' => $email
-    ], 'Cadastro realizado com sucesso! Você receberá um email quando o jogo estiver disponível.');
+        'email' => $email,
+        'email_sent' => $emailSent
+    ], $message);
 
 } catch (PDOException $e) {
     error_log("❌ Erro ao cadastrar na waitlist: " . $e->getMessage());

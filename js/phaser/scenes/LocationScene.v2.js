@@ -589,6 +589,8 @@ class LocationScene extends Phaser.Scene {
         if (useDom && sprite.node) {
             sprite.node.style.cursor = 'grab';
             sprite.node.style.touchAction = 'none';
+            sprite.node.style.userSelect = 'none';
+            sprite.node.title = 'Clique e arraste para mover';
         }
 
         if (useDom && typeof sprite.addListener === 'function') {
