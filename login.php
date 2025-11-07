@@ -270,6 +270,9 @@
                     <input type="password" id="login-password" placeholder="Digite sua senha" required>
                 </div>
                 <button type="submit" class="btn">Entrar</button>
+                <div style="text-align: center; margin-top: 15px;">
+                    <a href="forgot-password.html" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 14px; transition: color 0.3s;" onmouseover="this.style.color='#667eea'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">Esqueci minha senha</a>
+                </div>
             </form>
         </div>
 
