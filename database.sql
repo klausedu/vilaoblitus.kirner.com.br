@@ -118,3 +118,18 @@ CREATE TABLE IF NOT EXISTS connections (
     INDEX idx_from (from_location),
     INDEX idx_to (to_location)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Waitlist Table (Landing page signups)
+CREATE TABLE IF NOT EXISTS waitlist (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    age INT NULL,
+    city VARCHAR(100) NULL,
+    phone VARCHAR(20) NULL,
+    book_source VARCHAR(255) NULL,
+    notified BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_email (email),
+    INDEX idx_notified (notified)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
