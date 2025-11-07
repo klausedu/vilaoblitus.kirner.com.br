@@ -3,7 +3,9 @@
     "allow": [
       "Bash(dir:*)",
       "Bash(tree:*)",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "Bash(echo:*)",
+      "Bash(\"C:\\src\\codex.oblitus\\api\\email_helper.php\")"
     ],
     "deny": [],
     "ask": []

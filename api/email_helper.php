@@ -369,3 +369,66 @@ function getPasswordResetEmailTemplate($name, $resetLink) {
 </html>
     ';
 }
+
+
+/**
+ * Template de email de lançamento do jogo
+ */
+function getLaunchEmailTemplate($name) {
+    return '
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vila Abandonada Está Disponível!</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #0a0a0a;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #0a0a0a; padding: 40px 20px;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%); border: 2px solid #f0a500; border-radius: 16px; overflow: hidden;">
+                    <tr>
+                        <td style="background: rgba(240, 165, 0, 0.1); padding: 30px; text-align: center;">
+                            <h1 style="color: #f0a500; margin: 0; font-size: 36px; text-shadow: 0 0 20px rgba(240, 165, 0, 0.5);">🎮 O JOGO ESTÁ DISPONÍVEL!</h1>
+                            <p style="color: #999; margin: 10px 0 0 0; font-size: 16px;">Vila Abandonada</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <h2 style="color: #f0a500; margin: 0 0 20px 0; font-size: 24px;">Olá, ' . htmlspecialchars($name) . '! 👋</h2>
+                            <p style="color: #e0e0e0; line-height: 1.6; margin: 0 0 20px 0; font-size: 16px;">Estamos muito felizes em anunciar que <strong style="color: #f0a500;">Vila Abandonada</strong> já está disponível para jogar!</p>
+                            <p style="color: #e0e0e0; line-height: 1.6; margin: 0 0 30px 0; font-size: 16px;">Você foi um dos primeiros a se inscrever e agora pode começar sua jornada pelos mistérios da vila.</p>
+                            <div style="background: rgba(240, 165, 0, 0.15); border: 2px solid #f0a500; padding: 25px; margin: 30px 0; border-radius: 8px; text-align: center;">
+                                <p style="color: #f0a500; margin: 0 0 15px 0; font-weight: bold; font-size: 18px;">🏚️ COMECE A JOGAR AGORA</p>
+                                <table width="100%" cellpadding="0" cellspacing="0">
+                                    <tr><td align="center"><a href="https://vilaoblitus.kirner.com.br/login.php" style="display: inline-block; background: linear-gradient(135deg, #f0a500, #f5c75a); color: #0a0a0a; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 18px;">JOGAR AGORA</a></td></tr>
+                                </table>
+                            </div>
+                            <div style="background: rgba(0, 0, 0, 0.3); padding: 20px; margin: 30px 0; border-radius: 8px; border-left: 4px solid #f0a500;">
+                                <h3 style="color: #f0a500; margin: 0 0 15px 0; font-size: 18px;">📖 O que te espera:</h3>
+                                <ul style="color: #e0e0e0; margin: 0; padding-left: 20px; line-height: 1.8;">
+                                    <li>Múltiplos locais para explorar</li>
+                                    <li>Enigmas desafiadores e recompensas</li>
+                                    <li>Sistema de inventário e combinação de itens</li>
+                                    <li>História envolvente e atmosfera misteriosa</li>
+                                    <li>Salve seu progresso e continue de onde parou</li>
+                                </ul>
+                            </div>
+                            <p style="color: #999; line-height: 1.6; margin: 20px 0 0 0; font-size: 14px; text-align: center;">Divirta-se explorando os mistérios!<br><strong style="color: #f0a500;">KIRNER BINARIES</strong></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="background: rgba(0, 0, 0, 0.3); padding: 30px; text-align: center; border-top: 1px solid rgba(240, 165, 0, 0.2);">
+                            <p style="color: #666; margin: 0 0 10px 0; font-size: 12px;">Você está recebendo este email porque se inscreveu na lista de espera.</p>
+                            <p style="color: #666; margin: 0; font-size: 12px;">© 2025 KIRNER BINARIES. Todos os direitos reservados.</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+    ';
+}
