@@ -5,6 +5,19 @@
  */
 
 /**
+ * Função auxiliar para ler resposta multi-linha do servidor SMTP
+ */
+function getSmtpResponse($conn) {
+    $response = '';
+    while ($line = fgets($conn, 515)) {
+        $response .= $line;
+        // Última linha termina com espaço (não hífen) após o código
+        if (substr($line, 3, 1) == ' ') break;
+    }
+    return trim($response);
+}
+
+/**
  * Envia email usando SMTP com autenticação (Hostinger)
  *
  * @param string $to Email do destinatário
@@ -41,7 +54,7 @@ function sendEmail($to, $toName, $subject, $body) {
             SMTP_PORT,
             $errno,
             $errstr,
-            10
+            30
         );
 
         if (!$smtpConn) {
@@ -51,8 +64,8 @@ function sendEmail($to, $toName, $subject, $body) {
         error_log("✅ [EMAIL] Conectado ao servidor SMTP");
 
         // Ler resposta inicial
-        $response = fgets($smtpConn, 515);
-        error_log("🔵 [EMAIL] Resposta inicial: " . trim($response));
+        $response = getSmtpResponse($smtpConn);
+        error_log("🔵 [EMAIL] Resposta inicial: " . $response);
 
         if (substr($response, 0, 3) != '220') {
             error_log("❌ [EMAIL] SMTP erro na conexão: $response");
@@ -63,23 +76,35 @@ function sendEmail($to, $toName, $subject, $body) {
         // EHLO
         $serverName = $_SERVER['SERVER_NAME'] ?? 'localhost';
         fputs($smtpConn, "EHLO $serverName\r\n");
-        $response = fgets($smtpConn, 515);
-        error_log("🔵 [EMAIL] EHLO response: " . trim($response));
+        $response = getSmtpResponse($smtpConn);
+        error_log("🔵 [EMAIL] EHLO response: " . $response);
 
         // AUTH LOGIN
         fputs($smtpConn, "AUTH LOGIN\r\n");
-        $response = fgets($smtpConn, 515);
-        error_log("🔵 [EMAIL] AUTH LOGIN response: " . trim($response));
+        $response = getSmtpResponse($smtpConn);
+        error_log("🔵 [EMAIL] AUTH LOGIN response: " . $response);
+
+        if (substr($response, 0, 3) != '334') {
+            error_log("❌ [EMAIL] Servidor não aceitou AUTH LOGIN: $response");
+            fclose($smtpConn);
+            return false;
+        }
 
         // Username
         fputs($smtpConn, base64_encode(SMTP_USER) . "\r\n");
-        $response = fgets($smtpConn, 515);
-        error_log("🔵 [EMAIL] Username response: " . trim($response));
+        $response = getSmtpResponse($smtpConn);
+        error_log("🔵 [EMAIL] Username response: " . $response);
+
+        if (substr($response, 0, 3) != '334') {
+            error_log("❌ [EMAIL] Username rejeitado: $response");
+            fclose($smtpConn);
+            return false;
+        }
 
         // Password
         fputs($smtpConn, base64_encode(SMTP_PASS) . "\r\n");
-        $response = fgets($smtpConn, 515);
-        error_log("🔵 [EMAIL] Password response: " . trim($response));
+        $response = getSmtpResponse($smtpConn);
+        error_log("🔵 [EMAIL] Password response: " . $response);
 
         if (substr($response, 0, 3) != '235') {
             error_log("❌ [EMAIL] SMTP autenticação falhou: $response");
@@ -92,18 +117,36 @@ function sendEmail($to, $toName, $subject, $body) {
 
         // MAIL FROM
         fputs($smtpConn, "MAIL FROM: <" . EMAIL_FROM . ">\r\n");
-        $response = fgets($smtpConn, 515);
-        error_log("🔵 [EMAIL] MAIL FROM response: " . trim($response));
+        $response = getSmtpResponse($smtpConn);
+        error_log("🔵 [EMAIL] MAIL FROM response: " . $response);
+
+        if (substr($response, 0, 3) != '250') {
+            error_log("❌ [EMAIL] MAIL FROM falhou: $response");
+            fclose($smtpConn);
+            return false;
+        }
 
         // RCPT TO
         fputs($smtpConn, "RCPT TO: <$to>\r\n");
-        $response = fgets($smtpConn, 515);
-        error_log("🔵 [EMAIL] RCPT TO response: " . trim($response));
+        $response = getSmtpResponse($smtpConn);
+        error_log("🔵 [EMAIL] RCPT TO response: " . $response);
+
+        if (substr($response, 0, 3) != '250') {
+            error_log("❌ [EMAIL] RCPT TO falhou: $response");
+            fclose($smtpConn);
+            return false;
+        }
 
         // DATA
         fputs($smtpConn, "DATA\r\n");
-        $response = fgets($smtpConn, 515);
-        error_log("🔵 [EMAIL] DATA response: " . trim($response));
+        $response = getSmtpResponse($smtpConn);
+        error_log("🔵 [EMAIL] DATA response: " . $response);
+
+        if (substr($response, 0, 3) != '354') {
+            error_log("❌ [EMAIL] DATA falhou: $response");
+            fclose($smtpConn);
+            return false;
+        }
 
         // Montar mensagem
         $message = "From: " . EMAIL_FROM_NAME . " <" . EMAIL_FROM . ">\r\n";
@@ -120,8 +163,8 @@ function sendEmail($to, $toName, $subject, $body) {
 
         // Enviar mensagem
         fputs($smtpConn, $message);
-        $response = fgets($smtpConn, 515);
-        error_log("🔵 [EMAIL] Send response: " . trim($response));
+        $response = getSmtpResponse($smtpConn);
+        error_log("🔵 [EMAIL] Send response: " . $response);
 
         // QUIT
         fputs($smtpConn, "QUIT\r\n");
