@@ -333,6 +333,42 @@
             window.location.href = isAdmin ? 'admin-panel.html' : 'game-phaser.html';
         }
 
+        // Check if registration is enabled
+        async function checkRegistrationStatus() {
+            try {
+                const response = await fetch('api/check-registration-status.php');
+                const data = await response.json();
+
+                if (data.success && !data.enabled) {
+                    // Disable registration tab
+                    const registerTab = document.querySelectorAll('.tab')[1]; // Second tab is register
+                    const registerForm = document.getElementById('register-form');
+
+                    registerTab.style.opacity = '0.5';
+                    registerTab.style.cursor = 'not-allowed';
+                    registerTab.onclick = function(e) {
+                        e.stopPropagation();
+                        showMessage('Cadastro temporariamente desabilitado.', 'error');
+                    };
+
+                    // Add notice to register form
+                    if (registerForm) {
+                        const notice = document.createElement('div');
+                        notice.className = 'message error show';
+                        notice.textContent = 'Cadastro de novos usuários está temporariamente desabilitado.';
+                        notice.style.marginBottom = '20px';
+                        registerForm.insertBefore(notice, registerForm.firstChild);
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking registration status:', error);
+                // On error, allow registration (fail-safe)
+            }
+        }
+
+        // Check registration status on page load
+        checkRegistrationStatus();
+
         // Add back button
         const container = document.querySelector('.container');
         const backBtn = document.createElement('div');
