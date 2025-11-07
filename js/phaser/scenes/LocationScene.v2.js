@@ -257,6 +257,17 @@ class LocationScene extends Phaser.Scene {
             width: displayWidth,
             height: displayHeight
         };
+
+        if (puzzle.type && puzzle.type !== 'item_combination') {
+            this.puzzleSprite.setInteractive({ useHandCursor: true });
+            this.puzzleSprite.on('pointerdown', () => {
+                if (gameStateManager.isPuzzleSolved(puzzle.id)) {
+                    uiManager.showNotification('Este enigma já foi resolvido.');
+                    return;
+                }
+                this.promptPuzzleInteraction(puzzle.id);
+            });
+        }
     }
 
     applySpriteTransform(sprite, transform = {}) {
