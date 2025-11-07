@@ -850,12 +850,14 @@ class UIManager {
             this.puzzleOverlay.style.display = 'flex';
             this.puzzleOverlay.style.pointerEvents = 'auto';
         }
+        if (!this.activePuzzleContext?.onSubmit) {
+            setSubmitEnabled(false);
+        }
         console.log('[PUZZLE]', 'overlay ativo');
         this._ignoreNextPuzzleOverlayClick = true;
         setTimeout(() => {
             this._ignoreNextPuzzleOverlayClick = false;
         }, 150);
-        console.log('[PUZZLE][UI]', 'submit habilitado?', !this.puzzleSubmitBtn?.disabled);
     }
 
     closePuzzleOverlay(reason = 'cancel') {
