@@ -469,7 +469,7 @@ class LocationScene extends Phaser.Scene {
 
             sprite = this.add.dom(worldX, worldY, img);
             sprite.setOrigin(0.5);
-            sprite.setDepth(90);
+            sprite.setDepth(100); // Prioridade máxima sobre tudo
 
             const perspective = transform?.perspective || 800;
             sprite.setPerspective(perspective);
@@ -546,13 +546,13 @@ class LocationScene extends Phaser.Scene {
             }
 
             sprite.setOrigin?.(0.5);
-            sprite.setDepth(90);
+            sprite.setDepth(100); // Prioridade máxima
             this.applySpriteTransform(sprite, transform || {});
         }
 
         if (!sprite) return;
 
-        sprite.setDepth?.(90);
+        sprite.setDepth?.(100); // Garantir prioridade máxima
 
         const label = this.add.text(worldX, worldY + size.height / 2 + 8, item.name || item.id, {
             fontSize: '12px',
@@ -561,7 +561,7 @@ class LocationScene extends Phaser.Scene {
             padding: { x: 6, y: 3 }
         });
         label.setOrigin(0.5, 0);
-        label.setDepth(90);
+        label.setDepth(101); // Label acima do sprite
 
         const spriteAlpha = typeof sprite.alpha === 'number' ? sprite.alpha : 1;
         const labelAlpha = typeof label.alpha === 'number' ? label.alpha : 1;
@@ -1263,7 +1263,22 @@ class LocationScene extends Phaser.Scene {
             });
 
             // Click handler
-            zone.on('pointerdown', () => {
+            zone.on('pointerdown', (pointer) => {
+                // Verificar se há um dropped item na posição do clique
+                const hasDroppedItemAtPosition = this.droppedItemSprites.some(entry => {
+                    if (!entry.sprite) return false;
+                    const sprite = entry.sprite;
+                    const distance = Phaser.Math.Distance.Between(pointer.worldX, pointer.worldY, sprite.x, sprite.y);
+                    const threshold = Math.max(entry.size?.width || 80, entry.size?.height || 80) / 2;
+                    return distance < threshold;
+                });
+
+                // Se há dropped item, não processar o hotspot
+                if (hasDroppedItemAtPosition) {
+                    console.log('[HOTSPOT] Clique ignorado - dropped item na posição');
+                    return;
+                }
+
                 this.handleHotspotClick(hotspot);
             });
 
