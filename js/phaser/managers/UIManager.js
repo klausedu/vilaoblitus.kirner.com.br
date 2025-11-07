@@ -656,7 +656,13 @@ class UIManager {
         }
 
         const puzzleType = (puzzle.type ?? '').toString().trim().toLowerCase();
-        console.log('[PUZZLE]', 'abrindo modal', { id: puzzle.id, type: puzzleType, options });
+        console.log('[PUZZLE][UI]', 'abrindo modal', {
+            id: puzzle.id,
+            type: puzzleType,
+            question: puzzle.question,
+            options: puzzle.options,
+            reward: puzzle.reward
+        });
         const context = {
             puzzle,
             onSubmit: typeof options.onSubmit === 'function' ? options.onSubmit : null,
@@ -709,6 +715,7 @@ class UIManager {
         };
 
         const optionsArray = Array.isArray(puzzle.options) ? puzzle.options : [];
+        console.log('[PUZZLE][UI]', 'optionsArray', optionsArray);
 
         if (puzzleType === 'code' || puzzleType === 'math') {
             const input = document.createElement('input');
