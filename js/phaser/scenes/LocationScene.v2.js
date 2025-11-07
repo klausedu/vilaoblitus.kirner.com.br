@@ -249,17 +249,64 @@ class LocationScene extends Phaser.Scene {
         };
     }
 
+    applySpriteTransform(sprite, transform = {}) {
+        if (!sprite) return;
+
+        const parseNumber = (value, fallback) => {
+            if (value === null || value === undefined) return fallback;
+            const num = typeof value === 'string' ? parseFloat(value) : value;
+            return Number.isFinite(num) ? num : fallback;
+        };
+
+        const isTrue = (value) => value === true || value === 1 || value === '1';
+
+        if (!sprite.__baseScale) {
+            const baseX = parseNumber(sprite.scaleX, 1);
+            const baseY = parseNumber(sprite.scaleY, 1);
+            sprite.__baseScale = { x: baseX, y: baseY };
+        }
+
+        const baseScale = sprite.__baseScale;
+
+        let scaleX = parseNumber(transform.scaleX, 1);
+        let scaleY = parseNumber(transform.scaleY, 1);
+        if (!('scaleX' in transform) && 'scale' in transform) {
+            scaleX = parseNumber(transform.scale, 1);
+        }
+        if (!('scaleY' in transform) && 'scale' in transform) {
+            scaleY = parseNumber(transform.scale, 1);
+        }
+
+        if (isTrue(transform.flipX)) {
+            scaleX *= -1;
+        }
+        if (isTrue(transform.flipY)) {
+            scaleY *= -1;
+        }
+
+        if (sprite.setAngle) {
+            sprite.setAngle(parseNumber(transform.rotation, 0));
+        }
+
+        if (sprite.setScale) {
+            const finalScaleX = baseScale.x * scaleX;
+            const finalScaleY = baseScale.y * scaleY;
+            sprite.setScale(finalScaleX, finalScaleY);
+        }
+
+        if (sprite.setAlpha) {
+            if (transform.opacity !== undefined && transform.opacity !== null && transform.opacity !== '') {
+                const alpha = parseNumber(transform.opacity, 1);
+                sprite.setAlpha(alpha);
+            } else {
+                sprite.setAlpha(1);
+            }
+        }
+    }
+
     applyPuzzleTransforms(sprite, transform = {}) {
         if (!sprite) return;
-        sprite.setAngle(transform.rotation || 0);
-        const scaleX = (transform.scaleX || 1) * (transform.flipX ? -1 : 1);
-        const scaleY = (transform.scaleY || 1) * (transform.flipY ? -1 : 1);
-        sprite.setScale(scaleX, scaleY);
-        if (typeof transform.opacity === 'number') {
-            sprite.setAlpha(transform.opacity);
-        } else {
-            sprite.setAlpha(1);
-        }
+        this.applySpriteTransform(sprite, transform);
     }
 
     flashPuzzleSprite(color = 0xf0a500) {
@@ -481,21 +528,7 @@ class LocationScene extends Phaser.Scene {
 
             sprite.setOrigin?.(0.5);
             sprite.setDepth(90);
-
-            if (transform) {
-                const rotation = transform.rotation || 0;
-                sprite.setAngle?.(rotation);
-                if (transform.flipX) sprite.setFlipX?.(true);
-                if (transform.flipY) sprite.setFlipY?.(true);
-                if (typeof transform.opacity === 'number' && sprite.setAlpha) {
-                    sprite.setAlpha(transform.opacity);
-                }
-                if (sprite.setScale && (transform.scaleX !== undefined || transform.scaleY !== undefined)) {
-                    const scaleX = transform.scaleX ?? 1;
-                    const scaleY = transform.scaleY ?? 1;
-                    sprite.setScale(scaleX, scaleY);
-                }
-            }
+            this.applySpriteTransform(sprite, transform || {});
         }
 
         if (!sprite) return;
@@ -1119,14 +1152,8 @@ class LocationScene extends Phaser.Scene {
                         element.setDisplaySize(80, 80);
                     }
 
-                    // Apply transformations
-                    element.setAngle(transform.rotation || 0);
-                    if (transform.flipX) element.flipX = true;
-                    if (transform.flipY) element.flipY = true;
-                    if (transform.opacity !== undefined) {
-                        element.setAlpha(transform.opacity);
-                    }
                     element.setOrigin(0.5);
+                    this.applySpriteTransform(element, transform);
 
                     // Make it interactive
                     element.setInteractive({ useHandCursor: true });
