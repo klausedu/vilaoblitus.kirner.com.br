@@ -1502,14 +1502,21 @@ class LocationScene extends Phaser.Scene {
         const supportedTypes = ['code', 'math', 'direction', 'riddle', 'sequence_symbols'];
         if (supportedTypes.includes(puzzleType)) {
             console.log('[PUZZLE]', 'abrindo dialogo suportado', puzzleType);
-            uiManager.openPuzzleDialog(puzzle, {
-                onSubmit: (payload) => this.handlePuzzleSubmission(puzzle, payload),
-                onClose: () => {
-                    if (!gameStateManager.isPuzzleSolved(puzzle.id)) {
-                        this.flashPuzzleSprite();
+            const openDialog = () => {
+                uiManager.openPuzzleDialog(puzzle, {
+                    onSubmit: (payload) => this.handlePuzzleSubmission(puzzle, payload),
+                    onClose: () => {
+                        if (!gameStateManager.isPuzzleSolved(puzzle.id)) {
+                            this.flashPuzzleSprite();
+                        }
                     }
-                }
-            });
+                });
+            };
+            if (this.time?.delayedCall) {
+                this.time.delayedCall(60, openDialog);
+            } else {
+                setTimeout(openDialog, 60);
+            }
             this.flashPuzzleSprite(0xf0a500);
             return;
         }
