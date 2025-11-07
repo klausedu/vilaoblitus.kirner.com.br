@@ -303,6 +303,11 @@ class UIManager {
                 opacity: 0.6;
                 cursor: not-allowed;
             }
+            .phaser-btn-primary.disabled,
+            .phaser-btn-secondary.disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+            }
             .puzzle-message {
                 margin-top: 16px;
                 font-size: 15px;
@@ -690,6 +695,7 @@ class UIManager {
         const setSubmitEnabled = (enabled) => {
             if (this.puzzleSubmitBtn) {
                 this.puzzleSubmitBtn.disabled = !enabled;
+                this.puzzleSubmitBtn.classList.toggle('disabled', !enabled);
             }
         };
 
@@ -745,6 +751,7 @@ class UIManager {
                         buttons.forEach(b => b.classList.remove('selected'));
                         btn.classList.add('selected');
                         setSubmitEnabled(true);
+                        this.puzzleSubmitBtn?.focus();
                         this.setPuzzleMessage('');
                     });
                     buttons.push(btn);
@@ -793,6 +800,7 @@ class UIManager {
                         context.state.sequence.push(index);
                         updateDisplay();
                         setSubmitEnabled(true);
+                        this.puzzleSubmitBtn?.focus();
                         this.setPuzzleMessage('');
                     });
                     optionsWrap.appendChild(btn);
@@ -847,6 +855,7 @@ class UIManager {
         setTimeout(() => {
             this._ignoreNextPuzzleOverlayClick = false;
         }, 150);
+        console.log('[PUZZLE][UI]', 'submit habilitado?', !this.puzzleSubmitBtn?.disabled);
     }
 
     closePuzzleOverlay(reason = 'cancel') {
