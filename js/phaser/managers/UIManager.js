@@ -314,6 +314,69 @@ class UIManager {
             .puzzle-message.error {
                 color: #ff8484;
             }
+            .puzzle-choice-list {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+            .puzzle-choice-btn {
+                background: rgba(255, 255, 255, 0.08);
+                border: 2px solid rgba(255, 255, 255, 0.12);
+                border-radius: 10px;
+                color: #f5ede1;
+                font-size: 16px;
+                padding: 12px 16px;
+                text-align: left;
+                cursor: pointer;
+                transition: transform 0.15s, border-color 0.15s, background 0.15s;
+            }
+            .puzzle-choice-btn:hover {
+                transform: translateY(-1px);
+                border-color: rgba(240, 165, 0, 0.6);
+            }
+            .puzzle-choice-btn.selected {
+                border-color: #f0a500;
+                background: rgba(240, 165, 0, 0.18);
+                color: #ffe8b3;
+            }
+            .puzzle-helper {
+                font-size: 14px;
+                color: #d5c5a5;
+            }
+            .puzzle-sequence-options {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                margin-top: 8px;
+            }
+            .puzzle-sequence-btn {
+                padding: 10px 14px;
+                border-radius: 8px;
+                border: 2px solid rgba(255, 255, 255, 0.18);
+                background: rgba(255, 255, 255, 0.07);
+                color: #f5ede1;
+                cursor: pointer;
+                transition: transform 0.15s, border-color 0.15s, background 0.15s;
+            }
+            .puzzle-sequence-btn:hover {
+                transform: translateY(-1px);
+                border-color: rgba(240, 165, 0, 0.6);
+            }
+            .puzzle-sequence-display {
+                margin-top: 14px;
+                font-size: 15px;
+                color: #f5ede1;
+                min-height: 22px;
+            }
+            .puzzle-sequence-display span {
+                color: #f0a500;
+                font-weight: 600;
+            }
+            .puzzle-sequence-actions {
+                margin-top: 12px;
+                display: flex;
+                justify-content: flex-end;
+            }
         `;
         document.head.appendChild(style);
 
@@ -578,9 +641,15 @@ class UIManager {
             onSubmit: typeof options.onSubmit === 'function' ? options.onSubmit : null,
             onSolved: typeof options.onSolved === 'function' ? options.onSolved : null,
             onClose: typeof options.onClose === 'function' ? options.onClose : null,
-            primaryInput: null
+            primaryInput: null,
+            buildPayload: null,
+            validateBeforeSubmit: null,
+            state: {}
         };
         this.activePuzzleContext = context;
+
+        const puzzleType = (puzzle.type || '').toLowerCase();
+        context.type = puzzleType;
 
         if (this.puzzleTitleEl) {
             const title = options.title || puzzle.title || puzzle.name || 'Enigma';
@@ -601,47 +670,165 @@ class UIManager {
             }
         }
 
-        let primaryInput = null;
+        this.setPuzzleMessage('');
 
-        if (puzzle.type === 'code' || puzzle.type === 'math') {
-            primaryInput = document.createElement('input');
-            primaryInput.type = 'text';
-            primaryInput.className = 'puzzle-input';
-            primaryInput.placeholder = options.placeholder || (puzzle.type === 'code' ? 'Digite o código' : 'Digite a resposta');
-            primaryInput.maxLength = 32;
-            if (puzzle.type === 'code') {
-                primaryInput.inputMode = 'numeric';
-                primaryInput.pattern = '[0-9]*';
+        const setSubmitEnabled = (enabled) => {
+            if (this.puzzleSubmitBtn) {
+                this.puzzleSubmitBtn.disabled = !enabled;
             }
-            primaryInput.addEventListener('keydown', (event) => {
+        };
+
+        if (!context.onSubmit) {
+            setSubmitEnabled(false);
+        } else {
+            setSubmitEnabled(true);
+        }
+
+        const addHelperText = (text) => {
+            if (!this.puzzleInputArea) return;
+            const helper = document.createElement('div');
+            helper.className = 'puzzle-helper';
+            helper.textContent = text;
+            this.puzzleInputArea.appendChild(helper);
+            return helper;
+        };
+
+        const optionsArray = Array.isArray(puzzle.options) ? puzzle.options : [];
+
+        if (puzzleType === 'code' || puzzleType === 'math') {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'puzzle-input';
+            input.placeholder = options.placeholder || (puzzleType === 'code' ? 'Digite o código' : 'Digite a resposta');
+            input.maxLength = 32;
+            if (puzzleType === 'code') {
+                input.inputMode = 'numeric';
+                input.pattern = '[0-9]*';
+            }
+            input.addEventListener('keydown', (event) => {
                 if (event.key === 'Enter') {
                     event.preventDefault();
                     this.submitActivePuzzle();
                 }
             });
-            this.puzzleInputArea?.appendChild(primaryInput);
+            this.puzzleInputArea?.appendChild(input);
+            context.primaryInput = input;
+            context.buildPayload = () => ({ answer: input.value });
+            setSubmitEnabled(Boolean(context.onSubmit));
+            setTimeout(() => input.focus(), 60);
+        } else if (puzzleType === 'direction' || puzzleType === 'riddle') {
+            if (!optionsArray.length) {
+                addHelperText('Nenhuma opção configurada para este enigma.');
+                setSubmitEnabled(false);
+                context.validateBeforeSubmit = () => ({ valid: false, message: 'Enigma sem opções configuradas.' });
+            } else {
+                setSubmitEnabled(false);
+                const list = document.createElement('div');
+                list.className = 'puzzle-choice-list';
+                const buttons = [];
+                optionsArray.forEach((optionLabel, index) => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'puzzle-choice-btn';
+                    btn.textContent = optionLabel;
+                    btn.addEventListener('click', () => {
+                        context.state.selectedIndex = index;
+                        buttons.forEach(b => b.classList.remove('selected'));
+                        btn.classList.add('selected');
+                        setSubmitEnabled(true);
+                        this.setPuzzleMessage('');
+                    });
+                    buttons.push(btn);
+                    list.appendChild(btn);
+                });
+                this.puzzleInputArea?.appendChild(list);
+                context.buildPayload = () => ({ selectedIndex: context.state.selectedIndex });
+                context.validateBeforeSubmit = () => {
+                    if (context.state.selectedIndex === undefined) {
+                        return { valid: false, message: 'Selecione uma opção.' };
+                    }
+                    return { valid: true };
+                };
+            }
+        } else if (puzzleType === 'sequence_symbols') {
+            if (!optionsArray.length) {
+                addHelperText('Nenhum símbolo configurado para este enigma.');
+                setSubmitEnabled(false);
+                context.validateBeforeSubmit = () => ({ valid: false, message: 'Enigma sem símbolos configurados.' });
+            } else {
+                context.state.sequence = [];
+                setSubmitEnabled(false);
+                addHelperText('Clique nos símbolos na ordem correta.');
+
+                const optionsWrap = document.createElement('div');
+                optionsWrap.className = 'puzzle-sequence-options';
+
+                const updateDisplay = () => {
+                    if (!sequenceDisplay) return;
+                    if (!context.state.sequence.length) {
+                        sequenceDisplay.innerHTML = '<strong>Sequência:</strong> <span>Nenhum</span>';
+                    } else {
+                        const items = context.state.sequence
+                            .map(idx => optionsArray[idx] ?? `#${idx + 1}`)
+                            .map(label => `<span>${label}</span>`);
+                        sequenceDisplay.innerHTML = `<strong>Sequência:</strong> ${items.join(' → ')}`;
+                    }
+                };
+
+                optionsArray.forEach((label, index) => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'puzzle-sequence-btn';
+                    btn.textContent = label;
+                    btn.addEventListener('click', () => {
+                        context.state.sequence.push(index);
+                        updateDisplay();
+                        setSubmitEnabled(true);
+                        this.setPuzzleMessage('');
+                    });
+                    optionsWrap.appendChild(btn);
+                });
+                this.puzzleInputArea?.appendChild(optionsWrap);
+
+                const sequenceDisplay = document.createElement('div');
+                sequenceDisplay.className = 'puzzle-sequence-display';
+                this.puzzleInputArea?.appendChild(sequenceDisplay);
+                updateDisplay();
+
+                const actionsWrap = document.createElement('div');
+                actionsWrap.className = 'puzzle-sequence-actions';
+                const clearBtn = document.createElement('button');
+                clearBtn.type = 'button';
+                clearBtn.className = 'phaser-btn-secondary';
+                clearBtn.textContent = 'Limpar';
+                clearBtn.addEventListener('click', () => {
+                    context.state.sequence = [];
+                    updateDisplay();
+                    setSubmitEnabled(false);
+                    this.setPuzzleMessage('');
+                });
+                actionsWrap.appendChild(clearBtn);
+                this.puzzleInputArea?.appendChild(actionsWrap);
+
+                context.buildPayload = () => ({ sequence: Array.from(context.state.sequence) });
+                context.validateBeforeSubmit = () => {
+                    if (!context.state.sequence.length) {
+                        return { valid: false, message: 'Selecione ao menos um símbolo.' };
+                    }
+                    return { valid: true };
+                };
+            }
         } else {
             const unsupported = document.createElement('div');
             unsupported.style.fontSize = '15px';
             unsupported.style.color = '#ffb57d';
             unsupported.textContent = 'Este tipo de enigma ainda não está disponível nesta versão.';
             this.puzzleInputArea?.appendChild(unsupported);
-            if (this.puzzleSubmitBtn) {
-                this.puzzleSubmitBtn.disabled = true;
-            }
-        }
-
-        context.primaryInput = primaryInput;
-
-        if (!context.onSubmit && this.puzzleSubmitBtn) {
-            this.puzzleSubmitBtn.disabled = true;
+            setSubmitEnabled(false);
+            context.validateBeforeSubmit = () => ({ valid: false, message: 'Enigma não suportado.' });
         }
 
         this.puzzleOverlay.classList.add('active');
-
-        if (primaryInput) {
-            setTimeout(() => primaryInput.focus(), 60);
-        }
     }
 
     closePuzzleOverlay(reason = 'cancel') {
@@ -684,9 +871,23 @@ class UIManager {
             return;
         }
 
-        const payload = {};
-        if (ctx.puzzle.type === 'code' || ctx.puzzle.type === 'math') {
-            payload.answer = ctx.primaryInput ? ctx.primaryInput.value : '';
+        this.setPuzzleMessage('');
+
+        let payload = {};
+        if (ctx.buildPayload) {
+            payload = ctx.buildPayload() || {};
+        } else if (ctx.puzzle.type === 'code' || ctx.puzzle.type === 'math') {
+            payload = { answer: ctx.primaryInput ? ctx.primaryInput.value : '' };
+        }
+
+        if (ctx.validateBeforeSubmit) {
+            const validation = ctx.validateBeforeSubmit(payload);
+            if (!validation || validation.valid === false) {
+                if (validation?.message) {
+                    this.setPuzzleMessage(validation.message, 'error');
+                }
+                return;
+            }
         }
 
         if (this.puzzleSubmitBtn) {

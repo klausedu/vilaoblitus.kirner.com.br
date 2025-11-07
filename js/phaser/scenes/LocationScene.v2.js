@@ -998,6 +998,11 @@ class LocationScene extends Phaser.Scene {
         }
 
         switch (puzzle.type) {
+            case 'direction':
+            case 'riddle':
+                return this.evaluateChoicePuzzle(puzzle, payload);
+            case 'sequence_symbols':
+                return this.evaluateSequencePuzzle(puzzle, payload);
             case 'code':
             case 'math':
                 return this.evaluateAnswerPuzzle(puzzle, payload);
@@ -1007,6 +1012,79 @@ class LocationScene extends Phaser.Scene {
                     message: 'Este tipo de enigma ainda não está disponível nesta versão.'
                 };
         }
+    }
+
+    evaluateChoicePuzzle(puzzle, payload = {}) {
+        const selectedIndex = Number(payload.selectedIndex);
+        if (!Number.isInteger(selectedIndex)) {
+            this.flashPuzzleSprite(0xff6666);
+            return { success: false, message: 'Selecione uma opção.' };
+        }
+
+        const optionsArray = Array.isArray(puzzle.options) ? puzzle.options : [];
+        if (selectedIndex < 0 || selectedIndex >= optionsArray.length) {
+            this.flashPuzzleSprite(0xff6666);
+            return { success: false, message: 'Opção inválida selecionada.' };
+        }
+
+        const correctIndexRaw = puzzle.correctAnswer ?? puzzle.answer;
+        const correctIndex = Number(correctIndexRaw);
+        if (!Number.isInteger(correctIndex)) {
+            return { success: false, message: 'Este enigma está sem resposta configurada.' };
+        }
+        if (correctIndex < 0 || correctIndex >= optionsArray.length) {
+            return { success: false, message: 'Resposta configurada está fora das opções disponíveis.' };
+        }
+
+        if (selectedIndex === correctIndex) {
+            this.solveCurrentPuzzle(puzzle);
+            const message = puzzle.successMessage || 'Resposta correta!';
+            return { success: true, message, closeDelay: 900 };
+        }
+
+        this.flashPuzzleSprite(0xff6666);
+        const hintSuffix = puzzle.hint ? ` Dica: ${puzzle.hint}` : '';
+        return { success: false, message: `Resposta incorreta.${hintSuffix}` };
+    }
+
+    evaluateSequencePuzzle(puzzle, payload = {}) {
+        const attemptSequence = Array.isArray(payload.sequence)
+            ? payload.sequence.map(step => Number(step)).filter(step => Number.isFinite(step))
+            : [];
+
+        if (!attemptSequence.length) {
+            this.flashPuzzleSprite(0xff6666);
+            return { success: false, message: 'Selecione uma sequência.' };
+        }
+
+        const optionsArray = Array.isArray(puzzle.options) ? puzzle.options : [];
+        const outOfRange = attemptSequence.some(step => step < 0 || step >= optionsArray.length);
+        if (outOfRange) {
+            this.flashPuzzleSprite(0xff6666);
+            return { success: false, message: 'Sequência contém valores inválidos.' };
+        }
+
+        const expectedRaw = Array.isArray(puzzle.correctSequence) ? puzzle.correctSequence
+            : Array.isArray(puzzle.sequence) ? puzzle.sequence
+            : [];
+        const expectedSequence = expectedRaw.map(step => Number(step)).filter(step => Number.isFinite(step));
+
+        if (!expectedSequence.length) {
+            return { success: false, message: 'Este enigma está sem sequência configurada.' };
+        }
+
+        const isCorrect = attemptSequence.length === expectedSequence.length &&
+            attemptSequence.every((value, index) => value === expectedSequence[index]);
+
+        if (isCorrect) {
+            this.solveCurrentPuzzle(puzzle);
+            const message = puzzle.successMessage || 'Sequência correta!';
+            return { success: true, message, closeDelay: 900 };
+        }
+
+        this.flashPuzzleSprite(0xff6666);
+        const hintSuffix = puzzle.hint ? ` Dica: ${puzzle.hint}` : '';
+        return { success: false, message: `Sequência incorreta.${hintSuffix}` };
     }
 
     evaluateAnswerPuzzle(puzzle, payload = {}) {
@@ -1021,23 +1099,30 @@ class LocationScene extends Phaser.Scene {
             return { success: false, message: 'Este enigma está sem resposta configurada.' };
         }
 
-        const normalizedAttempt = attemptRaw.toLowerCase();
-        const normalizedExpected = expectedRaw.toString().trim().toLowerCase();
+        const attemptNormalized = attemptRaw.toLowerCase();
+        const expectedNormalized = expectedRaw.toString().trim().toLowerCase();
 
-        if (normalizedAttempt === normalizedExpected) {
+        let isCorrect = attemptNormalized === expectedNormalized;
+
+        const expectedNumber = Number(expectedRaw);
+        if (!isCorrect && !Number.isNaN(expectedNumber)) {
+            const attemptNumber = Number(attemptRaw.replace(',', '.'));
+            if (!Number.isNaN(attemptNumber)) {
+                isCorrect = Math.abs(attemptNumber - expectedNumber) < 1e-6;
+            }
+        }
+
+        if (isCorrect) {
             this.solveCurrentPuzzle(puzzle);
-            return {
-                success: true,
-                message: 'Código correto!',
-                closeDelay: 900
-            };
+            const message = puzzle.successMessage || 'Resposta correta!';
+            return { success: true, message, closeDelay: 900 };
         }
 
         this.flashPuzzleSprite(0xff6666);
         const hintSuffix = puzzle.hint ? ` Dica: ${puzzle.hint}` : '';
         return {
             success: false,
-            message: `Código incorreto.${hintSuffix}`
+            message: `Resposta incorreta.${hintSuffix}`
         };
     }
 
@@ -1396,7 +1481,8 @@ class LocationScene extends Phaser.Scene {
             return;
         }
 
-        if (puzzleType === 'code' || puzzleType === 'math') {
+        const supportedTypes = ['code', 'math', 'direction', 'riddle', 'sequence_symbols'];
+        if (supportedTypes.includes(puzzleType)) {
             uiManager.openPuzzleDialog(puzzle, {
                 onSubmit: (payload) => this.handlePuzzleSubmission(puzzle, payload),
                 onClose: () => {
