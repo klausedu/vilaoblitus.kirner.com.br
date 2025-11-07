@@ -150,6 +150,30 @@
             color: #666;
         }
 
+        .form-group input.invalid {
+            border-color: #f44336 !important;
+            box-shadow: 0 0 0 3px rgba(244, 67, 54, 0.1);
+        }
+
+        .form-group input.valid {
+            border-color: #4caf50 !important;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+
+        .input-hint {
+            font-size: 13px;
+            margin-top: 6px;
+            opacity: 0.8;
+        }
+
+        .input-hint.error {
+            color: #f44336;
+        }
+
+        .input-hint.success {
+            color: #4caf50;
+        }
+
         .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -291,6 +315,7 @@
                 <div class="form-group">
                     <label>Email <span class="required">*</span></label>
                     <input type="email" name="email" id="email" placeholder="seu@email.com" required>
+                    <div id="email-hint" class="input-hint" style="color: #999;">Digite um email válido</div>
                 </div>
 
                 <div class="form-row">
@@ -333,8 +358,48 @@
         const submitBtn = document.getElementById('submitBtn');
         const messageEl = document.getElementById('message');
 
+        // Real-time email validation
+        const emailInput = document.getElementById('email');
+        const emailHint = document.getElementById('email-hint');
+
+        if (emailInput && emailHint) {
+            emailInput.addEventListener('input', function() {
+                const email = this.value.trim();
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+                if (email.length === 0) {
+                    // Empty - show default hint
+                    this.classList.remove('valid', 'invalid');
+                    emailHint.textContent = 'Digite um email válido';
+                    emailHint.className = 'input-hint';
+                    emailHint.style.color = '#999';
+                } else if (!emailRegex.test(email)) {
+                    // Invalid email
+                    this.classList.remove('valid');
+                    this.classList.add('invalid');
+                    emailHint.textContent = 'Formato de email inválido';
+                    emailHint.className = 'input-hint error';
+                } else {
+                    // Valid
+                    this.classList.remove('invalid');
+                    this.classList.add('valid');
+                    emailHint.textContent = '✓ Email válido';
+                    emailHint.className = 'input-hint success';
+                }
+            });
+        }
+
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            // Validate email before submitting
+            const email = document.getElementById('email').value.trim();
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            if (!emailRegex.test(email)) {
+                showMessage('Por favor, digite um email válido.', 'error');
+                return;
+            }
 
             // Desabilitar botão
             submitBtn.disabled = true;
@@ -343,7 +408,7 @@
             // Coletar dados
             const formData = {
                 name: document.getElementById('name').value.trim(),
-                email: document.getElementById('email').value.trim(),
+                email: email,
                 age: document.getElementById('age').value || null,
                 city: document.getElementById('city').value.trim() || null,
                 phone: document.getElementById('phone').value.trim() || null,
