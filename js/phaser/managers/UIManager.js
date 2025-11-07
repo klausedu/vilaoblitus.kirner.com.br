@@ -640,6 +640,12 @@ class UIManager {
             this.puzzleInputArea.innerHTML = '';
         }
 
+        if (this.puzzleOverlay) {
+            this.puzzleOverlay.classList.add('active');
+            this.puzzleOverlay.style.display = 'flex';
+            this.puzzleOverlay.style.pointerEvents = 'auto';
+        }
+
         const puzzleType = (puzzle.type ?? '').toString().trim().toLowerCase();
         console.log('[PUZZLE]', 'abrindo modal', { id: puzzle.id, type: puzzleType, options });
         const context = {
