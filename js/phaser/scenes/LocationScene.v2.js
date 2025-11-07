@@ -206,6 +206,7 @@ class LocationScene extends Phaser.Scene {
 
         const puzzle = this.locationData.puzzle;
         if (!puzzle || !puzzle.visual) {
+            console.log('[PUZZLE] renderPuzzle: sem puzzle visual', this.locationData.id);
             return;
         }
 
@@ -261,6 +262,7 @@ class LocationScene extends Phaser.Scene {
         if (puzzle.type && puzzle.type !== 'item_combination') {
             this.puzzleSprite.setInteractive({ useHandCursor: true });
             this.puzzleSprite.on('pointerdown', () => {
+                console.log('[PUZZLE]', 'sprite pointerdown', puzzle.type, puzzle.id);
                 if (gameStateManager.isPuzzleSolved(puzzle.id)) {
                     uiManager.showNotification('Este enigma já foi resolvido.');
                     return;
@@ -1000,6 +1002,7 @@ class LocationScene extends Phaser.Scene {
     }
 
     handlePuzzleSubmission(puzzle, payload = {}) {
+        console.log('[PUZZLE]', 'submit', { id: puzzle?.id, type: puzzle?.type, payload });
         if (!puzzle) {
             return { success: false, message: 'Enigma inválido.' };
         }
@@ -1051,11 +1054,13 @@ class LocationScene extends Phaser.Scene {
         if (selectedIndex === correctIndex) {
             this.solveCurrentPuzzle(puzzle);
             const message = puzzle.successMessage || 'Resposta correta!';
+            console.log('[PUZZLE]', 'choice correta', { selectedIndex, correctIndex });
             return { success: true, message, closeDelay: 900 };
         }
 
         this.flashPuzzleSprite(0xff6666);
         const hintSuffix = puzzle.hint ? ` Dica: ${puzzle.hint}` : '';
+        console.log('[PUZZLE]', 'choice incorreta', { selectedIndex, correctIndex });
         return { success: false, message: `Resposta incorreta.${hintSuffix}` };
     }
 
@@ -1486,6 +1491,7 @@ class LocationScene extends Phaser.Scene {
         }
 
         const puzzleType = (puzzle.type ?? 'item_combination').toString().trim().toLowerCase();
+        console.log('[PUZZLE]', 'prompt', { id: puzzle.id, type: puzzleType });
 
         if (puzzleType === 'item_combination') {
             uiManager.showNotification('Arraste o item correto do inventário até o enigma.');
@@ -1495,6 +1501,7 @@ class LocationScene extends Phaser.Scene {
 
         const supportedTypes = ['code', 'math', 'direction', 'riddle', 'sequence_symbols'];
         if (supportedTypes.includes(puzzleType)) {
+            console.log('[PUZZLE]', 'abrindo dialogo suportado', puzzleType);
             uiManager.openPuzzleDialog(puzzle, {
                 onSubmit: (payload) => this.handlePuzzleSubmission(puzzle, payload),
                 onClose: () => {
@@ -1508,6 +1515,7 @@ class LocationScene extends Phaser.Scene {
         }
 
         uiManager.showNotification('Este tipo de enigma ainda não está disponível.');
+        console.warn('[PUZZLE]', 'tipo não suportado', puzzleType, puzzle);
         this.flashPuzzleSprite();
     }
 

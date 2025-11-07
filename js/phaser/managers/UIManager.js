@@ -641,6 +641,7 @@ class UIManager {
         }
 
         const puzzleType = (puzzle.type ?? '').toString().trim().toLowerCase();
+        console.log('[PUZZLE]', 'abrindo modal', { id: puzzle.id, type: puzzleType, options });
         const context = {
             puzzle,
             onSubmit: typeof options.onSubmit === 'function' ? options.onSubmit : null,
@@ -833,6 +834,7 @@ class UIManager {
         }
 
         this.puzzleOverlay.classList.add('active');
+        console.log('[PUZZLE]', 'overlay ativo');
         this._ignoreNextPuzzleOverlayClick = true;
         setTimeout(() => {
             this._ignoreNextPuzzleOverlayClick = false;
@@ -888,6 +890,7 @@ class UIManager {
         } else if (ctx.puzzle.type === 'code' || ctx.puzzle.type === 'math') {
             payload = { answer: ctx.primaryInput ? ctx.primaryInput.value : '' };
         }
+        console.log('[PUZZLE][UI]', 'submitActivePuzzle', { payload, type: ctx.type, puzzleId: ctx.puzzle?.id });
 
         if (ctx.validateBeforeSubmit) {
             const validation = ctx.validateBeforeSubmit(payload);
@@ -895,6 +898,7 @@ class UIManager {
                 if (validation?.message) {
                     this.setPuzzleMessage(validation.message, 'error');
                 }
+                console.log('[PUZZLE][UI]', 'validation falhou', validation);
                 return;
             }
         }
@@ -924,6 +928,8 @@ class UIManager {
         if (!result) {
             result = { success: false, message: 'Resposta inválida.' };
         }
+
+        console.log('[PUZZLE][UI]', 'resultado', result);
 
         if (result.success) {
             this.setPuzzleMessage(result.message || 'Enigma resolvido!', 'success');
