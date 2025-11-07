@@ -1504,6 +1504,14 @@ class LocationScene extends Phaser.Scene {
             console.log('[PUZZLE]', 'abrindo dialogo suportado', puzzleType);
             const openDialog = () => {
                 console.log('[PUZZLE]', 'executando openDialog');
+                const overlay = document.getElementById('puzzle-overlay');
+                if (overlay) {
+                    overlay.classList.add('active');
+                    overlay.style.display = 'flex';
+                    overlay.style.pointerEvents = 'auto';
+                } else {
+                    console.warn('[PUZZLE]', 'overlay do enigma não encontrado');
+                }
                 uiManager.openPuzzleDialog(puzzle, {
                     onSubmit: (payload) => this.handlePuzzleSubmission(puzzle, payload),
                     onClose: () => {
