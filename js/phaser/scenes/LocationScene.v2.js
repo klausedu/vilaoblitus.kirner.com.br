@@ -637,16 +637,16 @@ class LocationScene extends Phaser.Scene {
 
         // VERSÃO SIMPLES que funcionou para moeda: ambos interativos
         if (sprite.setInteractive) {
-            // Para sprites Image com transparências, criar hitArea retangular explícita
+            // Para sprites Image com transparências, criar hitArea retangular que inclui o label
             const isImageSprite = sprite.type === 'Image';
 
             if (isImageSprite) {
-                // HitArea retangular cobrindo toda a área do sprite
+                // HitArea retangular cobrindo sprite + label (30px abaixo)
                 const hitArea = new Phaser.Geom.Rectangle(
                     -entry.size.width / 2,
                     -entry.size.height / 2,
                     entry.size.width,
-                    entry.size.height
+                    entry.size.height + 30  // +30 para cobrir o label
                 );
 
                 sprite.setInteractive({
@@ -671,6 +671,7 @@ class LocationScene extends Phaser.Scene {
             });
         }
 
+        // Label TAMBÉM interativo como backup (caso sprite não capture)
         if (label && label.setInteractive) {
             label.setInteractive({ useHandCursor: true });
 
