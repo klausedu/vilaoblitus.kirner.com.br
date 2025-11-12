@@ -637,6 +637,11 @@ class LocationScene extends Phaser.Scene {
 
         // VOLTAR PARA VERSÃO SIMPLES que funcionava
         if (sprite.setInteractive) {
+            // IMPORTANTE: Limpar configuração anterior antes de reaplicar
+            if (sprite.input) {
+                sprite.disableInteractive();
+            }
+
             sprite.setInteractive({
                 useHandCursor: true,
                 pixelPerfect: false  // ÚNICA mudança: ignorar transparências
