@@ -652,10 +652,26 @@ class LocationScene extends Phaser.Scene {
 
         // VERSÃO SIMPLES: ambos interativos, mesma lógica
         if (sprite.setInteractive) {
-            // IMPORTANTE: pixelPerfect false para capturar cliques em toda a área, não só pixels visíveis
+            // Criar hitArea retangular explícita para garantir que toda a área seja clicável
+            const spriteWidth = entry.size.width;
+            const spriteHeight = entry.size.height;
+            const hitArea = new Phaser.Geom.Rectangle(
+                -spriteWidth / 2,
+                -spriteHeight / 2,
+                spriteWidth,
+                spriteHeight
+            );
+
             sprite.setInteractive({
+                hitArea: hitArea,
+                hitAreaCallback: Phaser.Geom.Rectangle.Contains,
                 useHandCursor: true,
                 pixelPerfect: false
+            });
+
+            debugSceneDrag('sprite-interactive-setup', {
+                itemId: entry.id,
+                hitArea: { x: hitArea.x, y: hitArea.y, width: hitArea.width, height: hitArea.height }
             });
 
             sprite.on('pointerdown', (pointer, localX, localY, event) => {
