@@ -637,7 +637,12 @@ class LocationScene extends Phaser.Scene {
 
         // VERSÃO SIMPLES que funcionou para moeda: ambos interativos
         if (sprite.setInteractive) {
-            sprite.setInteractive({ useHandCursor: true });
+            // Para sprites Image, desabilitar pixel-perfect para capturar cliques em áreas transparentes
+            const isImageSprite = sprite.type === 'Image';
+            sprite.setInteractive({
+                useHandCursor: true,
+                pixelPerfect: isImageSprite ? false : undefined
+            });
 
             sprite.on('pointerdown', (pointer, localX, localY, event) => {
                 this.onDroppedSceneItemPointerDown(entry, pointer, event, 'sprite');
