@@ -652,7 +652,11 @@ class LocationScene extends Phaser.Scene {
 
         // VERSÃO SIMPLES: ambos interativos, mesma lógica
         if (sprite.setInteractive) {
-            sprite.setInteractive({ useHandCursor: true });
+            // IMPORTANTE: pixelPerfect false para capturar cliques em toda a área, não só pixels visíveis
+            sprite.setInteractive({
+                useHandCursor: true,
+                pixelPerfect: false
+            });
 
             sprite.on('pointerdown', (pointer, localX, localY, event) => {
                 debugSceneDrag('sprite-pointerdown', { itemId: entry.id, pointerId: pointer.id });
