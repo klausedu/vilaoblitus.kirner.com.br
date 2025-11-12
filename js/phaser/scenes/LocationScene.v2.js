@@ -1329,7 +1329,6 @@ class LocationScene extends Phaser.Scene {
 
                 // Se há dropped item, não processar o hotspot
                 if (hasDroppedItemAtPosition) {
-                    console.log('[HOTSPOT] Clique ignorado - dropped item na posição');
                     return;
                 }
 
@@ -1419,13 +1418,6 @@ class LocationScene extends Phaser.Scene {
                 img.style.transform = transformString;
 
                 // Aplicar scale TAMBÉM via Phaser (além do CSS)
-                // DEBUG
-                console.log('🎨 Item:', item.id);
-                console.log('  Transform object:', transform);
-                console.log('  Scale values:', {baseScaleX, baseScaleY, flipX, flipY, finalScaleX, finalScaleY});
-                console.log('  CSS 2D transforms:', transformString);
-                console.log('  Applied to img:', img.style.transform);
-                console.log('  Phaser scale:', element.scaleX, element.scaleY);
 
                 // Aplicar opacidade via Phaser setAlpha (ROLLBACK)
                 if (transform.opacity !== undefined) {
@@ -1524,14 +1516,11 @@ class LocationScene extends Phaser.Scene {
     }
 
     handleHotspotClick(hotspot) {
-        console.log('🖱️ Clique no hotspot:', hotspot);
-
         switch (hotspot.action) {
             case 'navigate':
             case 'navigation':
                 // Aceitar ambos target e targetLocation para compatibilidade
                 const targetId = hotspot.targetLocation || hotspot.target;
-                console.log('➡️ Navegando para:', targetId);
                 this.navigateToLocation(targetId, hotspot);
                 break;
 
@@ -1615,15 +1604,7 @@ class LocationScene extends Phaser.Scene {
 
         const worldPoint = this.cameras.main.getWorldPoint(localX, localY);
         const bounds = this.getBackgroundBounds();
-        console.log('[DROP]', {
-            itemId,
-            pointer,
-            localX,
-            localY,
-            worldX: worldPoint.x,
-            worldY: worldPoint.y,
-            bounds
-        });
+
         if (!this.isPointInsideBackground(worldPoint.x, worldPoint.y, bounds)) {
             uiManager.showNotification('Solte o item sobre a cena.', 2500);
             return;
@@ -1641,8 +1622,6 @@ class LocationScene extends Phaser.Scene {
         } else {
             this.placeItemInScene(itemId, worldPoint, percentPosition);
         }
-
-        console.log('[INVENTORY STATE AFTER DROP]', JSON.parse(JSON.stringify(gameStateManager.state.inventory)));
     }
 
     placeItemInScene(itemId, worldPoint, percentPosition) {
@@ -1663,7 +1642,6 @@ class LocationScene extends Phaser.Scene {
             return;
         }
 
-        console.log('[DROP] Item colocado na cena:', dropInfo);
         this.renderDroppedItems();
         uiManager.renderInventory();
         uiManager.showNotification(`${dropInfo.name || itemId} foi colocado no cenário.`);
@@ -1693,7 +1671,6 @@ class LocationScene extends Phaser.Scene {
             return;
         }
 
-        console.log('[DROP] Item posicionado no enigma:', dropInfo);
         this.renderDroppedItems();
         uiManager.renderInventory();
 
