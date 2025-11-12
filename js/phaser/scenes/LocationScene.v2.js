@@ -563,6 +563,11 @@ class LocationScene extends Phaser.Scene {
 
         sprite.setDepth?.(100); // Garantir prioridade máxima
 
+        // IMPORTANTE: Recalcular useDom baseado no sprite real criado
+        // Mesmo que renderMode seja 'sprite', se criamos um DOM element (quando textura não existe),
+        // precisamos usar DOM listeners
+        const actualUseDom = !!(sprite.node);
+
         const label = this.add.text(worldX, worldY + size.height / 2 + 8, item.name || item.id, {
             fontSize: '12px',
             color: '#f0a500',
@@ -584,7 +589,7 @@ class LocationScene extends Phaser.Scene {
             size,
             transform,
             renderMode,
-            useDom
+            useDom: actualUseDom  // Usar o valor recalculado!
         };
         this.attachDroppedItemInteractions(entry);
         this.droppedItemSprites.push(entry);
