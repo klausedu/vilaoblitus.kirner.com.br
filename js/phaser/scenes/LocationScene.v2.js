@@ -635,32 +635,11 @@ class LocationScene extends Phaser.Scene {
 
         const { sprite, label } = entry;
 
-        // VOLTAR PARA VERSÃO SIMPLES que funcionava
         if (sprite.setInteractive) {
-            // IMPORTANTE: Limpar configuração anterior antes de reaplicar
-            if (sprite.input) {
-                sprite.disableInteractive();
-            }
-
-            // Para sprites Image, forçar hitArea retangular (ignora transparências)
-            if (sprite.type === 'Image') {
-                const hitArea = new Phaser.Geom.Rectangle(
-                    -entry.size.width / 2,
-                    -entry.size.height / 2,
-                    entry.size.width,
-                    entry.size.height
-                );
-
-                sprite.setInteractive({
-                    hitArea: hitArea,
-                    hitAreaCallback: Phaser.Geom.Rectangle.Contains,
-                    useHandCursor: true
-                });
-            } else {
-                sprite.setInteractive({
-                    useHandCursor: true
-                });
-            }
+            sprite.setInteractive({
+                useHandCursor: true,
+                pixelPerfect: false
+            });
 
             sprite.on('pointerdown', (pointer, localX, localY, event) => {
                 this.onDroppedSceneItemPointerDown(entry, pointer, event, 'sprite');
