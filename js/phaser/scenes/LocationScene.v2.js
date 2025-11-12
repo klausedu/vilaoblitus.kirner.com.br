@@ -612,7 +612,7 @@ class LocationScene extends Phaser.Scene {
             padding: { x: 6, y: 3 }
         });
         label.setOrigin(0.5, 0);
-        label.setDepth(101); // Label acima do sprite
+        label.setDepth(99); // Label ABAIXO do sprite para não bloquear cliques na imagem
 
         const spriteAlpha = typeof sprite.alpha === 'number' ? sprite.alpha : 1;
         const labelAlpha = typeof label.alpha === 'number' ? label.alpha : 1;
