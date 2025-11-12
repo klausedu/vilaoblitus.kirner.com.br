@@ -725,8 +725,13 @@ class LocationScene extends Phaser.Scene {
     resolveScenePointerInfo(pointer, event) {
         if (pointer && typeof pointer.worldX === 'number' && typeof pointer.worldY === 'number') {
             const nativeEvent = event || pointer.event || null;
+            // IMPORTANTE: sempre usar o pointerId do evento nativo, não do Phaser
+            // O Phaser usa pointer.id que pode ser diferente do event.pointerId
+            // Os window listeners usam event.pointerId, então precisamos ser consistentes
+            const pointerId = nativeEvent?.pointerId ?? pointer.pointerId ?? pointer.id ?? 0;
+
             return {
-                pointerId: pointer.id ?? pointer.pointerId ?? 0,
+                pointerId,
                 worldX: pointer.worldX,
                 worldY: pointer.worldY,
                 pointerType: nativeEvent?.pointerType || pointer.pointerType || 'mouse',
