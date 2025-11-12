@@ -685,22 +685,25 @@ class LocationScene extends Phaser.Scene {
             debugSceneDrag('sprite-NO-setInteractive', { itemId: entry.id, spriteType: sprite.type });
         }
 
-        if (label && label.setInteractive) {
-            label.setInteractive({ useHandCursor: true });
+        // Label: aumentar hitArea do sprite para incluir o label, ao invés de tornar o label interativo
+        // Isso evita conflitos de eventos
+        if (label && sprite.setInteractive) {
+            // Expandir a área interativa do sprite para incluir o label
+            const spriteHeight = entry.size.height;
+            const labelHeight = 20; // Altura aproximada do label
 
-            label.on('pointerdown', (pointer, localX, localY, event) => {
-                debugSceneDrag('label-pointerdown', { itemId: entry.id, pointerId: pointer.id });
-                this.onDroppedSceneItemPointerDown(entry, pointer, event, 'label');
-            });
+            const hitArea = new Phaser.Geom.Rectangle(
+                -entry.size.width / 2,
+                -spriteHeight / 2,
+                entry.size.width,
+                spriteHeight + labelHeight + 8 // +8 para o espaço entre sprite e label
+            );
 
-            label.on('pointerup', (pointer, localX, localY, event) => {
-                debugSceneDrag('label-pointerup', { itemId: entry.id });
-                this.onDroppedSceneItemPointerUp(entry, pointer, event, 'label');
-            });
+            sprite.input.hitArea = hitArea;
 
-            label.on('pointerupoutside', (pointer, localX, localY, event) => {
-                debugSceneDrag('label-pointerupoutside', { itemId: entry.id });
-                this.onDroppedSceneItemPointerUp(entry, pointer, event, 'label');
+            debugSceneDrag('sprite-hitarea-expanded', {
+                itemId: entry.id,
+                hitArea: { x: hitArea.x, y: hitArea.y, width: hitArea.width, height: hitArea.height }
             });
         }
     }
