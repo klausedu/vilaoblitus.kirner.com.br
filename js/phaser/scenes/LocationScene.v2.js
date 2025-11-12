@@ -539,8 +539,10 @@ class LocationScene extends Phaser.Scene {
 
             if (this.textures.exists(textureKey)) {
                 // Textura já existe - usar normalmente
+                debugSceneDrag('creating-sprite-existing-texture', { itemId: item.id, textureKey });
                 sprite = this.add.image(worldX, worldY, textureKey);
                 sprite.setDisplaySize(size.width, size.height);
+                debugSceneDrag('sprite-created', { itemId: item.id, hasSetInteractive: !!sprite.setInteractive });
             } else if (imagePath) {
                 // Textura não existe - carregar dinamicamente e criar sprite Phaser
                 debugSceneDrag('loading-texture-dynamically', { itemId: item.id, textureKey, imagePath });
@@ -634,6 +636,8 @@ class LocationScene extends Phaser.Scene {
         if (!entry || !entry.sprite) return;
 
         const { sprite, label } = entry;
+
+        debugSceneDrag('attach-interactions', { itemId: entry.id, hasSetInteractive: !!sprite.setInteractive, hasLabel: !!label });
 
         // SIMPLIFICADO: Sempre usar Phaser listeners se disponível
         if (sprite.setInteractive) {
@@ -744,6 +748,8 @@ class LocationScene extends Phaser.Scene {
 
     startSceneItemDrag(entry, pointerInfo, source = 'sprite') {
         if (!entry || !pointerInfo) return;
+
+        debugSceneDrag('start-drag', { itemId: entry.id, pointerId: pointerInfo.pointerId, source });
 
         if (this.activeDroppedItemDrag) {
             this.cancelActiveDroppedItemDrag('replace');
