@@ -633,43 +633,32 @@ class LocationScene extends Phaser.Scene {
     attachDroppedItemInteractions(entry) {
         if (!entry || !entry.sprite) return;
 
-        const { sprite, label, useDom } = entry;
+        const { sprite, label } = entry;
 
-        // Estilo do cursor para DOM
-        if (useDom && sprite.node) {
-            sprite.node.style.cursor = 'grab';
-            sprite.node.style.touchAction = 'none';
-            sprite.node.style.userSelect = 'none';
-        }
+        // SIMPLIFICADO: Sempre usar Phaser listeners se disponível
+        if (sprite.setInteractive) {
+            sprite.setInteractive({ useHandCursor: true });
 
-        // DOM com node
-        if (useDom && sprite.node) {
-            sprite.node.addEventListener('pointerdown', (event) => {
-                const world = this.clientToWorld(event.clientX, event.clientY);
-                const fakePointer = {
-                    id: event.pointerId,
-                    pointerId: event.pointerId,
-                    worldX: world.x,
-                    worldY: world.y,
-                    pointerType: event.pointerType || 'mouse'
-                };
-                this.onDroppedSceneItemPointerDown(entry, fakePointer, event, 'sprite');
+            sprite.on('pointerdown', (pointer) => {
+                this.startSceneItemDrag(entry, {
+                    pointerId: pointer.id,
+                    worldX: pointer.worldX,
+                    worldY: pointer.worldY,
+                    pointerType: pointer.pointerType || 'mouse',
+                    nativeEvent: pointer.event
+                }, 'sprite');
             });
-            sprite.node.addEventListener('pointerup', (event) => {
-                this.onDroppedSceneItemPointerUp(entry, null, event, 'sprite');
+
+            sprite.on('pointerup', () => {
+                if (this.activeDroppedItemDrag && this.activeDroppedItemDrag.entry === entry) {
+                    this.handleSceneItemDragEnd({ type: 'pointerup', pointerId: this.activeDroppedItemDrag.pointerId });
+                }
             });
-        }
-        // Sprite Phaser normal
-        else if (sprite.setInteractive) {
-            sprite.setInteractive({ useHandCursor: true, draggable: false });
-            sprite.on('pointerdown', (pointer, localX, localY, event) => {
-                this.onDroppedSceneItemPointerDown(entry, pointer, event, 'sprite');
-            });
-            sprite.on('pointerup', (pointer, localX, localY, event) => {
-                this.onDroppedSceneItemPointerUp(entry, pointer, event, 'sprite');
-            });
-            sprite.on('pointerupoutside', (pointer, localX, localY, event) => {
-                this.onDroppedSceneItemPointerUp(entry, pointer, event, 'sprite');
+
+            sprite.on('pointerupoutside', () => {
+                if (this.activeDroppedItemDrag && this.activeDroppedItemDrag.entry === entry) {
+                    this.handleSceneItemDragEnd({ type: 'pointerup', pointerId: this.activeDroppedItemDrag.pointerId });
+                }
             });
         }
 
@@ -818,7 +807,10 @@ class LocationScene extends Phaser.Scene {
         if (!ctx) return;
 
         const pointerId = this.normalizePointerEventId(event);
-        if (pointerId !== ctx.pointerId) return;
+
+        // Aceitar tanto pointer.id (0) quanto event.pointerId (1) para mouse
+        const isMousePointer = (pointerId === 0 || pointerId === 1) && (ctx.pointerId === 0 || ctx.pointerId === 1);
+        if (!isMousePointer && pointerId !== ctx.pointerId) return;
 
         if (event && event.cancelable) {
             event.preventDefault();
