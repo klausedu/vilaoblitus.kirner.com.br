@@ -653,6 +653,20 @@ class LocationScene extends Phaser.Scene {
         if (sprite.setInteractive) {
             sprite.setInteractive({ useHandCursor: true });
 
+            debugSceneDrag('sprite-made-interactive', {
+                itemId: entry.id,
+                spriteType: sprite.type,
+                depth: sprite.depth,
+                x: sprite.x,
+                y: sprite.y,
+                width: sprite.width,
+                height: sprite.height
+            });
+
+            sprite.on('pointerover', () => {
+                debugSceneDrag('sprite-pointerover', { itemId: entry.id });
+            });
+
             sprite.on('pointerdown', (pointer, localX, localY, event) => {
                 debugSceneDrag('sprite-pointerdown', { itemId: entry.id, pointerId: pointer.id });
                 this.onDroppedSceneItemPointerDown(entry, pointer, event, 'sprite');
@@ -667,6 +681,8 @@ class LocationScene extends Phaser.Scene {
                 debugSceneDrag('sprite-pointerupoutside', { itemId: entry.id });
                 this.onDroppedSceneItemPointerUp(entry, pointer, event, 'sprite');
             });
+        } else {
+            debugSceneDrag('sprite-NO-setInteractive', { itemId: entry.id, spriteType: sprite.type });
         }
 
         if (label && label.setInteractive) {
