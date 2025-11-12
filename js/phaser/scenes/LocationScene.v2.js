@@ -614,7 +614,7 @@ class LocationScene extends Phaser.Scene {
             padding: { x: 6, y: 3 }
         });
         label.setOrigin(0.5, 0);
-        label.setDepth(99); // Label ABAIXO do sprite para não bloquear cliques na imagem
+        label.setDepth(98); // Label BEM ABAIXO do sprite (100) para não bloquear eventos
 
         const spriteAlpha = typeof sprite.alpha === 'number' ? sprite.alpha : 1;
         const labelAlpha = typeof label.alpha === 'number' ? label.alpha : 1;
@@ -649,6 +649,11 @@ class LocationScene extends Phaser.Scene {
         const { sprite, label } = entry;
 
         debugSceneDrag('attach-interactions', { itemId: entry.id, hasSetInteractive: !!sprite.setInteractive, hasLabel: !!label });
+
+        // Desabilitar label para não bloquear eventos
+        if (label) {
+            label.disableInteractive();
+        }
 
         // Sprite é o ÚNICO elemento interativo
         // HitArea expandida cobrindo TODA a área (sprite + label)
