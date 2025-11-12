@@ -642,6 +642,7 @@ class LocationScene extends Phaser.Scene {
             });
 
             sprite.on('pointerdown', (pointer, localX, localY, event) => {
+                console.log('🖱️ SPRITE CLICK:', entry.item.id, 'type:', sprite.type, 'texture:', sprite.texture?.key);
                 this.onDroppedSceneItemPointerDown(entry, pointer, event, 'sprite');
             });
 
@@ -658,6 +659,7 @@ class LocationScene extends Phaser.Scene {
             label.setInteractive({ useHandCursor: true });
 
             label.on('pointerdown', (pointer, localX, localY, event) => {
+                console.log('🖱️ LABEL CLICK:', entry.item.id);
                 this.onDroppedSceneItemPointerDown(entry, pointer, event, 'label');
             });
 
