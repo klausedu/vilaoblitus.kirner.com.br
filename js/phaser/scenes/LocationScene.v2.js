@@ -695,10 +695,17 @@ class LocationScene extends Phaser.Scene {
     }
 
     onDroppedSceneItemPointerDown(entry, pointer, event, source = 'sprite') {
-        if (!entry) return;
+        if (!entry) {
+            console.log('❌ No entry');
+            return;
+        }
         const pointerInfo = this.resolveScenePointerInfo(pointer, event);
-        if (!pointerInfo) return;
+        if (!pointerInfo) {
+            console.log('❌ No pointerInfo', {pointer, event});
+            return;
+        }
 
+        console.log('✅ Starting drag', {itemId: entry.data?.id, pointerInfo});
         this.startSceneItemDrag(entry, pointerInfo, source);
     }
 
