@@ -645,12 +645,16 @@ class LocationScene extends Phaser.Scene {
 
             domNode.addEventListener('pointerdown', (event) => {
                 console.log('🖱️ DOM SPRITE CLICK:', entry.data?.id || 'no-id');
+                event.stopPropagation();
+                event.preventDefault();
                 // Criar pointer fake para compatibilidade
                 const pointer = this.input.activePointer;
                 this.onDroppedSceneItemPointerDown(entry, pointer, event, 'sprite');
             });
 
             domNode.addEventListener('pointerup', (event) => {
+                event.stopPropagation();
+                event.preventDefault();
                 const pointer = this.input.activePointer;
                 this.onDroppedSceneItemPointerUp(entry, pointer, event, 'sprite');
             });
@@ -829,13 +833,20 @@ class LocationScene extends Phaser.Scene {
 
     handleSceneItemDragMove(event) {
         const ctx = this.activeDroppedItemDrag;
-        if (!ctx) return;
+        if (!ctx) {
+            console.log('❌ MOVE: No active drag');
+            return;
+        }
 
         const pointerId = this.normalizePointerEventId(event);
+        console.log('🖱️ MOVE:', {pointerId, ctxPointerId: ctx.pointerId, itemId: ctx.entry.data?.id});
 
         // Aceitar tanto pointer.id (0) quanto event.pointerId (1) para mouse
         const isMousePointer = (pointerId === 0 || pointerId === 1) && (ctx.pointerId === 0 || ctx.pointerId === 1);
-        if (!isMousePointer && pointerId !== ctx.pointerId) return;
+        if (!isMousePointer && pointerId !== ctx.pointerId) {
+            console.log('❌ MOVE: Pointer ID mismatch');
+            return;
+        }
 
         if (event && event.cancelable) {
             event.preventDefault();
