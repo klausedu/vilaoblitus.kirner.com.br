@@ -635,21 +635,30 @@ class LocationScene extends Phaser.Scene {
 
         const { sprite, label } = entry;
 
-        // Sprite NA FRENTE (depth 102) para capturar cliques primeiro
+        // LIMPAR qualquer interatividade anterior
+        if (sprite.input) {
+            sprite.disableInteractive();
+        }
+        if (label && label.input) {
+            label.disableInteractive();
+        }
+
+        // Sprite é o ÚNICO elemento interativo
+        // hitArea GRANDE cobrindo sprite + label
         if (sprite.setInteractive) {
-            // Força hitArea para toda a área do sprite (ignora transparências)
-            // Sprite tem origem no centro (0.5, 0.5) então hitArea precisa ser centralizada
             const hitArea = new Phaser.Geom.Rectangle(
                 -entry.size.width / 2,
                 -entry.size.height / 2,
                 entry.size.width,
-                entry.size.height
+                entry.size.height + 35  // +35 para cobrir o label abaixo
             );
 
             sprite.setInteractive({
                 hitArea: hitArea,
                 hitAreaCallback: Phaser.Geom.Rectangle.Contains,
-                useHandCursor: true
+                useHandCursor: true,
+                draggable: false,
+                pixelPerfect: false
             });
 
             sprite.on('pointerdown', (pointer, localX, localY, event) => {
@@ -665,22 +674,7 @@ class LocationScene extends Phaser.Scene {
             });
         }
 
-        // Label também interativo (está atrás mas visível)
-        if (label && label.setInteractive) {
-            label.setInteractive({ useHandCursor: true });
-
-            label.on('pointerdown', (pointer, localX, localY, event) => {
-                this.onDroppedSceneItemPointerDown(entry, pointer, event, 'label');
-            });
-
-            label.on('pointerup', (pointer, localX, localY, event) => {
-                this.onDroppedSceneItemPointerUp(entry, pointer, event, 'label');
-            });
-
-            label.on('pointerupoutside', (pointer, localX, localY, event) => {
-                this.onDroppedSceneItemPointerUp(entry, pointer, event, 'label');
-            });
-        }
+        // Label NÃO interativo - sprite captura tudo
     }
 
     onDroppedSceneItemPointerDown(entry, pointer, event, source = 'sprite') {
