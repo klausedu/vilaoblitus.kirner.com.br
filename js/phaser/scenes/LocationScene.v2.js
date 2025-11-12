@@ -613,7 +613,18 @@ class LocationScene extends Phaser.Scene {
         if (sprite.setInteractive) {
             debugSceneDrag('using-simplified-approach', { itemId: entry.id });
 
+            sprite.setInteractive({
+                useHandCursor: true,
+                draggable: false,
+                pixelPerfect: false  // Não fazer hit test pixel perfeito
+            });
+
+            // IMPORTANTE: Desabilitar pointer capture para não interferir com window listeners
+            sprite.disableInteractive();
             sprite.setInteractive({ useHandCursor: true, draggable: false });
+
+            // Remover captura automática de pointer
+            sprite.removeInteractive = false;
 
             // IMPORTANTE: Capturar o evento nativo ANTES do Phaser processar
             sprite.on('pointerdown', (pointer, localX, localY, event) => {
@@ -626,6 +637,11 @@ class LocationScene extends Phaser.Scene {
                     phaserPointerId: pointer.id,
                     nativePointerId: realPointerId
                 });
+
+                // Prevenir que o Phaser capture o ponteiro
+                if (this.input.manager && this.input.manager.mouse) {
+                    this.input.manager.mouse.locked = false;
+                }
 
                 // Criar um objeto pointer modificado com o pointerId correto
                 const modifiedPointer = {
@@ -857,11 +873,16 @@ class LocationScene extends Phaser.Scene {
     }
 
     attachSceneItemDragListeners() {
-        if (this._sceneDragListenersAttached) return;
+        if (this._sceneDragListenersAttached) {
+            debugSceneDrag('listeners-already-attached');
+            return;
+        }
+        debugSceneDrag('attaching-window-listeners');
         window.addEventListener('pointermove', this._boundSceneItemDragMove, { passive: false });
         window.addEventListener('pointerup', this._boundSceneItemDragEnd, { passive: false });
         window.addEventListener('pointercancel', this._boundSceneItemDragEnd, { passive: false });
         this._sceneDragListenersAttached = true;
+        debugSceneDrag('window-listeners-attached');
     }
 
     detachSceneItemDragListeners() {
@@ -879,6 +900,13 @@ class LocationScene extends Phaser.Scene {
             return;
         }
         const pointerId = this.normalizePointerEventId(event);
+
+        debugSceneDrag('move-attempt', {
+            eventPointerId: pointerId,
+            contextPointerId: ctx.pointerId,
+            matches: pointerId === ctx.pointerId
+        });
+
         if (pointerId !== ctx.pointerId) {
             debugSceneDrag('move-wrong-pointer', {
                 eventPointerId: pointerId,
@@ -886,6 +914,8 @@ class LocationScene extends Phaser.Scene {
             });
             return;
         }
+
+        debugSceneDrag('move-processing', { itemId: ctx.entry.id });
 
         if (event && event.cancelable) {
             event.preventDefault();
