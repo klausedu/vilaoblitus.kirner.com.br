@@ -650,19 +650,34 @@ class LocationScene extends Phaser.Scene {
 
         debugSceneDrag('attach-interactions', { itemId: entry.id, hasSetInteractive: !!sprite.setInteractive, hasLabel: !!label });
 
-        // AMBOS sprite e label devem ser interativos e chamarem a mesma função
-        // Assim funciona clicar em qualquer um dos dois
+        // Sprite é o ÚNICO elemento interativo
+        // HitArea expandida para incluir o texto do label
         if (sprite.setInteractive) {
-            sprite.setInteractive({ useHandCursor: true });
+            // Calcular hitArea ANTES de setInteractive
+            const spriteHeight = entry.size.height;
+            const labelHeight = label ? 30 : 0; // Altura do label + padding
+
+            const hitArea = new Phaser.Geom.Rectangle(
+                -entry.size.width / 2,
+                -spriteHeight / 2,
+                entry.size.width,
+                spriteHeight + labelHeight
+            );
+
+            // SetInteractive COM a hitArea já definida
+            sprite.setInteractive({
+                hitArea: hitArea,
+                hitAreaCallback: Phaser.Geom.Rectangle.Contains,
+                useHandCursor: true,
+                draggable: false,
+                pixelPerfect: false
+            });
 
             debugSceneDrag('sprite-made-interactive', {
                 itemId: entry.id,
                 spriteType: sprite.type,
                 depth: sprite.depth,
-                x: sprite.x,
-                y: sprite.y,
-                width: sprite.width,
-                height: sprite.height
+                hitArea: { x: hitArea.x, y: hitArea.y, width: hitArea.width, height: hitArea.height }
             });
 
             sprite.on('pointerover', () => {
@@ -685,28 +700,6 @@ class LocationScene extends Phaser.Scene {
             });
         } else {
             debugSceneDrag('sprite-NO-setInteractive', { itemId: entry.id, spriteType: sprite.type });
-        }
-
-        // Label: aumentar hitArea do sprite para incluir o label, ao invés de tornar o label interativo
-        // Isso evita conflitos de eventos
-        if (label && sprite.setInteractive) {
-            // Expandir a área interativa do sprite para incluir o label
-            const spriteHeight = entry.size.height;
-            const labelHeight = 20; // Altura aproximada do label
-
-            const hitArea = new Phaser.Geom.Rectangle(
-                -entry.size.width / 2,
-                -spriteHeight / 2,
-                entry.size.width,
-                spriteHeight + labelHeight + 8 // +8 para o espaço entre sprite e label
-            );
-
-            sprite.input.hitArea = hitArea;
-
-            debugSceneDrag('sprite-hitarea-expanded', {
-                itemId: entry.id,
-                hitArea: { x: hitArea.x, y: hitArea.y, width: hitArea.width, height: hitArea.height }
-            });
         }
     }
 
