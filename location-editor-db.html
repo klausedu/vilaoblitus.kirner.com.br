@@ -1001,6 +1001,8 @@
             };
             try {
                 await saveToIndexedDB('editorData', saveData);
+                // Também sincronizar com o banco de dados silenciosamente
+                await syncToDatabase(true); // true = silent mode
                 showSaveIndicator();
             } catch (e) {
                 console.error('Erro ao salvar:', e);
