@@ -100,6 +100,13 @@ class GameStateManager {
     }
 
     /**
+     * Puzzle foi resolvido?
+     */
+    isPuzzleSolved(puzzleId) {
+        return this.state.solvedPuzzles.includes(puzzleId);
+    }
+
+    /**
      * Resolver puzzle
      */
     solvePuzzle(puzzleId, reward, locationId = null, rewardOptions = {}) {
