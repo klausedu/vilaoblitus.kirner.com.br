@@ -844,7 +844,8 @@
 
         // Visual positioning variables
         let selectedItemIndex = null;
-        let selectedVisualType = null; // 'item' | 'puzzle' | null
+        let selectedVisualType = null; // 'item' | 'puzzle' | 'wall' | null
+        let selectedWallIndex = null;
         let draggedItem = null;
         let dragOffsetX = 0;
         let dragOffsetY = 0;
@@ -955,6 +956,89 @@
                     (visualType === 'puzzle' && selectedVisualType === 'puzzle');
                 el.style.boxShadow = isSelected ? '0 0 0 3px #667eea' : 'none';
             });
+        }
+
+        // Drag and Drop functions
+        function startDragItem(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const target = e.currentTarget;
+            const visualType = target.dataset.visualType;
+
+            if (visualType === 'item') {
+                selectedItemIndex = parseInt(target.dataset.itemIndex);
+                selectedVisualType = 'item';
+            } else if (visualType === 'puzzle') {
+                selectedVisualType = 'puzzle';
+                selectedItemIndex = null;
+            } else if (visualType === 'wall') {
+                selectedWallIndex = parseInt(target.dataset.wallIndex);
+                selectedVisualType = 'wall';
+            }
+
+            draggedItem = target;
+
+            const visualImage = document.getElementById('visual-location-image');
+            const imgRect = visualImage.getBoundingClientRect();
+            const targetRect = target.getBoundingClientRect();
+
+            // Calculate offset from mouse to element center
+            dragOffsetX = e.clientX - (targetRect.left + targetRect.width / 2);
+            dragOffsetY = e.clientY - (targetRect.top + targetRect.height / 2);
+
+            document.addEventListener('mousemove', onDragMove);
+            document.addEventListener('mouseup', onDragEnd);
+
+            renderTransformControls();
+            highlightSelectedVisual();
+        }
+
+        function onDragMove(e) {
+            if (!draggedItem) return;
+
+            const visualImage = document.getElementById('visual-location-image');
+            const imgRect = visualImage.getBoundingClientRect();
+
+            // Calculate position relative to image
+            const x = e.clientX - imgRect.left - dragOffsetX;
+            const y = e.clientY - imgRect.top - dragOffsetY;
+
+            // Convert to percentage
+            const percentX = (x / imgRect.width) * 100;
+            const percentY = (y / imgRect.height) * 100;
+
+            // Clamp to image bounds
+            const clampedX = Math.max(0, Math.min(100, percentX));
+            const clampedY = Math.max(0, Math.min(100, percentY));
+
+            // Update position
+            const visual = getSelectedVisual();
+            if (visual) {
+                if (visual.type === 'item' || visual.type === 'puzzle') {
+                    visual.data.position = { x: clampedX, y: clampedY };
+                } else if (visual.type === 'wall') {
+                    visual.data.x = clampedX;
+                    visual.data.y = clampedY;
+                }
+
+                // Update visual immediately
+                draggedItem.style.left = clampedX + '%';
+                draggedItem.style.top = clampedY + '%';
+            }
+        }
+
+        function onDragEnd(e) {
+            if (!draggedItem) return;
+
+            document.removeEventListener('mousemove', onDragMove);
+            document.removeEventListener('mouseup', onDragEnd);
+
+            draggedItem = null;
+
+            // Save changes
+            autoSave();
+            renderTransformControls();
         }
 
         // Toast notification function
