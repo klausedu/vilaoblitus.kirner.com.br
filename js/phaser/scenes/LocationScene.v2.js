@@ -1761,9 +1761,9 @@ class LocationScene extends Phaser.Scene {
                 wallSprite = this.add.image(x + width / 2, y + height / 2, wallData.image);
                 wallSprite.setDisplaySize(width, height);
             } else {
-                // Placeholder visual
-                wallSprite = this.add.rectangle(x + width / 2, y + height / 2, width, height, 0x555555);
-                wallSprite.setStrokeStyle(2, 0x000000);
+                // Use generic wall texture
+                wallSprite = this.add.image(x + width / 2, y + height / 2, 'wall_texture');
+                wallSprite.setDisplaySize(width, height);
             }
 
             wallSprite.setOrigin(0.5);
@@ -1816,7 +1816,8 @@ class LocationScene extends Phaser.Scene {
 
     fireProjectile(startX, startY, targetX, targetY, onHit) {
         // Criar sprite do projétil
-        const projectile = this.add.circle(startX, startY, 5, 0xffff00);
+        const projectile = this.add.image(startX, startY, 'projectile_bullet');
+        projectile.setDisplaySize(20, 20);
         projectile.setDepth(200);
 
         // Calcular ângulo
