@@ -227,6 +227,9 @@ class LocationScene extends Phaser.Scene {
 
         console.log(`[PUZZLE_DEBUG] Rendering puzzle: ${puzzle.id} (${puzzle.type})`);
         console.log(`[PUZZLE_DEBUG] Is Solved: ${isSolved}`);
+        if (isSolved) {
+            console.log('[PUZZLE_DEBUG] Solved Puzzles List:', gameStateManager.state.solvedPuzzles);
+        }
         console.log(`[PUZZLE_DEBUG] Visual:`, visual);
 
         let textureKey = null;
@@ -1233,12 +1236,24 @@ class LocationScene extends Phaser.Scene {
 
     evaluateItemCombinationPuzzlePlacement(puzzle, itemId) {
         if (!puzzle || puzzle.type !== 'item_combination') return;
+
+        console.log('[PUZZLE_DEBUG] Evaluating placement:', {
+            puzzleId: puzzle.id,
+            itemId,
+            isSolved: gameStateManager.isPuzzleSolved(puzzle.id)
+        });
+
         if (gameStateManager.isPuzzleSolved(puzzle.id)) {
             return;
         }
 
         const required = (puzzle.requiredItems || []).map(id => id.trim()).filter(Boolean);
+
+        // DEBUG: Log required items
+        console.log('[PUZZLE_DEBUG] Required items:', required);
+
         if (required.length === 0) {
+            console.warn('[PUZZLE_DEBUG] No required items configured! Solving immediately.');
             this.solveCurrentPuzzle(puzzle, [itemId]);
             return;
         }
@@ -1254,9 +1269,12 @@ class LocationScene extends Phaser.Scene {
             .filter(item => item.dropInPuzzleArea)
             .map(item => item.id);
 
+        console.log('[PUZZLE_DEBUG] Dropped items in puzzle area:', droppedItems);
+
         const missing = required.filter(id => !droppedItems.includes(id));
 
         if (missing.length > 0) {
+            console.log('[PUZZLE_DEBUG] Missing items:', missing);
             uiManager.showNotification(`Falta posicionar: ${missing.join(', ')}`, 2500);
             this.flashPuzzleSprite(0xffc107);
             return;
