@@ -1090,7 +1090,7 @@
             try {
                 // Salvar localmente imediatamente
                 await saveToIndexedDB('editorData', saveData);
-                showSaveIndicator();
+                // showSaveIndicator(); // Removido daqui para evitar piscar excessivo
 
                 // Debounce para sincronização com banco de dados
                 if (autoSaveTimer) {
@@ -1101,6 +1101,7 @@
                     console.log('🔄 Sincronizando com banco de dados...');
                     try {
                         await syncToDatabase(true); // true = silent mode
+                        showSaveIndicator(); // Mostrar apenas quando sincronizar
                         console.log('✅ Sincronização concluída!');
                     } catch (error) {
                         console.error('❌ Erro na sincronização:', error);

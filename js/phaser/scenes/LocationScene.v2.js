@@ -223,13 +223,22 @@ class LocationScene extends Phaser.Scene {
         const x = bgX + (visual.position.x / 100) * bgWidth;
         const y = bgY + (visual.position.y / 100) * bgHeight;
 
-        const isSolved = gameStateManager.isPuzzleSolved(puzzle.id);
+        const isSolved = puzzle.id ? gameStateManager.isPuzzleSolved(puzzle.id) : false;
+
+        console.log(`[PUZZLE_DEBUG] Rendering puzzle: ${puzzle.id} (${puzzle.type})`);
+        console.log(`[PUZZLE_DEBUG] Is Solved: ${isSolved}`);
+        console.log(`[PUZZLE_DEBUG] Visual:`, visual);
+
         let textureKey = null;
 
         if (isSolved && visual.afterImage) {
             textureKey = `puzzle_${this.locationData.id}_after`;
+            console.log(`[PUZZLE_DEBUG] Using AFTER image: ${textureKey}`);
         } else if (!isSolved && visual.beforeImage) {
             textureKey = `puzzle_${this.locationData.id}_before`;
+            console.log(`[PUZZLE_DEBUG] Using BEFORE image: ${textureKey}`);
+        } else {
+            console.log(`[PUZZLE_DEBUG] No image condition met. Solved: ${isSolved}, After: ${!!visual.afterImage}, Before: ${!!visual.beforeImage}`);
         }
 
         if (textureKey && this.textures.exists(textureKey)) {
