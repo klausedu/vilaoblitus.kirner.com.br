@@ -562,7 +562,7 @@ class GameStateManager {
     /**
      * Resetar jogo
      */
-    reset() {
+    async reset() {
         console.log('[SAVE_DEBUG] Resetting game state...');
         this.state = {
             currentLocation: 'floresta',
@@ -577,7 +577,7 @@ class GameStateManager {
         };
         this.normalizeInventory();
         console.log('[SAVE_DEBUG] State reset. Saving to server...');
-        this.saveProgress();
+        await this.saveProgress();
         this.trigger('gameReset');
         this.trigger('inventoryChanged');
     }

@@ -644,8 +644,8 @@ class UIManager {
             label.textContent = item.name;
             itemDiv.appendChild(label);
 
-        itemDiv.addEventListener('pointerdown', (event) => this.startInventoryDrag(item, event));
-        itemDiv.addEventListener('touchstart', (event) => this.startInventoryDrag(item, event), { passive: false });
+            itemDiv.addEventListener('pointerdown', (event) => this.startInventoryDrag(item, event));
+            itemDiv.addEventListener('touchstart', (event) => this.startInventoryDrag(item, event), { passive: false });
 
             grid.appendChild(itemDiv);
         });
@@ -1351,11 +1351,15 @@ class UIManager {
     /**
      * Resetar jogo
      */
-    resetGame() {
+    async resetGame() {
         if (confirm('Tem certeza que deseja resetar o jogo? Todo progresso será perdido.')) {
-            gameStateManager.reset();
+            this.showNotification('Resetando...');
+            await gameStateManager.reset();
             this.showNotification('✓ Jogo resetado!');
-            window.location.reload();
+            // Pequeno delay para garantir que o servidor processou
+            setTimeout(() => {
+                window.location.reload();
+            }, 500);
         }
     }
 
