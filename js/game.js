@@ -704,18 +704,27 @@ function checkPuzzleAnswer(puzzle) {
     const puzzleMessage = document.getElementById('puzzleMessage');
     let isCorrect = false;
 
+    console.log('Checking puzzle:', puzzle.id, 'Type:', puzzle.type);
+
     switch (puzzle.type) {
         case 'direction':
         case 'riddle':
+        case 'color_sequence':
             const selectedOption = document.querySelector('.puzzle-option.selected');
-            if (selectedOption && parseInt(selectedOption.dataset.index) === puzzle.correctAnswer) {
-                isCorrect = true;
+            if (selectedOption) {
+                const selectedIndex = parseInt(selectedOption.dataset.index);
+                console.log('Selected:', selectedIndex, 'Correct:', puzzle.correctAnswer);
+                // Use loose equality to handle string/number mismatches
+                if (selectedIndex == puzzle.correctAnswer) {
+                    isCorrect = true;
+                }
             }
             break;
 
         case 'sequence_symbols':
             const userSequence = window.puzzleSequence || [];
             const correctSeq = puzzle.correctSequence;
+            console.log('Sequence:', userSequence, 'Correct:', correctSeq);
             if (JSON.stringify(userSequence) === JSON.stringify(correctSeq)) {
                 isCorrect = true;
             }
@@ -724,7 +733,9 @@ function checkPuzzleAnswer(puzzle) {
         case 'math':
         case 'code':
             const answer = document.getElementById('puzzleAnswer').value.trim();
-            if (answer == puzzle.answer) {
+            console.log('Answer:', answer, 'Correct:', puzzle.answer);
+            // Loose equality for string/number comparison
+            if (answer.toLowerCase() == String(puzzle.answer).toLowerCase()) {
                 isCorrect = true;
             }
             break;
@@ -739,7 +750,10 @@ function checkPuzzleAnswer(puzzle) {
     }
 
     if (isCorrect) {
-        gameState.solvedPuzzles.push(puzzle.id);
+        if (!gameState.solvedPuzzles.includes(puzzle.id)) {
+            gameState.solvedPuzzles.push(puzzle.id);
+        }
+        
         puzzleMessage.textContent = 'Correto!';
         puzzleMessage.className = 'form-message success';
 
@@ -751,6 +765,9 @@ function checkPuzzleAnswer(puzzle) {
 
             collectItem(puzzle.reward);
         }
+
+        // Force UI update immediately to show open chest/door
+        renderLocation();
 
         // Special actions
         if (puzzle.onSuccess === 'game_complete') {
