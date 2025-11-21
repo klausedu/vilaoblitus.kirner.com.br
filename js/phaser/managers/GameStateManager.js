@@ -582,133 +582,120 @@ class GameStateManager {
             solvedPuzzles: [],
             inventory: {},
             hasKey: false,
-            gameCompleted: false,
-            photographAlbum: [],
-            destroyedWalls: []
-        };
-        this.normalizeInventory();
-        console.log('[SAVE_DEBUG] State reset. Saving to server...');
-        const success = await this.saveProgress();
-        this.trigger('gameReset');
-        this.trigger('inventoryChanged');
-        return success;
-    }
+            this.state.inventory = this.mapInventory(this.state.inventory);
+        }
 
-    normalizeInventory() {
-        this.state.inventory = this.mapInventory(this.state.inventory);
-    }
+        mapInventory(rawInventory) {
+            const normalized = {};
 
-    mapInventory(rawInventory) {
-        const normalized = {};
-
-        if (Array.isArray(rawInventory)) {
-            rawInventory.forEach(entry => {
-                if (!entry) return;
-                if (typeof entry === 'string') {
-                    const normalizedEntry = this.normalizeInventoryEntry(entry, { name: entry });
-                    if (normalizedEntry) {
-                        normalized[entry] = normalizedEntry;
+            if (Array.isArray(rawInventory)) {
+                rawInventory.forEach(entry => {
+                    if (!entry) return;
+                    if (typeof entry === 'string') {
+                        const normalizedEntry = this.normalizeInventoryEntry(entry, { name: entry });
+                        if (normalizedEntry) {
+                            normalized[entry] = normalizedEntry;
+                        }
+                        return;
                     }
-                    return;
-                }
-                const id = entry.id || entry.itemId || entry.name;
-                if (!id) return;
-                const normalizedEntry = this.normalizeInventoryEntry(id, entry);
-                if (normalizedEntry) {
-                    normalized[id] = normalizedEntry;
-                }
-            });
-        } else if (rawInventory && typeof rawInventory === 'object') {
-            Object.entries(rawInventory).forEach(([id, value]) => {
-                if (!value) return;
-                if (typeof value === 'string') {
-                    const normalizedEntry = this.normalizeInventoryEntry(id, { name: value || id });
+                    const id = entry.id || entry.itemId || entry.name;
+                    if (!id) return;
+                    const normalizedEntry = this.normalizeInventoryEntry(id, entry);
                     if (normalizedEntry) {
                         normalized[id] = normalizedEntry;
                     }
-                    return;
-                }
-                const normalizedEntry = this.normalizeInventoryEntry(id, { id, ...value });
-                if (normalizedEntry) {
-                    normalized[id] = normalizedEntry;
-                }
-            });
+                });
+            } else if (rawInventory && typeof rawInventory === 'object') {
+                Object.entries(rawInventory).forEach(([id, value]) => {
+                    if (!value) return;
+                    if (typeof value === 'string') {
+                        const normalizedEntry = this.normalizeInventoryEntry(id, { name: value || id });
+                        if (normalizedEntry) {
+                            normalized[id] = normalizedEntry;
+                        }
+                        return;
+                    }
+                    const normalizedEntry = this.normalizeInventoryEntry(id, { id, ...value });
+                    if (normalizedEntry) {
+                        normalized[id] = normalizedEntry;
+                    }
+                });
+            }
+
+            return normalized;
         }
 
-        return normalized;
-    }
+        normalizeInventoryEntry(itemId, raw = {}) {
+            if (!itemId) return null;
 
-    normalizeInventoryEntry(itemId, raw = {}) {
-        if (!itemId) return null;
+            const entry = { ...raw };
 
-        const entry = { ...raw };
+            if (entry.transform && typeof entry.transform === 'object') {
+                try {
+                    entry.transform = JSON.parse(JSON.stringify(entry.transform));
+                } catch (_) {
+                    entry.transform = { ...entry.transform };
+                }
+            }
 
-        if (entry.transform && typeof entry.transform === 'object') {
-            try {
-                entry.transform = JSON.parse(JSON.stringify(entry.transform));
-            } catch (_) {
-                entry.transform = { ...entry.transform };
+            if (entry.dropTransform && typeof entry.dropTransform === 'object') {
+                try {
+                    entry.dropTransform = JSON.parse(JSON.stringify(entry.dropTransform));
+                } catch (_) {
+                    entry.dropTransform = { ...entry.dropTransform };
+                }
+            }
+
+            entry.id = itemId;
+            entry.name = entry.name || itemId;
+            entry.description = entry.description || '';
+            entry.image = entry.image || '';
+
+            const size = entry.size && typeof entry.size === 'object' ? entry.size : {};
+            entry.size = {
+                width: Number(size.width) || 80,
+                height: Number(size.height) || 80
+            };
+
+            entry.status = entry.status || 'held';
+
+            if (entry.dropPosition && typeof entry.dropPosition === 'object') {
+                entry.dropPosition = {
+                    x: Number(entry.dropPosition.x) || 0,
+                    y: Number(entry.dropPosition.y) || 0
+                };
+            }
+
+            if (entry.dropSize && typeof entry.dropSize === 'object') {
+                entry.dropSize = {
+                    width: Number(entry.dropSize.width) || entry.size.width,
+                    height: Number(entry.dropSize.height) || entry.size.height
+                };
+            }
+
+            entry.dropLocation = entry.dropLocation || undefined;
+            entry.dropInPuzzleArea = !!entry.dropInPuzzleArea;
+
+            return entry;
+        }
+
+        /**
+         * Sistema de eventos
+         */
+        on(event, callback) {
+            if (!this.callbacks[event]) {
+                this.callbacks[event] = [];
+            }
+            this.callbacks[event].push(callback);
+        }
+
+        trigger(event, data) {
+            if (this.callbacks[event]) {
+                this.callbacks[event].forEach(callback => callback(data));
             }
         }
 
-        if (entry.dropTransform && typeof entry.dropTransform === 'object') {
-            try {
-                entry.dropTransform = JSON.parse(JSON.stringify(entry.dropTransform));
-            } catch (_) {
-                entry.dropTransform = { ...entry.dropTransform };
-            }
-        }
-
-        entry.id = itemId;
-        entry.name = entry.name || itemId;
-        entry.description = entry.description || '';
-        entry.image = entry.image || '';
-
-        const size = entry.size && typeof entry.size === 'object' ? entry.size : {};
-        entry.size = {
-            width: Number(size.width) || 80,
-            height: Number(size.height) || 80
-        };
-
-        entry.status = entry.status || 'held';
-
-        if (entry.dropPosition && typeof entry.dropPosition === 'object') {
-            entry.dropPosition = {
-                x: Number(entry.dropPosition.x) || 0,
-                y: Number(entry.dropPosition.y) || 0
-            };
-        }
-
-        if (entry.dropSize && typeof entry.dropSize === 'object') {
-            entry.dropSize = {
-                width: Number(entry.dropSize.width) || entry.size.width,
-                height: Number(entry.dropSize.height) || entry.size.height
-            };
-        }
-
-        entry.dropLocation = entry.dropLocation || undefined;
-        entry.dropInPuzzleArea = !!entry.dropInPuzzleArea;
-
-        return entry;
     }
 
-    /**
-     * Sistema de eventos
-     */
-    on(event, callback) {
-        if (!this.callbacks[event]) {
-            this.callbacks[event] = [];
-        }
-        this.callbacks[event].push(callback);
-    }
-
-    trigger(event, data) {
-        if (this.callbacks[event]) {
-            this.callbacks[event].forEach(callback => callback(data));
-        }
-    }
-
-}
-
-// Instância global
-const gameStateManager = new GameStateManager();
+    // Instância global
+    const gameStateManager = new GameStateManager();
