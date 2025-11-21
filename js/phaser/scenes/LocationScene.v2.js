@@ -1873,40 +1873,71 @@ class LocationScene extends Phaser.Scene {
         const wallSprite = this.destructibleWalls.find(w => w.wallData.id === wallData.id);
 
         if (wallSprite) {
-            // 1. Criar efeito de partículas (pedacinhos da parede)
-            const texture = wallSprite.texture.key;
-            const frame = wallSprite.frame.name;
+            const wallX = wallSprite.x;
+            const wallY = wallSprite.y;
+            const wallWidth = wallSprite.displayWidth || 100;
+            const wallHeight = wallSprite.displayHeight || 100;
 
-            // Criar emissor de partículas usando a própria textura da parede
-            const emitter = this.add.particles(wallSprite.x, wallSprite.y, texture, {
-                frame: frame,
-                speed: { min: 50, max: 200 },
-                angle: { min: 0, max: 360 },
-                scale: { start: 0.1, end: 0 },
-                alpha: { start: 1, end: 0 },
-                lifespan: 800,
-                gravityY: 300,
-                quantity: 20,
-                blendMode: 'NORMAL',
-                emitting: false
+            // 1. Efeito de tremor na câmera
+            this.cameras.main.shake(200, 0.005);
+
+            // 2. Criar pedaços de detritos (usando retângulos simples)
+            const debrisCount = 15;
+
+            for (let i = 0; i < debrisCount; i++) {
+                const size = Phaser.Math.Between(8, 20);
+                const debris = this.add.rectangle(
+                    wallX + Phaser.Math.Between(-wallWidth / 4, wallWidth / 4),
+                    wallY + Phaser.Math.Between(-wallHeight / 4, wallHeight / 4),
+                    size,
+                    size,
+                    0x8B7355
+                );
+                debris.setDepth(100);
+
+                const angle = Phaser.Math.Between(-30, 210);
+                const speed = Phaser.Math.Between(60, 150);
+                const velocityX = Math.cos(angle * Math.PI / 180) * speed;
+                const velocityY = Math.sin(angle * Math.PI / 180) * speed;
+
+                const gravity = 600;
+                const duration = 2500;
+
+                this.tweens.add({
+                    targets: debris,
+                    x: debris.x + velocityX * (duration / 1000),
+                    y: debris.y + velocityY * (duration / 1000) + (0.5 * gravity * Math.pow(duration / 1000, 2)),
+                    angle: Phaser.Math.Between(-360, 360),
+                    alpha: { from: 1, to: 0 },
+                    duration: duration,
+                    ease: 'Quad.easeIn',
+                    onComplete: () => debris.destroy()
+                });
+            }
+
+            // 3. Flash branco no ponto de impacto
+            const flash = this.add.circle(wallX, wallY, 30, 0xFFFFFF, 1);
+            flash.setDepth(110);
+            this.tweens.add({
+                targets: flash,
+                scale: 3,
+                alpha: 0,
+                duration: 800,
+                ease: 'Power2',
+                onComplete: () => flash.destroy()
             });
 
-            // Explodir partículas
-            emitter.explode(20, wallSprite.x, wallSprite.y);
-
-            // 2. Animação de "tremer" e esmaecer a parede
+            // 4. Animação de "tremer" e esmaecer a parede
             this.tweens.add({
                 targets: wallSprite,
                 alpha: 0,
-                scaleX: wallSprite.scaleX * 1.1,
-                scaleY: wallSprite.scaleY * 1.1,
-                duration: 400,
+                scaleX: wallSprite.scaleX * 1.05,
+                scaleY: wallSprite.scaleY * 1.05,
+                duration: 1200,
                 ease: 'Power2',
                 onComplete: () => {
-                    // 3. Só depois da animação, atualizar o estado e remover
                     gameStateManager.destroyWall(this.currentLocation, wallData.id);
                     this.renderDestructibleWalls();
-                    emitter.destroy(); // Limpar emissor
                 }
             });
 
