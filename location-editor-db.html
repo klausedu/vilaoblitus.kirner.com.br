@@ -3245,78 +3245,78 @@
                 direction: `
                     <div class="form-group">
                         <label>Pergunta</label>
-                        <textarea id="puzzle-question" placeholder="Digite a pergunta..."></textarea>
+                        <textarea id="puzzle-question" placeholder="Digite a pergunta..." onchange="savePuzzle()"></textarea>
                     </div>
                     <div class="form-group">
                         <label>Opções (uma por linha)</label>
-                        <textarea id="puzzle-options" placeholder="Norte\nSul\nLeste\nOeste"></textarea>
+                        <textarea id="puzzle-options" placeholder="Norte\nSul\nLeste\nOeste" onchange="savePuzzle()"></textarea>
                     </div>
                     <div class="form-group">
                         <label>Resposta Correta (número da opção, começando em 0)</label>
-                        <input type="number" id="puzzle-answer" placeholder="0">
+                        <input type="number" id="puzzle-answer" placeholder="0" onchange="savePuzzle()">
                     </div>
                     <div class="form-group">
                         <label>Dica (opcional)</label>
-                        <input type="text" id="puzzle-hint" placeholder="Dica...">
+                        <input type="text" id="puzzle-hint" placeholder="Dica..." onchange="savePuzzle()">
                     </div>
                 `,
                 riddle: `
                     <div class="form-group">
                         <label>Pergunta / Charada</label>
-                        <textarea id="puzzle-question" placeholder="Digite a charada..."></textarea>
+                        <textarea id="puzzle-question" placeholder="Digite a charada..." onchange="savePuzzle()"></textarea>
                     </div>
                     <div class="form-group">
                         <label>Opções (uma por linha)</label>
-                        <textarea id="puzzle-options" placeholder="Opção 1\nOpção 2\nOpção 3\nOpção 4"></textarea>
+                        <textarea id="puzzle-options" placeholder="Opção 1\nOpção 2\nOpção 3\nOpção 4" onchange="savePuzzle()"></textarea>
                     </div>
                     <div class="form-group">
                         <label>Resposta Correta (número da opção, começando em 0)</label>
-                        <input type="number" id="puzzle-answer" placeholder="0">
+                        <input type="number" id="puzzle-answer" placeholder="0" onchange="savePuzzle()">
                     </div>
                 `,
                 sequence_symbols: `
                     <div class="form-group">
                         <label>Pergunta</label>
-                        <textarea id="puzzle-question" placeholder="Digite a pergunta..."></textarea>
+                        <textarea id="puzzle-question" placeholder="Digite a pergunta..." onchange="savePuzzle()"></textarea>
                     </div>
                     <div class="form-group">
                         <label>Sequência Correta (números separados por vírgula, começando em 0)</label>
-                        <input type="text" id="puzzle-sequence" placeholder="0,2,1">
+                        <input type="text" id="puzzle-sequence" placeholder="0,2,1" onchange="savePuzzle()">
                         <div class="form-hint">Exemplo: 0,2,1 significa primeira opção, terceira opção, segunda opção</div>
                     </div>
                 `,
                 math: `
                     <div class="form-group">
                         <label>Pergunta / Problema Matemático</label>
-                        <textarea id="puzzle-question" placeholder="Digite o problema..."></textarea>
+                        <textarea id="puzzle-question" placeholder="Digite o problema..." onchange="savePuzzle()"></textarea>
                     </div>
                     <div class="form-group">
                         <label>Resposta Correta (número)</label>
-                        <input type="number" id="puzzle-answer" placeholder="42">
+                        <input type="number" id="puzzle-answer" placeholder="42" onchange="savePuzzle()">
                     </div>
                 `,
                 code: `
                     <div class="form-group">
                         <label>Pergunta</label>
-                        <textarea id="puzzle-question" placeholder="Digite a pergunta..."></textarea>
+                        <textarea id="puzzle-question" placeholder="Digite a pergunta..." onchange="savePuzzle()"></textarea>
                     </div>
                     <div class="form-group">
                         <label>Código Correto (número)</label>
-                        <input type="number" id="puzzle-answer" placeholder="1234">
+                        <input type="number" id="puzzle-answer" placeholder="1234" onchange="savePuzzle()">
                     </div>
                     <div class="form-group">
                         <label>Dica (opcional)</label>
-                        <input type="text" id="puzzle-hint" placeholder="Dica...">
+                        <input type="text" id="puzzle-hint" placeholder="Dica..." onchange="savePuzzle()">
                     </div>
                 `,
                 item_combination: `
                     <div class="form-group">
                         <label>Pergunta</label>
-                        <textarea id="puzzle-question" placeholder="Digite a pergunta..."></textarea>
+                        <textarea id="puzzle-question" placeholder="Digite a pergunta..." onchange="savePuzzle()"></textarea>
                     </div>
                     <div class="form-group">
                         <label>Itens Necessários (IDs separados por vírgula)</label>
-                        <input type="text" id="puzzle-required-items" placeholder="golden_gear,crystal_key">
+                        <input type="text" id="puzzle-required-items" placeholder="item1, item2" onchange="savePuzzle()">
                     </div>
                 `
             };
