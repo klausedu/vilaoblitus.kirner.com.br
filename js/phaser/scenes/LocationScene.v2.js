@@ -1869,14 +1869,54 @@ class LocationScene extends Phaser.Scene {
     }
 
     destroyWall(wallData) {
-        // Tocar som (se houver)
-        // this.sound.play('explosion'); 
+        // Encontrar o sprite da parede
+        const wallSprite = this.destructibleWalls.find(w => w.wallData.id === wallData.id);
 
-        // Atualizar estado
-        gameStateManager.destroyWall(this.currentLocation, wallData.id);
+        if (wallSprite) {
+            // 1. Criar efeito de partículas (pedacinhos da parede)
+            const texture = wallSprite.texture.key;
+            const frame = wallSprite.frame.name;
 
-        // Atualizar visual (remover parede)
-        this.renderDestructibleWalls();
+            // Criar emissor de partículas usando a própria textura da parede
+            const emitter = this.add.particles(wallSprite.x, wallSprite.y, texture, {
+                frame: frame,
+                speed: { min: 50, max: 200 },
+                angle: { min: 0, max: 360 },
+                scale: { start: 0.1, end: 0 },
+                alpha: { start: 1, end: 0 },
+                lifespan: 800,
+                gravityY: 300,
+                quantity: 20,
+                blendMode: 'NORMAL',
+                emitting: false
+            });
+
+            // Explodir partículas
+            emitter.explode(20, wallSprite.x, wallSprite.y);
+
+            // 2. Animação de "tremer" e esmaecer a parede
+            this.tweens.add({
+                targets: wallSprite,
+                alpha: 0,
+                scaleX: wallSprite.scaleX * 1.1,
+                scaleY: wallSprite.scaleY * 1.1,
+                duration: 400,
+                ease: 'Power2',
+                onComplete: () => {
+                    // 3. Só depois da animação, atualizar o estado e remover
+                    gameStateManager.destroyWall(this.currentLocation, wallData.id);
+                    this.renderDestructibleWalls();
+                    emitter.destroy(); // Limpar emissor
+                }
+            });
+
+            // Tocar som de pedra quebrando (se houver)
+            // this.sound.play('rock_break');
+        } else {
+            // Fallback se não achar o sprite (ex: erro de sync)
+            gameStateManager.destroyWall(this.currentLocation, wallData.id);
+            this.renderDestructibleWalls();
+        }
 
         uiManager.showNotification('Caminho liberado!');
     }
