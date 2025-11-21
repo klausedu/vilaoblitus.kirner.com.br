@@ -706,7 +706,7 @@
                     <div id="puzzle-editor" style="display: none;">
                         <div class="form-group">
                             <label>ID do Enigma</label>
-                            <input type="text" id="puzzle-id" placeholder="ex: fountain_puzzle">
+                            <input type="text" id="puzzle-id" placeholder="ex: fountain_puzzle" onchange="savePuzzle()">
                         </div>
 
                         <div class="form-group">
@@ -745,21 +745,24 @@
 
                         <div class="form-group">
                             <label>Item de Recompensa - ID</label>
-                            <input type="text" id="puzzle-reward-id" placeholder="ex: fountain_key">
+                            <input type="text" id="puzzle-reward-id" placeholder="ex: fountain_key"
+                                onchange="savePuzzle()">
                         </div>
 
                         <div class="form-group">
                             <label>Item de Recompensa - Nome</label>
-                            <input type="text" id="puzzle-reward-name" placeholder="ex: Chave da Fonte">
+                            <input type="text" id="puzzle-reward-name" placeholder="ex: Chave da Fonte"
+                                onchange="savePuzzle()">
                         </div>
 
                         <div class="form-group">
                             <label>Imagem da Recompensa (opcional)</label>
-                            <input type="text" id="puzzle-reward-image" placeholder="images/items/tesouro.png">
+                            <input type="text" id="puzzle-reward-image" placeholder="images/items/tesouro.png"
+                                onchange="savePuzzle()">
                             <div class="form-hint">Use caminho relativo, ex: images/items/tesouro.png</div>
                         </div>
 
-                        <button class="btn btn-success" onclick="savePuzzle()">💾 Salvar Enigma</button>
+
                     </div>
                 </div>
 
