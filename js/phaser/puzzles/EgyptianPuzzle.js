@@ -130,25 +130,20 @@ class EgyptianPuzzle {
         );
         indicator.setAngle(initialRotation);
 
+        // Adicionar referências ao pieceData original
+        pieceData.hexagon = hexagon;
+        pieceData.symbolText = symbolText;
+        pieceData.indicator = indicator;
+        pieceData.currentRotation = initialRotation;
+
         // Tornar interativo
         const hitArea = new Phaser.Geom.Circle(position.x, position.y, size);
         hexagon.setInteractive(hitArea, Phaser.Geom.Circle.Contains);
         hexagon.on('pointerdown', () => {
             if (!this.solved) {
-                this.rotatePiece({
-                    ...pieceData,
-                    hexagon,
-                    symbolText,
-                    indicator,
-                    currentRotation: symbolText.angle
-                });
+                this.rotatePiece(pieceData);
             }
         });
-
-        pieceData.hexagon = hexagon;
-        pieceData.symbolText = symbolText;
-        pieceData.indicator = indicator;
-        pieceData.currentRotation = initialRotation;
 
         return pieceData;
     }
