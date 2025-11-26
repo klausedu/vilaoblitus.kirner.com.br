@@ -2490,8 +2490,8 @@
             position: absolute;
             width: 12px; height: 12px;
             background: #ff4444; border: 1px solid white;
-            z - index: 100;
-            cursor: ${handle} -resize;
+            z-index: 100;
+            cursor: ${handle}-resize;
             `;
                         if (handle.includes('n')) handleEl.style.top = '-6px';
                         if (handle.includes('s')) handleEl.style.bottom = '-6px';
@@ -2753,16 +2753,16 @@
                 const label = document.createElement('div');
                 label.style.cssText = `
             position: absolute;
-            top: 50 %;
-            left: 50 %;
-            transform: translate(-50 %, -50 %);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             background: rgba(0, 0, 0, 0.7);
             color: white;
             padding: 4px 8px;
-            border - radius: 4px;
-            font - size: 12px;
-            pointer - events: none;
-            white - space: nowrap;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            white-space: nowrap;
             `;
                 label.textContent = wall.id || 'Parede';
                 wallEl.appendChild(label);
@@ -2779,8 +2779,8 @@
             position: absolute;
             width: 12px; height: 12px;
             background: #ff4444; border: 1px solid white;
-            z - index: 100;
-            cursor: ${handle} -resize;
+            z-index: 100;
+            cursor: ${handle}-resize;
             `;
                         if (handle.includes('n')) handleEl.style.top = '-6px';
                         if (handle.includes('s')) handleEl.style.bottom = '-6px';
