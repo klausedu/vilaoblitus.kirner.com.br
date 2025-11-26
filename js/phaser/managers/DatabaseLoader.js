@@ -89,6 +89,8 @@ class DatabaseLoader {
                         name: h.label || h.item_id,
                         description: h.description || '',
                         image: h.item_image || '',  // ✅ Imagem do JOIN
+                        isDisplayItem: h.is_display_item === 1 || h.is_display_item === '1' || h.is_display_item === true,
+                        displayImage: h.display_image || null,
                         position: {
                             x: parseFloat(h.x),
                             y: parseFloat(h.y)

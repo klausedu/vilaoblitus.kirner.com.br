@@ -4276,6 +4276,8 @@ if (typeof module !== 'undefined' && module.exports) {
                         label: item.name,
                         description: item.description,
                         item_image: item.image,
+                        is_display_item: item.isDisplayItem ? 1 : 0,
+                        display_image: item.displayImage || null,
                         x: item.position.x,
                         y: item.position.y,
                         width: item.size.width,

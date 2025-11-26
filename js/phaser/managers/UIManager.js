@@ -683,20 +683,40 @@ class UIManager {
             label.textContent = item.name;
             itemDiv.appendChild(label);
 
-            // Drag & drop
-            itemDiv.addEventListener('pointerdown', (event) => this.startInventoryDrag(item, event));
-            itemDiv.addEventListener('touchstart', (event) => this.startInventoryDrag(item, event), { passive: false });
+            // Controle de click vs drag
+            let clickStartX = 0;
+            let clickStartY = 0;
+            let hasMoved = false;
 
-            // Clique duplo para itens de exibição (mapas, papéis, fotos)
-            if (item.isDisplayItem && item.displayImage) {
-                itemDiv.style.cursor = 'pointer';
-                itemDiv.title = `Clique 2x para ver ${item.name}`;
+            itemDiv.addEventListener('pointerdown', (event) => {
+                clickStartX = event.clientX;
+                clickStartY = event.clientY;
+                hasMoved = false;
+                this.startInventoryDrag(item, event);
+            });
 
-                itemDiv.addEventListener('dblclick', (event) => {
+            itemDiv.addEventListener('pointermove', (event) => {
+                const distX = Math.abs(event.clientX - clickStartX);
+                const distY = Math.abs(event.clientY - clickStartY);
+                if (distX > 5 || distY > 5) {
+                    hasMoved = true;
+                }
+            });
+
+            itemDiv.addEventListener('pointerup', (event) => {
+                if (!hasMoved && item.isDisplayItem && item.displayImage) {
                     event.stopPropagation();
                     event.preventDefault();
                     this.showItemDisplay(item);
-                });
+                }
+            });
+
+            itemDiv.addEventListener('touchstart', (event) => this.startInventoryDrag(item, event), { passive: false });
+
+            // Visual para itens de exibição
+            if (item.isDisplayItem && item.displayImage) {
+                itemDiv.style.cursor = 'pointer';
+                itemDiv.title = `Clique para ver ${item.name}`;
             }
 
             grid.appendChild(itemDiv);
