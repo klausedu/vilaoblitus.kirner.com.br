@@ -3388,6 +3388,17 @@
                     if (itemsEl && puzzle.requiredItems) {
                         itemsEl.value = puzzle.requiredItems.join(',');
                     }
+                } else if (puzzle.type === 'egyptian') {
+                    const titleEl = document.getElementById('puzzle-title');
+                    if (titleEl && puzzle.title) titleEl.value = puzzle.title;
+
+                    const descEl = document.getElementById('puzzle-description');
+                    if (descEl && puzzle.description) descEl.value = puzzle.description;
+
+                    const hintsEl = document.getElementById('puzzle-hints');
+                    if (hintsEl && puzzle.hints) {
+                        hintsEl.value = JSON.stringify(puzzle.hints, null, 2);
+                    }
                 }
 
                 if (puzzle.reward) {
@@ -3463,6 +3474,32 @@
             } else if (currentPuzzleType === 'item_combination' || currentPuzzleType === 'key_check') {
                 const itemsEl = document.getElementById('puzzle-required-items');
                 if (itemsEl) puzzle.requiredItems = itemsEl.value.split(',').map(i => i.trim());
+            } else if (currentPuzzleType === 'egyptian') {
+                const titleEl = document.getElementById('puzzle-title');
+                if (titleEl && titleEl.value) puzzle.title = titleEl.value;
+
+                const descEl = document.getElementById('puzzle-description');
+                if (descEl && descEl.value) puzzle.description = descEl.value;
+
+                const hintsEl = document.getElementById('puzzle-hints');
+                if (hintsEl && hintsEl.value) {
+                    try {
+                        puzzle.hints = JSON.parse(hintsEl.value);
+                    } catch (e) {
+                        console.warn('Hints inválidos:', e);
+                        puzzle.hints = [];
+                    }
+                }
+
+                // Configuração padrão das peças (6 peças hexagonais)
+                puzzle.pieces = [
+                    { id: 'piece1', symbol: 'ankh', initialRotation: 0, correctRotation: 0, position: { x: -150, y: -80 } },
+                    { id: 'piece2', symbol: 'eye', initialRotation: 90, correctRotation: 0, position: { x: 0, y: -80 } },
+                    { id: 'piece3', symbol: 'scarab', initialRotation: 180, correctRotation: 90, position: { x: 150, y: -80 } },
+                    { id: 'piece4', symbol: 'sun', initialRotation: 0, correctRotation: 180, position: { x: -150, y: 80 } },
+                    { id: 'piece5', symbol: 'bird', initialRotation: 270, correctRotation: 270, position: { x: 0, y: 80 } },
+                    { id: 'piece6', symbol: 'snake', initialRotation: 90, correctRotation: 0, position: { x: 150, y: 80 } }
+                ];
             }
 
             const rewardId = document.getElementById('puzzle-reward-id').value;
