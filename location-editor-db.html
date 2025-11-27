@@ -4216,12 +4216,6 @@ if (typeof module !== 'undefined' && module.exports) {
             }
 
             if (!silent) {
-                if (!confirm(`Sincronizar ${Object.keys(gameLocations).length} localizações com o banco MySQL?`)) {
-                    return;
-                }
-            }
-
-            if (!silent) {
                 showToast('☁️ Sincronizando TODAS as localizações de uma vez...', 'info');
             }
 
