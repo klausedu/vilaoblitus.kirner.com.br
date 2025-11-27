@@ -1700,7 +1700,24 @@ class LocationScene extends Phaser.Scene {
                     console.log('[PUZZLE][CALLBACK] 🎉 onSolved callback executado para:', puzzle.id);
                     console.log('[PUZZLE][CALLBACK] 📊 Estado ANTES de marcar:', gameStateManager.state.solvedPuzzles);
 
-                    gameStateManager.solvePuzzle(puzzle.id);
+                    // Calcular posição para dropar a recompensa (ao lado do baú)
+                    let rewardOptions = {};
+                    if (puzzle.reward && puzzle.visual && puzzle.visual.position) {
+                        const puzzleX = puzzle.visual.position.x;
+                        const puzzleY = puzzle.visual.position.y;
+
+                        // Dropar item 15% à direita do baú, mesma altura
+                        rewardOptions.dropPosition = {
+                            x: puzzleX + 15,
+                            y: puzzleY
+                        };
+                        rewardOptions.dropLocation = this.currentLocation;
+
+                        console.log('[PUZZLE][CALLBACK] 🎁 Dropando recompensa em:', rewardOptions.dropPosition);
+                    }
+
+                    // Resolver puzzle e dropar recompensa no cenário
+                    gameStateManager.solvePuzzle(puzzle.id, puzzle.reward, this.currentLocation, rewardOptions);
 
                     console.log('[PUZZLE][CALLBACK] 📊 Estado DEPOIS de marcar:', gameStateManager.state.solvedPuzzles);
                     console.log('[PUZZLE][CALLBACK] ✅ Puzzle marcado como resolvido');
@@ -1709,9 +1726,10 @@ class LocationScene extends Phaser.Scene {
 
                     if (puzzle.reward) {
                         setTimeout(() => {
-                            gameStateManager.collectItem(puzzle.reward);
-                            uiManager.showNotification(`Você ganhou: ${puzzle.reward.name}`);
-                        }, 1500);
+                            uiManager.showNotification(`🎁 ${puzzle.reward.name} apareceu!`);
+                            // Atualizar itens no cenário para mostrar a recompensa
+                            this.renderDroppedItems();
+                        }, 500);
                     }
 
                     console.log('[PUZZLE][CALLBACK] ⏰ Agendando atualização visual em 2 segundos...');
