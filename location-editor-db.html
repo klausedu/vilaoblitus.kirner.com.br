@@ -3229,6 +3229,9 @@
         function togglePuzzleEditor() {
             const hasPuzzle = document.getElementById('has-puzzle').checked;
             document.getElementById('puzzle-editor').style.display = hasPuzzle ? 'block' : 'none';
+
+            // Salvar automaticamente quando marcar/desmarcar
+            savePuzzle();
         }
 
         // Select puzzle type
