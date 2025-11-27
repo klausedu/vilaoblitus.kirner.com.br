@@ -539,7 +539,6 @@
             alert('❌ Acesso Negado\n\nApenas administradores podem acessar o Editor.\n\nVocê será redirecionado para o jogo.');
             window.location.href = 'game-phaser.html';
         } else {
-            console.log('✓ Admin access granted:', username);
         }
     </script>
 
@@ -1076,7 +1075,6 @@
 
         // Initialize
         window.onload = async function () {
-            console.log('🔧 Iniciando editor...');
             await loadFromDatabase(true); // Carrega automaticamente do banco
         };
 
@@ -1091,7 +1089,6 @@
 
         // Auto-save to localStorage
         async function autoSave() {
-            console.log('[GEMINI_DEBUG] Autosaving data...', { locations: gameLocations, order: locationOrder });
             const saveData = {
                 locations: gameLocations,
                 order: locationOrder
@@ -1107,11 +1104,9 @@
                 }
 
                 autoSaveTimer = setTimeout(async () => {
-                    console.log('🔄 Sincronizando com banco de dados...');
                     try {
                         await syncToDatabase(true); // true = silent mode
                         showSaveIndicator(); // Mostrar apenas quando sincronizar
-                        console.log('✅ Sincronização concluída!');
                     } catch (error) {
                         console.error('❌ Erro na sincronização:', error);
                     }
@@ -1138,9 +1133,7 @@
                         initializeLocationOrder();
                     }
                     renderLocationsList();
-                    console.log('✅ Dados do editor carregados do IndexedDB');
                 } else {
-                    console.log('ℹ️ Nenhum dado salvo encontrado');
                 }
             } catch (e) {
                 console.error('Erro ao carregar dados salvos:', e);
@@ -1164,11 +1157,6 @@
 
         // Render locations list
         function renderLocationsList() {
-            console.log('🎨 Renderizando lista de localizações:', {
-                total: Object.keys(gameLocations).length,
-                locationOrder: locationOrder,
-                locations: Object.keys(gameLocations)
-            });
 
             const list = document.getElementById('locationsList');
             list.innerHTML = '';
@@ -1380,7 +1368,6 @@
                             width: visualImage.naturalWidth,
                             height: visualImage.naturalHeight
                         };
-                        console.log('📐 Dimensões da imagem detectadas:', location.imageDimensions);
                     }
                     renderPositionedItems();
                     renderPositionedHotspots();
@@ -1398,7 +1385,6 @@
                             width: visualImage.naturalWidth,
                             height: visualImage.naturalHeight
                         };
-                        console.log('📐 Dimensões da imagem detectadas:', location.imageDimensions);
                     }
                     renderPositionedItems();
                     renderPositionedHotspots();
@@ -2424,24 +2410,18 @@
             container.innerHTML = '';
 
             if (!location.hotspots) {
-                console.log('🔍 Nenhum hotspot encontrado para:', currentLocationId);
                 return;
             }
 
-            console.log('🔍 Renderizando hotspots para:', currentLocationId);
-            console.log('📊 Total de hotspots:', location.hotspots.length);
 
             location.hotspots.forEach((hotspot, index) => {
-                console.log(`  [${index}]action: "${hotspot.action}", position: `, hotspot.position);
 
                 // Aceita tanto 'navigate' quanto 'navigation'
                 const isNavigationHotspot = (hotspot.action === 'navigate' || hotspot.action === 'navigation');
                 if (!isNavigationHotspot || !hotspot.position) {
-                    console.log(`  ❌[${index}] IGNORADO - isNav: ${isNavigationHotspot}, hasPos: ${!!hotspot.position} `);
                     return;
                 }
 
-                console.log(`  ✅[${index}] RENDERIZANDO: `, hotspot.name);
 
                 const isSelected = index === selectedHotspotIndex;
 
@@ -2667,21 +2647,14 @@
                 return;
             }
 
-            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            console.log('📍 Local:', locationId);
-            console.log('🔗 Connections:', loc.connections);
-            console.log('🎯 Hotspots:', loc.hotspots?.length || 0);
 
             if (loc.hotspots) {
                 loc.hotspots.forEach((h, i) => {
-                    console.log(`  ${i}."${h.name}" → ${h.target} (${h.action})`);
                     if (h.action === 'navigate') {
                         const temConexao = loc.connections?.includes(h.target);
-                        console.log(`     ${temConexao ? '✅' : '❌'} Conexão existe: ${temConexao} `);
                     }
                 });
             }
-            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         }
 
         // Disponibilizar no console global
@@ -3139,7 +3112,6 @@
                 if (!location.connections) location.connections = [];
                 if (!location.connections.includes(target)) {
                     location.connections.push(target);
-                    console.log('➕ Conexão adicionada automaticamente:', target);
                 }
 
                 autoSave();
@@ -3228,15 +3200,11 @@
         // Toggle puzzle editor
         function togglePuzzleEditor() {
             const hasPuzzle = document.getElementById('has-puzzle').checked;
-            console.log('[TOGGLE] 🔄 togglePuzzleEditor chamado! hasPuzzle:', hasPuzzle);
-            console.log('[TOGGLE] 📍 currentLocationId:', currentLocationId);
 
             document.getElementById('puzzle-editor').style.display = hasPuzzle ? 'block' : 'none';
 
             // Salvar automaticamente quando marcar/desmarcar
-            console.log('[TOGGLE] 💾 Chamando savePuzzle()...');
             savePuzzle();
-            console.log('[TOGGLE] ✅ savePuzzle() executado');
         }
 
         // Select puzzle type
@@ -3487,11 +3455,8 @@
 
         // Save puzzle
         function savePuzzle() {
-            console.log('[SAVE_PUZZLE] 🎯 savePuzzle() INICIADO');
-            console.log('[SAVE_PUZZLE] 📍 currentLocationId:', currentLocationId);
 
             if (!currentLocationId) {
-                console.log('[SAVE_PUZZLE] ❌ currentLocationId é null/undefined - abortando');
                 return;
             }
 
@@ -3499,10 +3464,7 @@
             const location = gameLocations[currentLocationId];
 
             if (!hasPuzzle) {
-                console.log('[SAVE] ❌ Removendo puzzle da localização:', currentLocationId);
-                console.log('[SAVE] 🔍 Puzzle antes de deletar:', location.puzzle);
                 delete location.puzzle;
-                console.log('[SAVE] 🔍 Puzzle depois de deletar:', location.puzzle);
                 autoSave();
                 showToast('✓ Enigma removido!');
                 if (selectedVisualType === 'puzzle') {
@@ -3525,7 +3487,6 @@
             if (!puzzleId) {
                 puzzleId = currentLocationId + '_puzzle';
                 document.getElementById('puzzle-id').value = puzzleId;
-                console.log('[PUZZLE] ID vazio! Gerando automaticamente:', puzzleId);
             }
 
             const puzzle = {
@@ -4056,7 +4017,6 @@ if (typeof module !== 'undefined' && module.exports) {
 
         // Save to game via IndexedDB (suporta arquivos grandes)
         async function saveToGame() {
-            console.log('[GEMINI_DEBUG] Saving to game...', gameLocations);
             try {
                 await saveToIndexedDB('gameLocations', gameLocations);
                 showToast('✅ Salvo no jogo!');
@@ -4101,7 +4061,6 @@ if (typeof module !== 'undefined' && module.exports) {
             if (!auto) {
                 showToast('🔄 Carregando do banco...', 'info');
             } else {
-                console.log('🔄 Carregamento automático do banco...');
             }
 
             try {
@@ -4127,7 +4086,6 @@ if (typeof module !== 'undefined' && module.exports) {
                 }
 
                 // Convert API format to editor format
-                console.log('📥 Dados recebidos do banco:', locations);
 
                 gameLocations = {};
                 locationOrder = [];
@@ -4138,7 +4096,6 @@ if (typeof module !== 'undefined' && module.exports) {
                     const items = [];
 
                     (loc.hotspots || []).forEach(h => {
-                        console.log('Hotspot data from DB:', h);
                         if (h.type === 'item' && h.item_id) {
                             // Este é um item, não um hotspot de navegação
                             items.push({
@@ -4209,11 +4166,9 @@ if (typeof module !== 'undefined' && module.exports) {
                     };
 
                     if (loc.puzzle) {
-                        console.log(`[LOAD] 🎯 Localização ${loc.id} TEM puzzle:`, loc.puzzle);
                         gameLocations[loc.id].puzzle = loc.puzzle;
                         ensurePuzzleDefaults(gameLocations[loc.id].puzzle);
                     } else {
-                        console.log(`[LOAD] ⭕ Localização ${loc.id} NÃO tem puzzle`);
                     }
 
                     locationOrder.push(loc.id);
@@ -4230,7 +4185,6 @@ if (typeof module !== 'undefined' && module.exports) {
                 if (!auto) {
                     showToast(`✅ ${locations.length} localizações carregadas do banco!`);
                 } else {
-                    console.log(`✅ ${locations.length} localizações carregadas do banco`);
                 }
 
             } catch (error) {
@@ -4247,13 +4201,9 @@ if (typeof module !== 'undefined' && module.exports) {
         }
 
         async function syncToDatabase(silent = false) {
-            console.log('🔔 FUNÇÃO syncToDatabase() CHAMADA!');
-            console.log('📊 gameLocations:', gameLocations);
-            console.log('📊 Total de localizações:', Object.keys(gameLocations).length);
 
             // IMPORTANTE: Salvar informações básicas da localização atual ANTES de sincronizar
             if (currentLocationId) {
-                console.log('💾 Salvando informações da localização atual antes de sincronizar...');
                 saveBasicInfo(false); // false = não disparar autoSave novamente (evita loop infinito)
             }
 
@@ -4267,12 +4217,10 @@ if (typeof module !== 'undefined' && module.exports) {
 
             if (!silent) {
                 if (!confirm(`Sincronizar ${Object.keys(gameLocations).length} localizações com o banco MySQL?`)) {
-                    console.log('⚠️ Usuário cancelou a sincronização');
                     return;
                 }
             }
 
-            console.log('💾 Iniciando sincronização em LOTE (bulk save)...');
             if (!silent) {
                 showToast('☁️ Sincronizando TODAS as localizações de uma vez...', 'info');
             }
@@ -4301,7 +4249,6 @@ if (typeof module !== 'undefined' && module.exports) {
 
                     // IMPORTANTE: Converter items para hotspots do tipo 'item'
                     const itemHotspots = (loc.items || []).map(item => {
-                        console.log('[SAVE DEBUG] Item:', item.id, 'isDisplayItem:', item.isDisplayItem, 'displayImage:', item.displayImage);
                         return {
                             type: 'item',
                             item_id: item.id,
@@ -4365,12 +4312,10 @@ if (typeof module !== 'undefined' && module.exports) {
                     }
 
                     const result = await response.json();
-                    console.log(`📨 Resposta da API:`, result);
 
                     const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
 
                     if (result.success) {
-                        console.log(`✅ Sucesso! ${result.data.locations} localizações, ${result.data.hotspots} hotspots em ${elapsed}s`);
                         if (!silent) {
                             showToast(`✅ ${result.data.locations} localizações e ${result.data.hotspots} hotspots salvos em ${elapsed}s!`, 'success');
                         }

@@ -17,7 +17,6 @@ class DatabaseLoader {
      */
     async loadGameData() {
         try {
-            console.log('🔄 Loading game data from database...');
 
             // Strong cache-busting
             const cacheBuster = 'v=' + Date.now() + '&r=' + Math.random();
@@ -30,10 +29,8 @@ class DatabaseLoader {
                 }
             });
 
-            console.log('📡 Response status:', response.status);
 
             const data = await response.json();
-            console.log('📥 Data received:', data);
 
             if (!data.success) {
                 throw new Error(data.message || 'Failed to load game data');
@@ -50,9 +47,6 @@ class DatabaseLoader {
 
             this.loaded = true;
 
-            console.log(`✅ Loaded ${this.locations.length} locations from database`);
-            console.log('📊 Game Map:', this.gameMap);
-            console.log('📊 Total hotspots:', this.locations.reduce((sum, loc) => sum + (loc.hotspots?.length || 0), 0));
 
             return this.gameMap;
 
@@ -173,7 +167,6 @@ class DatabaseLoader {
     convertHotspots(dbHotspots) {
         if (!dbHotspots) return [];
 
-        console.log(`🔍 Convertendo ${dbHotspots.length} hotspots do banco...`);
 
         return dbHotspots.map(h => {
             const hotspot = {
@@ -199,7 +192,6 @@ class DatabaseLoader {
                 hotspot.puzzleId = h.puzzle_id;
             }
 
-            console.log(`  ✅ Hotspot: "${hotspot.label}" at (${hotspot.position.x}, ${hotspot.position.y}) → targetLocation: ${hotspot.targetLocation}`);
 
             return hotspot;
         });
@@ -211,7 +203,6 @@ class DatabaseLoader {
      */
     loadFallback() {
         if (typeof gameMap !== 'undefined') {
-            console.log('✓ Using fallback map.js');
             this.gameMap = gameMap;
             this.loaded = true;
             return gameMap;

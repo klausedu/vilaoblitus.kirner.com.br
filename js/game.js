@@ -92,10 +92,8 @@ window.addEventListener('DOMContentLoaded', async () => {
         const editorData = await loadFromIndexedDB('gameLocations');
         if (editorData) {
             Object.assign(GAME_MAP, editorData);
-            console.log('✅ Dados carregados do editor (IndexedDB)!');
         }
     } catch (e) {
-        console.log('ℹ️ Nenhum dado do editor encontrado (usando dados padrão)');
     }
 
     // Load game progress
@@ -508,7 +506,6 @@ function handleHotspotClick(hotspot) {
 
 // Navigate to new location
 function navigateToLocation(locationId, hotspot) {
-    console.log('Navigating to:', locationId, 'from hotspot:', hotspot);
     const location = getLocation(locationId);
 
     if (!location) {
@@ -529,14 +526,11 @@ function navigateToLocation(locationId, hotspot) {
         const transformOriginX = hotspot.position.x + (hotspot.position.width / 2);
         const transformOriginY = hotspot.position.y + (hotspot.position.height / 2);
         
-        console.log('Calculated transform-origin:', `${transformOriginX}% ${transformOriginY}%`);
 
         locationImage.style.transformOrigin = `${transformOriginX}% ${transformOriginY}%`;
         gameView.classList.add('zoom-in-effect');
-        console.log('Added zoom-in-effect class to gameView');
 
         setTimeout(() => {
-            console.log('Changing location now');
             gameState.currentLocation = locationId;
             renderLocation();
             
@@ -544,7 +538,6 @@ function navigateToLocation(locationId, hotspot) {
             requestAnimationFrame(() => {
                 gameView.classList.remove('zoom-in-effect');
                 locationImage.style.transformOrigin = 'center center';
-                console.log('Removed zoom-in-effect class and reset transform-origin');
             });
 
             saveProgress(false);
@@ -632,7 +625,6 @@ function renderPuzzle(puzzle) {
         case 'sequence_symbols':
             puzzleInput.innerHTML = '<p>Clique nos símbolos na ordem correta:</p><div id="symbolSequence"></div><button id="clearSequence" class="btn btn-secondary" style="margin-top: 10px;">Limpar</button>';
             const symbolContainer = document.getElementById('symbolSequence');
-            const symbolContainer = document.getElementById('symbolSequence');
             puzzle.options.forEach((option, index) => {
                 const btn = document.createElement('button');
                 btn.className = 'puzzle-option symbol-btn';
@@ -704,7 +696,6 @@ function checkPuzzleAnswer(puzzle) {
     const puzzleMessage = document.getElementById('puzzleMessage');
     let isCorrect = false;
 
-    console.log('Checking puzzle:', puzzle.id, 'Type:', puzzle.type);
 
     switch (puzzle.type) {
         case 'direction':
@@ -713,7 +704,6 @@ function checkPuzzleAnswer(puzzle) {
             const selectedOption = document.querySelector('.puzzle-option.selected');
             if (selectedOption) {
                 const selectedIndex = parseInt(selectedOption.dataset.index);
-                console.log('Selected:', selectedIndex, 'Correct:', puzzle.correctAnswer);
                 // Use loose equality to handle string/number mismatches
                 if (selectedIndex == puzzle.correctAnswer) {
                     isCorrect = true;
@@ -724,7 +714,6 @@ function checkPuzzleAnswer(puzzle) {
         case 'sequence_symbols':
             const userSequence = window.puzzleSequence || [];
             const correctSeq = puzzle.correctSequence;
-            console.log('Sequence:', userSequence, 'Correct:', correctSeq);
             if (JSON.stringify(userSequence) === JSON.stringify(correctSeq)) {
                 isCorrect = true;
             }
@@ -733,7 +722,6 @@ function checkPuzzleAnswer(puzzle) {
         case 'math':
         case 'code':
             const answer = document.getElementById('puzzleAnswer').value.trim();
-            console.log('Answer:', answer, 'Correct:', puzzle.answer);
             // Loose equality for string/number comparison
             if (answer.toLowerCase() == String(puzzle.answer).toLowerCase()) {
                 isCorrect = true;

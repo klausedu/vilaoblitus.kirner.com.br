@@ -16,7 +16,6 @@ const MIME_TYPES = {
 };
 
 const server = http.createServer((req, res) => {
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
 
     // Handle API Save Request
     if (req.method === 'POST' && req.url === '/api/save_locations.php') {
@@ -54,7 +53,6 @@ if (typeof module !== 'undefined' && module.exports) {
                 const mapPath = path.join(__dirname, 'js', 'map.js');
                 fs.writeFileSync(mapPath, fileContent);
 
-                console.log('✅ Saved successfully to js/map.js');
 
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({
@@ -105,6 +103,4 @@ if (typeof module !== 'undefined' && module.exports) {
 });
 
 server.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}/`);
-    console.log(`Open http://localhost:${PORT}/location-editor-db.html to edit`);
 });

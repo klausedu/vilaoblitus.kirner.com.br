@@ -1,7 +1,6 @@
 const DEBUG_SCENE_DRAG = false; // Desligado - versão funcionando
 function debugSceneDrag(...args) {
     if (DEBUG_SCENE_DRAG) {
-        console.log('[SCENE-DRAG]', ...args);
     }
 }
 
@@ -138,7 +137,6 @@ class LocationScene extends Phaser.Scene {
 
             // Se clicou duas vezes dentro de 300ms = duplo clique
             if (timeSinceLastClick < this.doubleClickDelay) {
-                console.log('[ZOOM] 🔍 Duplo clique detectado em:', pointer.worldX, pointer.worldY);
                 this.handleDoubleClick(pointer);
                 this.lastClickTime = 0; // Reset para evitar triplo clique
             } else {
@@ -146,7 +144,6 @@ class LocationScene extends Phaser.Scene {
             }
         });
 
-        console.log('[ZOOM] ✅ Sistema de zoom com duplo clique configurado');
     }
 
     handleDoubleClick(pointer) {
@@ -154,7 +151,6 @@ class LocationScene extends Phaser.Scene {
 
         if (!this.isZoomed) {
             // Fazer zoom na posição clicada
-            console.log('[ZOOM] ➕ Aplicando zoom 2x');
 
             // Animar zoom
             this.tweens.add({
@@ -170,7 +166,6 @@ class LocationScene extends Phaser.Scene {
             this.isZoomed = true;
         } else {
             // Voltar ao zoom normal
-            console.log('[ZOOM] ➖ Voltando ao zoom normal');
 
             // Animar zoom out
             this.tweens.add({
@@ -272,10 +267,8 @@ class LocationScene extends Phaser.Scene {
     }
 
     renderPuzzle() {
-        console.log('[PUZZLE][RENDER] 🎬 Iniciando renderPuzzle()');
 
         if (this.puzzleSprite) {
-            console.log('[PUZZLE][RENDER] ❌ Destruindo sprite antigo');
             this.puzzleSprite.destroy();
             this.puzzleSprite = null;
         }
@@ -284,7 +277,6 @@ class LocationScene extends Phaser.Scene {
 
         const puzzle = this.locationData.puzzle;
         if (!puzzle || !puzzle.visual) {
-            console.log('[PUZZLE] renderPuzzle: sem puzzle visual', this.locationData.id);
             return;
         }
 
@@ -298,14 +290,8 @@ class LocationScene extends Phaser.Scene {
         const y = bgY + (visual.position.y / 100) * bgHeight;
 
         let isSolved = puzzle.id ? gameStateManager.isPuzzleSolved(puzzle.id) : false;
-        console.log('[PUZZLE][RENDER] 🔍 Puzzle ID:', puzzle.id);
-        console.log('[PUZZLE][RENDER] 🔍 isSolved:', isSolved);
-        console.log('[PUZZLE][RENDER] 🔍 solvedPuzzles:', gameStateManager.state.solvedPuzzles);
 
-        console.log(`[PUZZLE_DEBUG] Rendering puzzle: ${puzzle.id} (${puzzle.type})`);
-        console.log(`[PUZZLE_DEBUG] Is Solved: ${isSolved}`);
         if (isSolved) {
-            console.log('[PUZZLE_DEBUG] Solved Puzzles List:', gameStateManager.state.solvedPuzzles);
 
             // Safeguard: Se o puzzle é de combinação de itens e está marcado como resolvido,
             // mas o jogador ainda tem os itens no inventário (held), então há uma inconsistência.
@@ -330,28 +316,19 @@ class LocationScene extends Phaser.Scene {
                 }
             }
         }
-        console.log(`[PUZZLE_DEBUG] Visual:`, visual);
 
         let textureKey = null;
 
-        console.log('[PUZZLE][RENDER] 🖼️ visual.beforeImage:', visual.beforeImage);
-        console.log('[PUZZLE][RENDER] 🖼️ visual.afterImage:', visual.afterImage);
 
         if (isSolved && visual.afterImage) {
             textureKey = `puzzle_${this.locationData.id}_after`;
-            console.log(`[PUZZLE][RENDER] ✅ Using AFTER image: ${textureKey}`);
         } else if (!isSolved && visual.beforeImage) {
             textureKey = `puzzle_${this.locationData.id}_before`;
-            console.log(`[PUZZLE][RENDER] ⏳ Using BEFORE image: ${textureKey}`);
         } else {
-            console.log(`[PUZZLE][RENDER] ⚠️ No image condition met. Solved: ${isSolved}, After: ${!!visual.afterImage}, Before: ${!!visual.beforeImage}`);
         }
 
-        console.log('[PUZZLE][RENDER] 🔑 textureKey final:', textureKey);
-        console.log('[PUZZLE][RENDER] 📦 Texture exists?', textureKey ? this.textures.exists(textureKey) : 'N/A');
 
         if (textureKey && this.textures.exists(textureKey)) {
-            console.log('[PUZZLE][RENDER] ✅ Criando sprite com textura:', textureKey);
             this.puzzleSprite = this.add.image(x, y, textureKey);
 
             const sourceWidth = this.puzzleSprite.width || targetWidth || 1;
@@ -401,7 +378,6 @@ class LocationScene extends Phaser.Scene {
         if (puzzle.type && puzzle.type !== 'item_combination') {
             this.puzzleSprite.setInteractive({ useHandCursor: true });
             this.puzzleSprite.on('pointerdown', () => {
-                console.log('[PUZZLE]', 'sprite pointerdown', puzzle.type, puzzle.id);
                 if (gameStateManager.isPuzzleSolved(puzzle.id)) {
                     uiManager.showNotification('Este enigma já foi resolvido.');
                     return;
@@ -472,10 +448,8 @@ class LocationScene extends Phaser.Scene {
     }
 
     updatePuzzleVisual(solved = false) {
-        console.log('[PUZZLE][UPDATE] 🔄 updatePuzzleVisual() chamado! solved=', solved);
         // Re-renderizar o puzzle para atualizar visual (ex: baú fechado -> aberto)
         this.renderPuzzle();
-        console.log('[PUZZLE][UPDATE] ✅ renderPuzzle() executado');
     }
 
     flashPuzzleSprite(color = 0xf0a500) {
@@ -1202,7 +1176,6 @@ class LocationScene extends Phaser.Scene {
     }
 
     handlePuzzleSubmission(puzzle, payload = {}) {
-        console.log('[PUZZLE]', 'submit', { id: puzzle?.id, type: puzzle?.type, payload });
         if (!puzzle) {
             return { success: false, message: 'Enigma inválido.' };
         }
@@ -1254,13 +1227,11 @@ class LocationScene extends Phaser.Scene {
         if (selectedIndex === correctIndex) {
             this.solveCurrentPuzzle(puzzle);
             const message = puzzle.successMessage || 'Resposta correta!';
-            console.log('[PUZZLE]', 'choice correta', { selectedIndex, correctIndex });
             return { success: true, message, closeDelay: 900 };
         }
 
         this.flashPuzzleSprite(0xff6666);
         const hintSuffix = puzzle.hint ? ` Dica: ${puzzle.hint}` : '';
-        console.log('[PUZZLE]', 'choice incorreta', { selectedIndex, correctIndex });
         return { success: false, message: `Resposta incorreta.${hintSuffix}` };
     }
 
@@ -1346,11 +1317,6 @@ class LocationScene extends Phaser.Scene {
     evaluateItemCombinationPuzzlePlacement(puzzle, itemId) {
         if (!puzzle || puzzle.type !== 'item_combination') return;
 
-        console.log('[PUZZLE_DEBUG] Evaluating placement:', {
-            puzzleId: puzzle.id,
-            itemId,
-            isSolved: gameStateManager.isPuzzleSolved(puzzle.id)
-        });
 
         if (gameStateManager.isPuzzleSolved(puzzle.id)) {
             return;
@@ -1359,7 +1325,6 @@ class LocationScene extends Phaser.Scene {
         const required = (puzzle.requiredItems || []).map(id => id.trim()).filter(Boolean);
 
         // DEBUG: Log required items
-        console.log('[PUZZLE_DEBUG] Required items:', required);
 
         if (required.length === 0) {
             console.warn('[PUZZLE_DEBUG] No required items configured! Solving immediately.');
@@ -1378,12 +1343,10 @@ class LocationScene extends Phaser.Scene {
             .filter(item => item.dropInPuzzleArea)
             .map(item => item.id);
 
-        console.log('[PUZZLE_DEBUG] Dropped items in puzzle area:', droppedItems);
 
         const missing = required.filter(id => !droppedItems.includes(id));
 
         if (missing.length > 0) {
-            console.log('[PUZZLE_DEBUG] Missing items:', missing);
             uiManager.showNotification(`Falta posicionar: ${missing.join(', ')}`, 2500);
             this.flashPuzzleSprite(0xffc107);
             return;
@@ -1721,7 +1684,6 @@ class LocationScene extends Phaser.Scene {
         }
 
         const puzzleType = (puzzle.type ?? 'item_combination').toString().trim().toLowerCase();
-        console.log('[PUZZLE]', 'prompt', { id: puzzle.id, type: puzzleType });
 
         if (puzzleType === 'item_combination') {
             uiManager.showNotification('Arraste o item correto do inventário até o enigma.');
@@ -1731,9 +1693,7 @@ class LocationScene extends Phaser.Scene {
 
         const supportedTypes = ['code', 'math', 'direction', 'riddle', 'sequence_symbols'];
         if (supportedTypes.includes(puzzleType)) {
-            console.log('[PUZZLE]', 'abrindo dialogo suportado', puzzleType);
             const openDialog = () => {
-                console.log('[PUZZLE]', 'executando openDialog');
                 const overlay = document.getElementById('puzzle-overlay');
                 if (overlay) {
                     overlay.classList.add('active');
@@ -1759,7 +1719,6 @@ class LocationScene extends Phaser.Scene {
         // Puzzles do PuzzleManager (Phaser)
         const phaserPuzzleTypes = ['egyptian', 'rotating_discs', 'pattern', 'sequence_buttons'];
         if (phaserPuzzleTypes.includes(puzzleType)) {
-            console.log('[PUZZLE]', 'abrindo puzzle do PuzzleManager', puzzleType);
 
             if (!this.puzzleManager) {
                 this.puzzleManager = new PuzzleManager(this);
@@ -1768,14 +1727,10 @@ class LocationScene extends Phaser.Scene {
             const puzzleConfig = {
                 ...puzzle,
                 onSolved: () => {
-                    console.log('[PUZZLE][CALLBACK] 🎉 onSolved callback executado para:', puzzle.id);
-                    console.log('[PUZZLE][CALLBACK] 📊 Estado ANTES de marcar:', gameStateManager.state.solvedPuzzles);
 
                     // Resolver puzzle primeiro (sem recompensa ainda)
                     gameStateManager.solvePuzzle(puzzle.id);
 
-                    console.log('[PUZZLE][CALLBACK] 📊 Estado DEPOIS de marcar:', gameStateManager.state.solvedPuzzles);
-                    console.log('[PUZZLE][CALLBACK] ✅ Puzzle marcado como resolvido');
 
                     uiManager.showNotification('✅ Enigma resolvido!');
 
@@ -1791,7 +1746,6 @@ class LocationScene extends Phaser.Scene {
                                 y: puzzleY + 8
                             };
 
-                            console.log('[PUZZLE][CALLBACK] 🎁 Dropando recompensa na frente do baú:', dropPosition);
 
                             // Adicionar recompensa ao inventário com status 'dropped'
                             gameStateManager.normalizeInventory();
@@ -1810,9 +1764,7 @@ class LocationScene extends Phaser.Scene {
                         }, 2500);
                     }
 
-                    console.log('[PUZZLE][CALLBACK] ⏰ Agendando atualização visual em 2 segundos...');
                     setTimeout(() => {
-                        console.log('[PUZZLE][CALLBACK] ⏰ 2 segundos passaram! Chamando updatePuzzleVisual()...');
                         this.updatePuzzleVisual();
                     }, 2000);
                 }
@@ -2194,7 +2146,6 @@ class LocationScene extends Phaser.Scene {
     }
 
     navigateToLocation(targetLocationId, hotspot) {
-        console.log('🚀 navigateToLocation chamada:', targetLocationId);
 
         if (!targetLocationId) {
             console.error('❌ targetLocationId está vazio ou undefined!');
@@ -2209,7 +2160,6 @@ class LocationScene extends Phaser.Scene {
             return;
         }
 
-        console.log('✅ Destino encontrado:', targetExists.name);
 
         const { bgWidth, bgHeight, bgX, bgY } = this.getBackgroundBounds();
 
@@ -2228,7 +2178,6 @@ class LocationScene extends Phaser.Scene {
             zoomLevel = 1; // Sem zoom
         }
 
-        console.log('🎬 Iniciando animação de zoom...');
 
         // Animação de pan e zoom
         this.cameras.main.pan(centerX, centerY, 700, 'Cubic.easeInOut');
@@ -2236,18 +2185,15 @@ class LocationScene extends Phaser.Scene {
 
         // Fade out e trocar cena
         this.time.delayedCall(500, () => {
-            console.log('🎬 Fade out iniciado...');
             this.cameras.main.fadeOut(200, 0, 0, 0);
         });
 
         this.cameras.main.once('camerafadeoutcomplete', () => {
-            console.log('🎬 Fade out completo! Trocando para:', targetLocationId);
 
             // Atualizar estado
             gameStateManager.navigateToLocation(targetLocationId);
 
             // Reiniciar cena com nova location
-            console.log('🔄 Reiniciando cena...');
             this.scene.restart({ locationId: targetLocationId });
         });
     }

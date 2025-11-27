@@ -5,7 +5,6 @@
 const DEBUG_DRAG = true;
 function debugDrag(...args) {
     if (DEBUG_DRAG) {
-        console.log('[DRAG]', ...args);
     }
 }
 
@@ -447,11 +446,9 @@ class UIManager {
     }
 
     createPuzzleOverlay(container) {
-        console.log('[PUZZLE][UI][INIT]', 'Criando puzzle overlay...');
         const overlay = document.createElement('div');
         overlay.id = 'puzzle-overlay';
         overlay.className = 'phaser-overlay';
-        console.log('[PUZZLE][UI][INIT]', 'Overlay criado:', overlay);
 
         const modal = document.createElement('div');
         modal.className = 'phaser-overlay-content puzzle-modal';
@@ -523,16 +520,6 @@ class UIManager {
         this.puzzleSubmitBtn = submitBtn;
         this.puzzleCancelBtn = cancelBtn;
 
-        console.log('[PUZZLE][UI][INIT]', 'Elementos salvos:', {
-            overlay: !!this.puzzleOverlay,
-            title: !!this.puzzleTitleEl,
-            question: !!this.puzzleQuestionEl,
-            hint: !!this.puzzleHintEl,
-            inputArea: !!this.puzzleInputArea,
-            message: !!this.puzzleMessageEl,
-            submitBtn: !!this.puzzleSubmitBtn,
-            cancelBtn: !!this.puzzleCancelBtn
-        });
     }
 
     createLocationInfo(container) {
@@ -571,8 +558,6 @@ class UIManager {
      * Exibir item em tela cheia (mapas, papéis, fotos)
      */
     showItemDisplay(item) {
-        console.log('[ITEM DISPLAY] Tentando abrir item:', item);
-        console.log('[ITEM DISPLAY] isDisplayItem:', item.isDisplayItem, 'displayImage:', item.displayImage);
 
         if (!item.isDisplayItem || !item.displayImage) {
             console.warn('[ITEM DISPLAY] Item não é de exibição ou não tem imagem:', item);
@@ -588,7 +573,6 @@ class UIManager {
             return;
         }
 
-        console.log('[ITEM DISPLAY] Abrindo modal com imagem:', item.displayImage);
         image.src = item.displayImage;
         image.alt = item.name;
         modal.classList.add('active');
@@ -654,7 +638,6 @@ class UIManager {
         const grid = document.getElementById('inventory-grid');
         const empty = document.getElementById('inventory-empty');
 
-        console.log('[INVENTORY] Renderizando inventário:', items);
 
         if (items.length === 0) {
             grid.style.display = 'none';
@@ -672,13 +655,6 @@ class UIManager {
             itemDiv.className = 'inventory-item';
             itemDiv.dataset.itemId = item.id;
 
-            console.log('[INVENTORY] Processando item:', {
-                id: item.id,
-                name: item.name,
-                isDisplayItem: item.isDisplayItem,
-                displayImage: item.displayImage,
-                hasProperty: item.hasOwnProperty('isDisplayItem')
-            });
 
             if (item.image) {
                 const img = document.createElement('img');
@@ -741,15 +717,6 @@ class UIManager {
     }
 
     openPuzzleDialog(puzzle, options = {}) {
-        console.log('[PUZZLE][UI][DEBUG]', 'openPuzzleDialog chamado', {
-            puzzle,
-            options,
-            hasOverlay: !!this.puzzleOverlay,
-            hasTitleEl: !!this.puzzleTitleEl,
-            hasQuestionEl: !!this.puzzleQuestionEl,
-            hasHintEl: !!this.puzzleHintEl,
-            hasInputArea: !!this.puzzleInputArea
-        });
 
         if (!puzzle || !this.puzzleOverlay) {
             console.error('[PUZZLE][UI]', 'Puzzle ou overlay ausente!', { puzzle, overlay: this.puzzleOverlay });
@@ -766,23 +733,12 @@ class UIManager {
         }
 
         if (this.puzzleOverlay) {
-            console.log('[PUZZLE][UI]', 'ativando overlay', {
-                beforeInline: this.puzzleOverlay.style.display,
-                hasActive: this.puzzleOverlay.classList.contains('active')
-            });
             this.puzzleOverlay.classList.add('active');
             this.puzzleOverlay.style.display = 'flex';
             this.puzzleOverlay.style.pointerEvents = 'auto';
         }
 
         const puzzleType = (puzzle.type ?? '').toString().trim().toLowerCase();
-        console.log('[PUZZLE][UI]', 'abrindo modal', {
-            id: puzzle.id,
-            type: puzzleType,
-            question: puzzle.question,
-            options: puzzle.options,
-            reward: puzzle.reward
-        });
         const context = {
             puzzle,
             onSubmit: typeof options.onSubmit === 'function' ? options.onSubmit : null,
@@ -799,22 +755,14 @@ class UIManager {
 
         if (this.puzzleTitleEl) {
             const title = options.title || puzzle.title || puzzle.name || 'Enigma';
-            console.log('[PUZZLE][UI][DEBUG]', 'Definindo título:', title);
             this.puzzleTitleEl.textContent = title;
-            console.log('[PUZZLE][UI][DEBUG]', 'Título definido, textContent:', this.puzzleTitleEl.textContent);
         } else {
             console.error('[PUZZLE][UI]', 'puzzleTitleEl não existe!');
         }
 
         if (this.puzzleQuestionEl) {
             const question = puzzle.question || 'Resolva o enigma para continuar.';
-            console.log('[PUZZLE][UI][DEBUG]', 'Definindo pergunta:', question);
-            console.log('[PUZZLE][UI][DEBUG]', 'puzzle.question original:', puzzle.question);
-            console.log('[PUZZLE][UI][DEBUG]', 'typeof puzzle.question:', typeof puzzle.question);
-            console.log('[PUZZLE][UI][DEBUG]', 'puzzle completo:', JSON.stringify(puzzle, null, 2));
             this.puzzleQuestionEl.textContent = question;
-            console.log('[PUZZLE][UI][DEBUG]', 'Pergunta definida, textContent:', this.puzzleQuestionEl.textContent);
-            console.log('[PUZZLE][UI][DEBUG]', 'Elemento HTML:', this.puzzleQuestionEl);
         } else {
             console.error('[PUZZLE][UI]', 'puzzleQuestionEl não existe!');
         }
@@ -823,11 +771,9 @@ class UIManager {
             if (puzzle.hint) {
                 this.puzzleHintEl.style.display = 'block';
                 this.puzzleHintEl.textContent = `Dica: ${puzzle.hint}`;
-                console.log('[PUZZLE][UI][DEBUG]', 'Dica definida:', puzzle.hint);
             } else {
                 this.puzzleHintEl.style.display = 'none';
                 this.puzzleHintEl.textContent = '';
-                console.log('[PUZZLE][UI][DEBUG]', 'Sem dica');
             }
         } else {
             console.error('[PUZZLE][UI]', 'puzzleHintEl não existe!');
@@ -852,7 +798,6 @@ class UIManager {
         };
 
         const optionsArray = Array.isArray(puzzle.options) ? puzzle.options : [];
-        console.log('[PUZZLE][UI]', 'optionsArray', optionsArray);
 
         if (puzzleType === 'code' || puzzleType === 'math') {
             const input = document.createElement('input');
@@ -997,7 +942,6 @@ class UIManager {
         if (!this.activePuzzleContext?.onSubmit) {
             setSubmitEnabled(false);
         }
-        console.log('[PUZZLE]', 'overlay ativo');
         this._ignoreNextPuzzleOverlayClick = true;
         setTimeout(() => {
             this._ignoreNextPuzzleOverlayClick = false;
@@ -1005,14 +949,12 @@ class UIManager {
 
         // Desabilitar input do Phaser para evitar cliques atravessando o overlay
         if (this.activeScene && this.activeScene.input) {
-            console.log('[PUZZLE][UI]', 'Desabilitando input do Phaser');
             this.activeScene.input.enabled = false;
         }
     }
 
     closePuzzleOverlay(reason = 'cancel') {
         const ctx = this.activePuzzleContext;
-        console.log('[PUZZLE][UI]', 'closePuzzleOverlay', reason);
         this.activePuzzleContext = null;
         this._ignoreNextPuzzleOverlayClick = false;
         if (this.puzzleOverlay) {
@@ -1027,7 +969,6 @@ class UIManager {
 
         // Reabilitar input do Phaser
         if (this.activeScene && this.activeScene.input) {
-            console.log('[PUZZLE][UI]', 'Reabilitando input do Phaser');
             this.activeScene.input.enabled = true;
         }
 
@@ -1068,7 +1009,6 @@ class UIManager {
         } else if (ctx.puzzle.type === 'code' || ctx.puzzle.type === 'math') {
             payload = { answer: ctx.primaryInput ? ctx.primaryInput.value : '' };
         }
-        console.log('[PUZZLE][UI]', 'submitActivePuzzle', { payload, type: ctx.type, puzzleId: ctx.puzzle?.id });
 
         if (ctx.validateBeforeSubmit) {
             const validation = ctx.validateBeforeSubmit(payload);
@@ -1076,7 +1016,6 @@ class UIManager {
                 if (validation?.message) {
                     this.setPuzzleMessage(validation.message, 'error');
                 }
-                console.log('[PUZZLE][UI]', 'validation falhou', validation);
                 return;
             }
         }
@@ -1107,7 +1046,6 @@ class UIManager {
             result = { success: false, message: 'Resposta inválida.' };
         }
 
-        console.log('[PUZZLE][UI]', 'resultado', result);
 
         if (result.success) {
             this.setPuzzleMessage(result.message || 'Enigma resolvido!', 'success');

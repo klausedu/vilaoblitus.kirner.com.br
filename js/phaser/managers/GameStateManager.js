@@ -447,7 +447,6 @@ class GameStateManager {
             }
 
             if (showMessage) {
-                console.log('✓ Progresso salvo');
             }
             return serverSaved;
         } catch (e) {
@@ -485,10 +484,8 @@ class GameStateManager {
             });
 
             const data = await response.json();
-            console.log('[SAVE_DEBUG] Save response:', data);
 
             if (data.success) {
-                console.log('✓ Progresso salvo no servidor');
                 return true;
             } else {
                 console.warn('⚠️ Erro ao salvar no servidor:', data.message);
@@ -513,7 +510,6 @@ class GameStateManager {
                 this.state = JSON.parse(saved);
                 this.normalizeInventory();
                 localStorage.setItem('vila_abandonada_phaser', JSON.stringify(this.state));
-                console.log('✓ Progresso carregado do localStorage');
                 return true;
             }
         } catch (e) {
@@ -562,7 +558,6 @@ class GameStateManager {
      * Resetar jogo
      */
     async reset() {
-        console.log('[SAVE_DEBUG] Resetting game state...');
         this.state = {
             currentLocation: 'floresta',
             visitedLocations: ['floresta'],
@@ -575,7 +570,6 @@ class GameStateManager {
             destroyedWalls: []
         };
         this.normalizeInventory();
-        console.log('[SAVE_DEBUG] State reset. Saving to server...');
         const success = await this.saveProgress();
         this.trigger('gameReset');
         this.trigger('inventoryChanged');

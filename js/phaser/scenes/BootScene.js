@@ -43,7 +43,6 @@ class BootScene extends Phaser.Scene {
                 loadingText.setText('Erro ao carregar dados!');
             }
         } else {
-            console.log('✓ Dados já carregados, pulando para imagens...');
             loadingText.setText('Carregando imagens...');
         }
 

@@ -167,16 +167,13 @@ class EgyptianPuzzle {
     }
 
     checkSolution() {
-        console.log('[EGYPTIAN] Verificando solução...');
         this.puzzlePieces.forEach((piece, i) => {
-            console.log(`[EGYPTIAN] Peça ${i + 1}: atual=${piece.currentRotation}, correta=${piece.correctRotation}, OK=${piece.currentRotation === piece.correctRotation}`);
         });
 
         const allCorrect = this.puzzlePieces.every(piece => {
             return piece.currentRotation === piece.correctRotation;
         });
 
-        console.log(`[EGYPTIAN] Todas corretas? ${allCorrect}, Já resolvido? ${this.solved}`);
 
         if (allCorrect && !this.solved) {
             this.onSolved();
@@ -185,7 +182,6 @@ class EgyptianPuzzle {
 
     onSolved() {
         this.solved = true;
-        console.log('✅ Puzzle Egípcio resolvido!');
 
         // Flash dourado em todas as peças
         this.puzzlePieces.forEach(piece => {
