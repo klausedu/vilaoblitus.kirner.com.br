@@ -1714,10 +1714,10 @@ class LocationScene extends Phaser.Scene {
                             const puzzleX = puzzle.visual.position.x;
                             const puzzleY = puzzle.visual.position.y;
 
-                            // Dropar item na frente do baú (15% abaixo)
+                            // Dropar item na frente do baú (8% abaixo)
                             const dropPosition = {
                                 x: puzzleX,
-                                y: puzzleY + 15
+                                y: puzzleY + 8
                             };
 
                             console.log('[PUZZLE][CALLBACK] 🎁 Dropando recompensa na frente do baú:', dropPosition);
