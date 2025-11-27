@@ -3228,10 +3228,15 @@
         // Toggle puzzle editor
         function togglePuzzleEditor() {
             const hasPuzzle = document.getElementById('has-puzzle').checked;
+            console.log('[TOGGLE] 🔄 togglePuzzleEditor chamado! hasPuzzle:', hasPuzzle);
+            console.log('[TOGGLE] 📍 currentLocationId:', currentLocationId);
+
             document.getElementById('puzzle-editor').style.display = hasPuzzle ? 'block' : 'none';
 
             // Salvar automaticamente quando marcar/desmarcar
+            console.log('[TOGGLE] 💾 Chamando savePuzzle()...');
             savePuzzle();
+            console.log('[TOGGLE] ✅ savePuzzle() executado');
         }
 
         // Select puzzle type
@@ -3482,7 +3487,13 @@
 
         // Save puzzle
         function savePuzzle() {
-            if (!currentLocationId) return;
+            console.log('[SAVE_PUZZLE] 🎯 savePuzzle() INICIADO');
+            console.log('[SAVE_PUZZLE] 📍 currentLocationId:', currentLocationId);
+
+            if (!currentLocationId) {
+                console.log('[SAVE_PUZZLE] ❌ currentLocationId é null/undefined - abortando');
+                return;
+            }
 
             const hasPuzzle = document.getElementById('has-puzzle').checked;
             const location = gameLocations[currentLocationId];
