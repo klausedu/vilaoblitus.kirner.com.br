@@ -3,6 +3,11 @@ header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET');
 
+// Desabilitar cache
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: 0');
+
 // Step 1: Check if config file exists
 if (!file_exists(__DIR__ . '/../config.php')) {
     sendResponse(false, null, 'Diagnostic: config.php not found.', 500);
@@ -85,6 +90,8 @@ try {
                 h.description,
                 h.target_location,
                 h.item_id,
+                h.is_display_item,
+                h.display_image,
                 h.interaction_data,
                 h.rotation,
                 h.rotate_x,
