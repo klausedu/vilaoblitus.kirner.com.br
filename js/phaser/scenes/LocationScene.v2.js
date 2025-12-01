@@ -2009,16 +2009,12 @@ class LocationScene extends Phaser.Scene {
             const width = (wallData.width / 100) * bgWidth;
             const height = (wallData.height / 100) * bgHeight;
 
-            // Criar elemento HTML para a parede (igual aos itens)
-            const wallEl = document.createElement('div');
-            wallEl.style.position = 'absolute';
-            wallEl.style.left = x + 'px';
-            wallEl.style.top = y + 'px';
-            wallEl.style.width = width + 'px';
-            wallEl.style.height = height + 'px';
-            wallEl.style.zIndex = '25';
-            wallEl.style.cursor = 'pointer';
-            wallEl.dataset.wallId = wallData.id;
+            // Criar elemento HTML para a parede usando Phaser DOM
+            const wallDiv = document.createElement('div');
+            wallDiv.style.width = width + 'px';
+            wallDiv.style.height = height + 'px';
+            wallDiv.style.cursor = 'pointer';
+            wallDiv.dataset.wallId = wallData.id;
 
             if (wallData.image) {
                 const img = document.createElement('img');
@@ -2027,41 +2023,35 @@ class LocationScene extends Phaser.Scene {
                 img.style.height = '100%';
                 img.style.objectFit = 'cover';
                 img.style.pointerEvents = 'none';
-                wallEl.appendChild(img);
+                wallDiv.appendChild(img);
             } else {
-                // Fallback: usar textura padrão ou cor
-                wallEl.style.backgroundColor = 'rgba(139, 90, 43, 0.8)';
-                wallEl.style.border = '2px solid #654321';
+                // Fallback: usar cor
+                wallDiv.style.backgroundColor = 'rgba(139, 90, 43, 0.8)';
+                wallDiv.style.border = '2px solid #654321';
             }
 
-            // Adicionar handler de click na parede
-            wallEl.addEventListener('click', (e) => {
+            // Criar DOMElement do Phaser
+            const wallElement = this.add.dom(x + width / 2, y + height / 2, wallDiv);
+            wallElement.setOrigin(0.5);
+            wallElement.setDepth(25); // Acima do background, abaixo de itens
+
+            // Adicionar handler de click
+            wallDiv.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const requiredItem = wallData.requiredItem || 'gun';
                 const item = gameStateManager.getInventoryItem(requiredItem);
                 const hasRequiredItem = item && item.status === 'held';
 
                 if (hasRequiredItem) {
-                    // Jogador tem o item necessário, destruir a parede
                     this.handleWallInteraction(wallData, requiredItem);
                 } else {
-                    // Não tem o item, mostrar mensagem
                     uiManager.showNotification(`Você precisa de: ${requiredItem}`);
                 }
             });
 
-            // Adicionar ao container de itens
-            const itemsContainer = document.getElementById('items-container');
-            if (itemsContainer) {
-                itemsContainer.appendChild(wallEl);
-            }
-
             // Salvar referência
-            this.destructibleWalls.push({
-                element: wallEl,
-                wallData: wallData,
-                destroy: () => wallEl.remove()
-            });
+            wallElement.wallData = wallData;
+            this.destructibleWalls.push(wallElement);
         });
     }
 
