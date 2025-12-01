@@ -1308,6 +1308,15 @@
             document.getElementById('edit-description').value = location.description;
             document.getElementById('edit-image').value = location.image;
             document.getElementById('edit-unlocked').checked = location.unlocked || false;
+            document.getElementById('edit-final-scene').checked = location.isFinalScene || false;
+            toggleCreditsSection();
+
+            // Carregar créditos se existirem
+            if (location.isFinalScene && location.credits) {
+                loadCreditsData(location.credits);
+            } else {
+                document.getElementById('credits-list').innerHTML = '';
+            }
 
             // Puzzle
             const hasPuzzle = !!location.puzzle;
@@ -3750,6 +3759,66 @@
             });
 
             return credits;
+        }
+
+        function loadCreditsData(credits) {
+            const container = document.getElementById('credits-list');
+            container.innerHTML = '';
+
+            credits.forEach((credit, index) => {
+                // Criar o elemento
+                const creditEl = document.createElement('div');
+                creditEl.style.cssText = `
+                    background: white;
+                    padding: 15px;
+                    margin-bottom: 10px;
+                    border-radius: 6px;
+                    border: 1px solid #ddd;
+                `;
+                creditEl.dataset.index = index;
+
+                creditEl.innerHTML = `
+                    <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 10px;">
+                        <strong>Texto ${index + 1}</strong>
+                        <button class="btn btn-danger btn-small" onclick="removeCreditLine(${index})" style="margin-left: auto;">🗑️</button>
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <label style="font-size: 12px; color: #666;">Texto:</label>
+                        <textarea id="credit-text-${index}" placeholder="Digite o texto do crédito..." onchange="saveBasicInfo()"
+                                  style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; min-height: 60px;">${credit.text}</textarea>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                        <div>
+                            <label style="font-size: 12px; color: #666;">Fonte:</label>
+                            <input type="text" id="credit-font-${index}" placeholder="Arial, sans-serif" value="${credit.font || 'Arial, sans-serif'}" onchange="saveBasicInfo()"
+                                   style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">
+                        </div>
+                        <div>
+                            <label style="font-size: 12px; color: #666;">Tamanho:</label>
+                            <input type="text" id="credit-size-${index}" placeholder="48px" value="${credit.fontSize || '48px'}" onchange="saveBasicInfo()"
+                                   style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                        <div>
+                            <label style="font-size: 12px; color: #666;">Cor:</label>
+                            <input type="text" id="credit-color-${index}" placeholder="#feda4a" value="${credit.color || '#feda4a'}" onchange="saveBasicInfo()"
+                                   style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">
+                        </div>
+                        <div>
+                            <label style="font-size: 12px; color: #666;">Peso:</label>
+                            <select id="credit-weight-${index}" onchange="saveBasicInfo()"
+                                    style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">
+                                <option value="normal" ${credit.fontWeight === 'normal' ? 'selected' : ''}>Normal</option>
+                                <option value="bold" ${credit.fontWeight === 'bold' || !credit.fontWeight ? 'selected' : ''}>Bold</option>
+                                <option value="lighter" ${credit.fontWeight === 'lighter' ? 'selected' : ''}>Lighter</option>
+                            </select>
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(creditEl);
+            });
         }
 
         function saveBasicInfo(triggerAutoSave = true) {
