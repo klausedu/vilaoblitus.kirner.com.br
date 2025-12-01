@@ -2436,6 +2436,17 @@
             }
         }
 
+        function updateDigitPosition(digitIndex, prop, value) {
+            if (!currentLocationId) return;
+            const location = gameLocations[currentLocationId];
+            if (location.puzzle && location.puzzle.digitPositions && location.puzzle.digitPositions[digitIndex]) {
+                location.puzzle.digitPositions[digitIndex][prop] = value;
+                autoSave();
+                renderPositionedItems();
+                renderTransformControls();
+            }
+        }
+
         function updateItemSize() {
             if (!currentLocationId) return;
             const visual = getSelectedVisual();
