@@ -1532,6 +1532,29 @@
             showToast('✓ Imagem de item carregada!');
         }
 
+        function handleWallImageUpload(wallIndex, event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            event.target.value = '';
+
+            const location = gameLocations[currentLocationId];
+            const imagePath = `images/walls/${file.name}`;
+
+            // Save as image path reference
+            if (!location.destructibleWalls) {
+                location.destructibleWalls = [];
+            }
+            location.destructibleWalls[wallIndex].image = imagePath;
+
+            renderVisualWallsList();
+            renderPositionedWalls();
+            renderTransformControls();
+            autoSave();
+
+            showToast('✓ Imagem de parede carregada!');
+        }
+
         function handlePuzzleImageUpload(state, event) {
             if (!currentLocationId) return;
 
@@ -1772,9 +1795,19 @@
 
                         <div style="margin-bottom: 15px;">
                             <label style="display: block; margin-bottom: 5px; font-size: 13px; font-weight: 600;">Imagem da Parede</label>
+                            <input type="file"
+                                   id="wall-image-transform"
+                                   accept="image/png"
+                                   style="display: none;"
+                                   onchange="handleWallImageUpload(selectedWallIndex, event)">
+                            <button class="btn btn-secondary btn-small"
+                                    style="width: 100%; margin-bottom: 8px;"
+                                    onclick="document.getElementById('wall-image-transform').click()">
+                                ${wall.image ? '✓ Alterar PNG' : '📁 Upload PNG'}
+                            </button>
                             ${previewHtml}
                             <input type="text" value="${wall.image || ''}"
-                                   placeholder="caminho/da/imagem.png"
+                                   placeholder="ou cole o caminho da imagem"
                                    style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; margin-top: 8px; font-size: 12px;"
                                    onchange="updateWallProperty('image', this.value)">
                         </div>
@@ -2353,19 +2386,26 @@
                     transition: all 0.2s;
                 `;
 
-                const previewHtml = wall.image
-                    ? `<div style="text-align: center; margin-top: 8px;">
-                         <img src="${wall.image}" style="max-width: 100%; max-height: 60px; image-rendering: crisp-edges; border: 1px solid #ddd; border-radius: 4px;">
-                       </div>`
-                    : '<div style="font-size: 11px; color: #999; margin-top: 5px; text-align: center;">Sem imagem</div>';
-
                 wallEl.innerHTML = `
-                    <div style="font-weight: 600; margin-bottom: 5px;">🧱 ${wall.id || 'Parede ' + (index + 1)}</div>
-                    <div style="font-size: 11px; color: #666;">Item: ${wall.requiredItem || 'Nenhum'}</div>
-                    ${previewHtml}
-                    <div style="font-size: 10px; color: #999; margin-top: 5px;">
-                        Pos: ${wall.x?.toFixed(1) || 0}%, ${wall.y?.toFixed(1) || 0}%
-                    </div>
+                    <div style="font-weight: 600; margin-bottom: 8px;">🧱 ${wall.id || 'Parede ' + (index + 1)}</div>
+                    <input type="file"
+                           id="wall-image-${index}"
+                           accept="image/png"
+                           style="display: none;"
+                           onchange="handleWallImageUpload(${index}, event)">
+                    <button class="btn btn-secondary btn-small"
+                            style="width: 100%; margin-bottom: 5px; font-size: 11px;"
+                            onclick="event.stopPropagation(); document.getElementById('wall-image-${index}').click()">
+                        ${wall.image ? '✓ Alterar PNG' : '📁 Upload PNG'}
+                    </button>
+                    ${wall.image ? `
+                        <div style="text-align: center; margin-top: 8px;">
+                            <img src="${wall.image}" style="max-width: 100%; max-height: 60px; image-rendering: crisp-edges; border: 1px solid #ddd; border-radius: 4px;">
+                            <div style="font-size: 10px; color: #999; margin-top: 5px;">
+                                Pos: ${wall.x?.toFixed(1) || 0}%, ${wall.y?.toFixed(1) || 0}%
+                            </div>
+                        </div>
+                    ` : '<div style="font-size: 11px; color: #999; margin-top: 5px; text-align: center;">Sem imagem</div>'}
                 `;
 
                 wallEl.addEventListener('click', () => {
