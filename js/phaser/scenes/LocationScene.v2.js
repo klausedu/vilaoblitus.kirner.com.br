@@ -2343,10 +2343,13 @@ class LocationScene extends Phaser.Scene {
 
     renderPadlockDigits(puzzle, visual, bgX, bgY, bgWidth, bgHeight) {
         // Limpar dígitos anteriores se existirem
-        if (this.padlockDigitElements) {
-            this.padlockDigitElements.forEach(el => el.remove());
+        if (this.padlockDigitSprites) {
+            this.padlockDigitSprites.forEach(sprite => {
+                if (sprite.background) sprite.background.destroy();
+                if (sprite.text) sprite.text.destroy();
+            });
         }
-        this.padlockDigitElements = [];
+        this.padlockDigitSprites = [];
         this.padlockCurrentCode = ['0', '0', '0', '0', '0'];
 
         // Posição das caixinhas (pode ser configurada no editor)
@@ -2361,49 +2364,72 @@ class LocationScene extends Phaser.Scene {
         const digitSize = puzzle.digitSize || { width: 40, height: 50 };
 
         digitPositions.forEach((pos, index) => {
-            const screenX = bgX + (pos.x / 100) * bgWidth;
-            const screenY = bgY + (pos.y / 100) * bgHeight;
+            const worldX = bgX + (pos.x / 100) * bgWidth;
+            const worldY = bgY + (pos.y / 100) * bgHeight;
 
-            const digitBox = document.createElement('div');
-            digitBox.style.cssText = `
-                position: absolute;
-                left: ${screenX - digitSize.width / 2}px;
-                top: ${screenY - digitSize.height / 2}px;
-                width: ${digitSize.width}px;
-                height: ${digitSize.height}px;
-                background: rgba(0, 0, 0, 0.8);
-                border: 3px solid #f0a500;
-                border-radius: 8px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 28px;
-                font-weight: bold;
-                color: #f0a500;
-                cursor: pointer;
-                user-select: none;
-                transition: all 0.2s;
-                z-index: 1000;
-            `;
-            digitBox.textContent = '0';
-            digitBox.dataset.index = index;
+            // Criar background (retângulo com borda)
+            const background = this.add.graphics();
+            background.fillStyle(0x000000, 0.8);
+            background.fillRoundedRect(
+                worldX - digitSize.width / 2,
+                worldY - digitSize.height / 2,
+                digitSize.width,
+                digitSize.height,
+                8
+            );
+            background.lineStyle(3, 0xf0a500, 1);
+            background.strokeRoundedRect(
+                worldX - digitSize.width / 2,
+                worldY - digitSize.height / 2,
+                digitSize.width,
+                digitSize.height,
+                8
+            );
+            background.setDepth(90);
 
-            digitBox.addEventListener('mouseenter', () => {
-                digitBox.style.transform = 'scale(1.1)';
-                digitBox.style.borderColor = '#ff0';
+            // Criar texto
+            const text = this.add.text(worldX, worldY, '0', {
+                fontSize: '28px',
+                fontFamily: 'Arial',
+                color: '#f0a500',
+                fontStyle: 'bold'
             });
+            text.setOrigin(0.5);
+            text.setDepth(91);
 
-            digitBox.addEventListener('mouseleave', () => {
-                digitBox.style.transform = 'scale(1)';
-                digitBox.style.borderColor = '#f0a500';
+            // Tornar interativo
+            const hitArea = new Phaser.Geom.Rectangle(
+                worldX - digitSize.width / 2,
+                worldY - digitSize.height / 2,
+                digitSize.width,
+                digitSize.height
+            );
+            background.setInteractive(hitArea, Phaser.Geom.Rectangle.Contains);
+            background.on('pointerover', () => {
+                background.lineStyle(3, 0xffff00, 1);
+                background.strokeRoundedRect(
+                    worldX - digitSize.width / 2,
+                    worldY - digitSize.height / 2,
+                    digitSize.width,
+                    digitSize.height,
+                    8
+                );
             });
-
-            digitBox.addEventListener('click', () => {
+            background.on('pointerout', () => {
+                background.lineStyle(3, 0xf0a500, 1);
+                background.strokeRoundedRect(
+                    worldX - digitSize.width / 2,
+                    worldY - digitSize.height / 2,
+                    digitSize.width,
+                    digitSize.height,
+                    8
+                );
+            });
+            background.on('pointerdown', () => {
                 this.incrementPadlockDigit(index, puzzle);
             });
 
-            document.body.appendChild(digitBox);
-            this.padlockDigitElements.push(digitBox);
+            this.padlockDigitSprites.push({ background, text, index });
         });
     }
 
@@ -2413,14 +2439,19 @@ class LocationScene extends Phaser.Scene {
         this.padlockCurrentCode[index] = nextDigit.toString();
 
         // Atualizar visualmente
-        if (this.padlockDigitElements && this.padlockDigitElements[index]) {
-            this.padlockDigitElements[index].textContent = nextDigit;
+        if (this.padlockDigitSprites && this.padlockDigitSprites[index]) {
+            const sprite = this.padlockDigitSprites[index];
+            sprite.text.setText(nextDigit.toString());
 
-            // Animação de rotação
-            this.padlockDigitElements[index].style.transform = 'rotateX(360deg) scale(1.1)';
-            setTimeout(() => {
-                this.padlockDigitElements[index].style.transform = 'scale(1)';
-            }, 300);
+            // Animação de escala
+            this.tweens.add({
+                targets: [sprite.background, sprite.text],
+                scaleX: 1.2,
+                scaleY: 1.2,
+                duration: 150,
+                yoyo: true,
+                ease: 'Power2'
+            });
         }
 
         // Verificar se o código está correto
@@ -2435,15 +2466,23 @@ class LocationScene extends Phaser.Scene {
             // Código correto! Resolver o puzzle
             uiManager.showNotification('✅ Código correto! Cadeado destrancado!');
 
-            // Remover caixinhas de dígitos
-            if (this.padlockDigitElements) {
-                this.padlockDigitElements.forEach(el => {
-                    el.style.transition = 'all 0.5s';
-                    el.style.opacity = '0';
-                    el.style.transform = 'scale(0)';
-                    setTimeout(() => el.remove(), 500);
+            // Remover caixinhas de dígitos com animação
+            if (this.padlockDigitSprites) {
+                this.padlockDigitSprites.forEach(sprite => {
+                    this.tweens.add({
+                        targets: [sprite.background, sprite.text],
+                        alpha: 0,
+                        scaleX: 0,
+                        scaleY: 0,
+                        duration: 500,
+                        ease: 'Power2',
+                        onComplete: () => {
+                            if (sprite.background) sprite.background.destroy();
+                            if (sprite.text) sprite.text.destroy();
+                        }
+                    });
                 });
-                this.padlockDigitElements = null;
+                this.padlockDigitSprites = null;
             }
 
             // Resolver puzzle
@@ -2509,10 +2548,13 @@ class LocationScene extends Phaser.Scene {
         this.clearDroppedSprites();
         uiManager.setActiveScene(null);
 
-        // Limpar elementos de dígitos do cadeado
-        if (this.padlockDigitElements) {
-            this.padlockDigitElements.forEach(el => el.remove());
-            this.padlockDigitElements = null;
+        // Limpar sprites de dígitos do cadeado
+        if (this.padlockDigitSprites) {
+            this.padlockDigitSprites.forEach(sprite => {
+                if (sprite.background) sprite.background.destroy();
+                if (sprite.text) sprite.text.destroy();
+            });
+            this.padlockDigitSprites = null;
         }
 
         // Remover listener de resize
