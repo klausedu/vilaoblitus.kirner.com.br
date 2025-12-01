@@ -3805,6 +3805,26 @@
                             }
                         });
                     }
+                } else if (puzzle.type === 'padlock_5digit') {
+                    const secretCodeEl = document.getElementById('puzzle-secret-code');
+                    if (secretCodeEl && puzzle.secretCode) secretCodeEl.value = puzzle.secretCode;
+
+                    const actionTypeEl = document.getElementById('puzzle-unlock-action-type');
+                    if (actionTypeEl && puzzle.onUnlockedAction) {
+                        actionTypeEl.value = puzzle.onUnlockedAction.type || 'changeBackground';
+                    }
+
+                    const newBackgroundEl = document.getElementById('puzzle-new-background');
+                    if (newBackgroundEl && puzzle.onUnlockedAction?.newBackground) {
+                        newBackgroundEl.value = puzzle.onUnlockedAction.newBackground;
+                    }
+
+                    const targetLocationEl = document.getElementById('puzzle-target-location');
+                    if (targetLocationEl && puzzle.onUnlockedAction?.targetLocation) {
+                        targetLocationEl.value = puzzle.onUnlockedAction.targetLocation;
+                    }
+
+                    togglePadlockActionFields();
                 }
 
                 if (puzzle.reward) {
