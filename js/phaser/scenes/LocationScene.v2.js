@@ -2425,8 +2425,15 @@ class LocationScene extends Phaser.Scene {
                     8
                 );
             });
-            background.on('pointerdown', () => {
+            background.on('pointerdown', (pointer, localX, localY, event) => {
                 this.incrementPadlockDigit(index, puzzle);
+                // Bloquear propagação para evitar zoom
+                event.stopPropagation();
+            });
+
+            // Bloquear duplo clique para prevenir zoom
+            background.on('pointerdblclick', (pointer, localX, localY, event) => {
+                event.stopPropagation();
             });
 
             this.padlockDigitSprites.push({ background, text, index });
