@@ -1998,8 +1998,34 @@ class LocationScene extends Phaser.Scene {
 
         const { bgWidth, bgHeight, bgX, bgY } = this.getBackgroundBounds();
 
+        // Primeiro, carregar todas as texturas necessárias
+        const texturesToLoad = [];
         walls.forEach(wallData => {
-            // Se já foi destruída, não renderizar (ou renderizar escombros se quiser)
+            if (wallData.image && !this.textures.exists(wallData.id)) {
+                texturesToLoad.push({ key: wallData.id, path: wallData.image });
+            }
+        });
+
+        // Se há texturas para carregar, carregar dinamicamente
+        if (texturesToLoad.length > 0) {
+            texturesToLoad.forEach(tex => {
+                this.load.image(tex.key, tex.path);
+            });
+
+            this.load.once('complete', () => {
+                this.createWallSprites(walls, bgWidth, bgHeight, bgX, bgY);
+            });
+
+            this.load.start();
+        } else {
+            // Todas as texturas já estão carregadas
+            this.createWallSprites(walls, bgWidth, bgHeight, bgX, bgY);
+        }
+    }
+
+    createWallSprites(walls, bgWidth, bgHeight, bgX, bgY) {
+        walls.forEach(wallData => {
+            // Se já foi destruída, não renderizar
             if (gameStateManager.isWallDestroyed(this.currentLocation, wallData.id)) {
                 return;
             }
@@ -2009,35 +2035,23 @@ class LocationScene extends Phaser.Scene {
             const width = (wallData.width / 100) * bgWidth;
             const height = (wallData.height / 100) * bgHeight;
 
-            // Criar elemento HTML para a parede usando Phaser DOM
-            const wallDiv = document.createElement('div');
-            wallDiv.style.width = width + 'px';
-            wallDiv.style.height = height + 'px';
-            wallDiv.style.cursor = 'pointer';
-            wallDiv.dataset.wallId = wallData.id;
+            let wallSprite;
 
-            if (wallData.image) {
-                const img = document.createElement('img');
-                img.src = wallData.image;
-                img.style.width = '100%';
-                img.style.height = '100%';
-                img.style.objectFit = 'cover';
-                img.style.pointerEvents = 'none';
-                wallDiv.appendChild(img);
+            // Usar a textura carregada dinamicamente
+            if (wallData.image && this.textures.exists(wallData.id)) {
+                wallSprite = this.add.image(x + width / 2, y + height / 2, wallData.id);
             } else {
-                // Fallback: usar cor
-                wallDiv.style.backgroundColor = 'rgba(139, 90, 43, 0.8)';
-                wallDiv.style.border = '2px solid #654321';
+                // Fallback: usar textura padrão
+                wallSprite = this.add.image(x + width / 2, y + height / 2, 'wall_texture');
             }
 
-            // Criar DOMElement do Phaser
-            const wallElement = this.add.dom(x + width / 2, y + height / 2, wallDiv);
-            wallElement.setOrigin(0.5);
-            wallElement.setDepth(25); // Acima do background, abaixo de itens
+            wallSprite.setDisplaySize(width, height);
+            wallSprite.setOrigin(0.5);
+            wallSprite.setDepth(25); // Acima do background, abaixo de itens
+            wallSprite.setInteractive();
 
             // Adicionar handler de click
-            wallDiv.addEventListener('click', (e) => {
-                e.stopPropagation();
+            wallSprite.on('pointerdown', () => {
                 const requiredItem = wallData.requiredItem || 'gun';
                 const item = gameStateManager.getInventoryItem(requiredItem);
                 const hasRequiredItem = item && item.status === 'held';
@@ -2050,22 +2064,18 @@ class LocationScene extends Phaser.Scene {
             });
 
             // Salvar referência
-            wallElement.wallData = wallData;
-            this.destructibleWalls.push(wallElement);
+            wallSprite.wallData = wallData;
+            this.destructibleWalls.push(wallSprite);
         });
     }
 
     checkWallInteraction(worldX, worldY) {
         if (!this.destructibleWalls) return null;
 
-        for (const wall of this.destructibleWalls) {
-            const el = wall.element;
-            const rect = el.getBoundingClientRect();
-            const x = worldX - this.cameras.main.scrollX;
-            const y = worldY - this.cameras.main.scrollY;
-
-            if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
-                return wall.wallData;
+        for (const wallSprite of this.destructibleWalls) {
+            const bounds = wallSprite.getBounds();
+            if (bounds.contains(worldX, worldY)) {
+                return wallSprite.wallData;
             }
         }
         return null;
@@ -2139,16 +2149,14 @@ class LocationScene extends Phaser.Scene {
     }
 
     destroyWall(wallData) {
-        // Encontrar o elemento HTML da parede
-        const wall = this.destructibleWalls.find(w => w.wallData.id === wallData.id);
+        // Encontrar o sprite da parede
+        const wallSprite = this.destructibleWalls.find(w => w.wallData.id === wallData.id);
 
-        if (wall) {
-            const wallEl = wall.element;
-            const rect = wallEl.getBoundingClientRect();
-            const wallX = rect.left + rect.width / 2;
-            const wallY = rect.top + rect.height / 2;
-            const wallWidth = rect.width;
-            const wallHeight = rect.height;
+        if (wallSprite) {
+            const wallX = wallSprite.x;
+            const wallY = wallSprite.y;
+            const wallWidth = wallSprite.displayWidth || 100;
+            const wallHeight = wallSprite.displayHeight || 100;
 
             // 1. Efeito de tremor na câmera
             this.cameras.main.shake(200, 0.005);
@@ -2199,15 +2207,19 @@ class LocationScene extends Phaser.Scene {
                 onComplete: () => flash.destroy()
             });
 
-            // 4. Animação de "esmaecer" a parede usando CSS
-            wallEl.style.transition = 'opacity 1.2s, transform 1.2s';
-            wallEl.style.opacity = '0';
-            wallEl.style.transform = 'scale(1.05)';
-
-            setTimeout(() => {
-                gameStateManager.destroyWall(this.currentLocation, wallData.id);
-                this.renderDestructibleWalls();
-            }, 1200);
+            // 4. Animação de "esmaecer" a parede usando Phaser tween
+            this.tweens.add({
+                targets: wallSprite,
+                alpha: 0,
+                scaleX: wallSprite.scaleX * 1.05,
+                scaleY: wallSprite.scaleY * 1.05,
+                duration: 1200,
+                ease: 'Power2',
+                onComplete: () => {
+                    gameStateManager.destroyWall(this.currentLocation, wallData.id);
+                    this.renderDestructibleWalls();
+                }
+            });
 
             // Tocar som de pedra quebrando (se houver)
             // this.sound.play('rock_break');
