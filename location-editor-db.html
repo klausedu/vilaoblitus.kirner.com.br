@@ -1555,6 +1555,199 @@
             showToast('✓ Imagem de parede carregada!');
         }
 
+        async function autoPositionWall(wallIndex) {
+            if (!currentLocationId || wallIndex === null) return;
+
+            const location = gameLocations[currentLocationId];
+            const wall = location.destructibleWalls[wallIndex];
+
+            if (!wall.image || !location.image) {
+                showToast('❌ Necessário ter imagem da parede e do cenário!', 'error');
+                return;
+            }
+
+            showToast('🤖 Analisando... aguarde', 'info');
+
+            try {
+                // Carregar imagens
+                const bgImage = await loadImage(location.image);
+                const wallImage = await loadImage(wall.image);
+
+                // Criar canvas para processamento
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+
+                // Template matching - procurar melhor posição
+                const result = findBestMatch(bgImage, wallImage, ctx);
+
+                if (result) {
+                    // Converter pixels para porcentagem
+                    const xPercent = (result.x / bgImage.width) * 100;
+                    const yPercent = (result.y / bgImage.height) * 100;
+                    const widthPercent = (result.width / bgImage.width) * 100;
+                    const heightPercent = (result.height / bgImage.height) * 100;
+
+                    // Atualizar posição da parede
+                    wall.x = Math.round(xPercent * 10) / 10;
+                    wall.y = Math.round(yPercent * 10) / 10;
+                    wall.width = Math.round(widthPercent * 10) / 10;
+                    wall.height = Math.round(heightPercent * 10) / 10;
+
+                    // Atualizar visualização
+                    renderPositionedWalls();
+                    renderTransformControls();
+                    renderVisualWallsList();
+                    renderDestructibleWallsList();
+                    autoSave();
+
+                    showToast(`✅ Parede posicionada! Confiança: ${Math.round(result.confidence * 100)}%`);
+                } else {
+                    showToast('❌ Não foi possível encontrar posição automática', 'error');
+                }
+            } catch (err) {
+                showToast('❌ Erro ao processar: ' + err.message, 'error');
+                console.error('Erro no auto-posicionamento:', err);
+            }
+        }
+
+        function loadImage(src) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => resolve(img);
+                img.onerror = () => reject(new Error('Falha ao carregar imagem: ' + src));
+                img.src = src;
+            });
+        }
+
+        function findBestMatch(bgImage, templateImage, ctx) {
+            const bgWidth = bgImage.width;
+            const bgHeight = bgImage.height;
+            const tplWidth = templateImage.width;
+            const tplHeight = templateImage.height;
+
+            // Reduzir escala para performance (processa mais rápido)
+            const scale = 0.25; // Processar em 25% do tamanho
+            const scaledBgW = Math.floor(bgWidth * scale);
+            const scaledBgH = Math.floor(bgHeight * scale);
+            const scaledTplW = Math.floor(tplWidth * scale);
+            const scaledTplH = Math.floor(tplHeight * scale);
+
+            // Preparar canvas do background
+            const bgCanvas = document.createElement('canvas');
+            bgCanvas.width = scaledBgW;
+            bgCanvas.height = scaledBgH;
+            const bgCtx = bgCanvas.getContext('2d');
+            bgCtx.drawImage(bgImage, 0, 0, scaledBgW, scaledBgH);
+            const bgData = bgCtx.getImageData(0, 0, scaledBgW, scaledBgH);
+
+            // Preparar canvas do template
+            const tplCanvas = document.createElement('canvas');
+            tplCanvas.width = scaledTplW;
+            tplCanvas.height = scaledTplH;
+            const tplCtx = tplCanvas.getContext('2d');
+            tplCtx.drawImage(templateImage, 0, 0, scaledTplW, scaledTplH);
+            const tplData = tplCtx.getImageData(0, 0, scaledTplW, scaledTplH);
+
+            let bestScore = -Infinity;
+            let bestX = 0;
+            let bestY = 0;
+
+            // Sliding window - buscar em toda a imagem
+            const stepSize = 5; // Pular pixels para ir mais rápido
+            for (let y = 0; y < scaledBgH - scaledTplH; y += stepSize) {
+                for (let x = 0; x < scaledBgW - scaledTplW; x += stepSize) {
+                    // Calcular similaridade apenas nas bordas (onde deve casar)
+                    const score = calculateEdgeSimilarity(
+                        bgData, tplData,
+                        x, y,
+                        scaledBgW, scaledBgH,
+                        scaledTplW, scaledTplH
+                    );
+
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestX = x;
+                        bestY = y;
+                    }
+                }
+            }
+
+            // Converter de volta para escala original
+            const finalX = Math.round(bestX / scale);
+            const finalY = Math.round(bestY / scale);
+            const finalW = tplWidth;
+            const finalH = tplHeight;
+
+            // Normalizar confidence (0 a 1)
+            const confidence = Math.min(1, Math.max(0, bestScore / 255));
+
+            if (confidence < 0.3) {
+                // Confiança muito baixa
+                return null;
+            }
+
+            return {
+                x: finalX,
+                y: finalY,
+                width: finalW,
+                height: finalH,
+                confidence: confidence
+            };
+        }
+
+        function calculateEdgeSimilarity(bgData, tplData, offsetX, offsetY, bgW, bgH, tplW, tplH) {
+            let sumDiff = 0;
+            let count = 0;
+
+            // Amostrar apenas bordas (mais rápido e eficiente)
+            const borderSize = Math.min(20, Math.floor(tplW * 0.2)); // 20% das bordas
+
+            // Borda superior e inferior
+            for (let x = 0; x < tplW; x += 2) {
+                // Top
+                for (let y = 0; y < borderSize; y += 2) {
+                    sumDiff += comparePixels(bgData, tplData, offsetX + x, offsetY + y, x, y, bgW, tplW);
+                    count++;
+                }
+                // Bottom
+                for (let y = tplH - borderSize; y < tplH; y += 2) {
+                    sumDiff += comparePixels(bgData, tplData, offsetX + x, offsetY + y, x, y, bgW, tplW);
+                    count++;
+                }
+            }
+
+            // Borda esquerda e direita
+            for (let y = borderSize; y < tplH - borderSize; y += 2) {
+                // Left
+                for (let x = 0; x < borderSize; x += 2) {
+                    sumDiff += comparePixels(bgData, tplData, offsetX + x, offsetY + y, x, y, bgW, tplW);
+                    count++;
+                }
+                // Right
+                for (let x = tplW - borderSize; x < tplW; x += 2) {
+                    sumDiff += comparePixels(bgData, tplData, offsetX + x, offsetY + y, x, y, bgW, tplW);
+                    count++;
+                }
+            }
+
+            // Retornar score médio (menor diferença = melhor match)
+            // Inverter para que maior = melhor
+            return count > 0 ? 255 - (sumDiff / count) : 0;
+        }
+
+        function comparePixels(bgData, tplData, bgX, bgY, tplX, tplY, bgW, tplW) {
+            const bgIdx = (bgY * bgW + bgX) * 4;
+            const tplIdx = (tplY * tplW + tplX) * 4;
+
+            // Comparar RGB (ignorar alpha)
+            const rDiff = Math.abs(bgData.data[bgIdx] - tplData.data[tplIdx]);
+            const gDiff = Math.abs(bgData.data[bgIdx + 1] - tplData.data[tplIdx + 1]);
+            const bDiff = Math.abs(bgData.data[bgIdx + 2] - tplData.data[tplIdx + 2]);
+
+            return (rDiff + gDiff + bDiff) / 3;
+        }
+
         function handlePuzzleImageUpload(state, event) {
             if (!currentLocationId) return;
 
@@ -1805,6 +1998,13 @@
                                     onclick="document.getElementById('wall-image-transform').click()">
                                 ${wall.image ? '✓ Alterar PNG' : '📁 Upload PNG'}
                             </button>
+                            ${wall.image ? `
+                                <button class="btn btn-primary btn-small"
+                                        style="width: 100%; margin-bottom: 8px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"
+                                        onclick="autoPositionWall(selectedWallIndex)">
+                                    🤖 Auto-Posicionar IA
+                                </button>
+                            ` : ''}
                             ${previewHtml}
                             <input type="text" value="${wall.image || ''}"
                                    placeholder="ou cole o caminho da imagem"
