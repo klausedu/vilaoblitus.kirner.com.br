@@ -3947,6 +3947,23 @@
                         position: positions[i - 1]
                     });
                 }
+            } else if (currentPuzzleType === 'padlock_5digit') {
+                const secretCodeEl = document.getElementById('puzzle-secret-code');
+                if (secretCodeEl) puzzle.secretCode = secretCodeEl.value;
+
+                const actionTypeEl = document.getElementById('puzzle-unlock-action-type');
+                const newBackgroundEl = document.getElementById('puzzle-new-background');
+                const targetLocationEl = document.getElementById('puzzle-target-location');
+
+                puzzle.onUnlockedAction = {
+                    type: actionTypeEl ? actionTypeEl.value : 'changeBackground'
+                };
+
+                if (puzzle.onUnlockedAction.type === 'changeBackground' && newBackgroundEl) {
+                    puzzle.onUnlockedAction.newBackground = newBackgroundEl.value;
+                } else if (puzzle.onUnlockedAction.type === 'navigate' && targetLocationEl) {
+                    puzzle.onUnlockedAction.targetLocation = targetLocationEl.value;
+                }
             }
 
             const rewardId = document.getElementById('puzzle-reward-id').value;
