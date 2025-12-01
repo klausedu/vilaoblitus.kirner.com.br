@@ -2722,6 +2722,12 @@
 
                 const wallEl = document.createElement('div');
                 wallEl.dataset.wallIndex = index;
+
+                // Definir imagem de fundo ou cor
+                const backgroundStyle = wall.image
+                    ? `background-image: url(${wall.image}); background-size: cover; background-position: center; background-repeat: no-repeat;`
+                    : `background: ${isSelected ? 'rgba(255, 68, 68, 0.3)' : 'rgba(85, 85, 85, 0.5)'};`;
+
                 wallEl.style.cssText = `
             position: absolute;
             left: ${wall.x}%;
@@ -2729,16 +2735,11 @@
             width: ${wall.width}%;
             height: ${wall.height}%;
             border: 3px solid ${isSelected ? '#ff4444' : '#555'};
-            background: ${isSelected ? 'rgba(255, 68, 68, 0.3)' : 'rgba(85, 85, 85, 0.5)'};
+            ${backgroundStyle}
             cursor: move;
             pointer-events: auto;
             z-index: 40;
             `;
-
-                if (wall.image) {
-                    wallEl.style.backgroundImage = `url(${wall.image})`;
-                    wallEl.style.backgroundSize = 'cover';
-                }
 
                 const label = document.createElement('div');
                 label.style.cssText = `
