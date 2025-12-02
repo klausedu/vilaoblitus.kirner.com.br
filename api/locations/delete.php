@@ -23,7 +23,8 @@ if (!$locationId) {
 }
 
 if (!$locationId) {
-    sendResponse(false, null, 'Location ID is required', 400);
+    http_response_code(400);
+    sendResponse(false, null, 'Location ID is required');
 }
 
 try {
@@ -33,7 +34,8 @@ try {
     $location = $checkStmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$location) {
-        sendResponse(false, null, 'Location not found', 404);
+        http_response_code(404);
+        sendResponse(false, null, 'Location not found');
     }
 
     // Delete location (cascades to hotspots and connections)
@@ -46,16 +48,6 @@ try {
     ], 'Location deleted successfully');
 
 } catch (PDOException $e) {
-    sendResponse(false, null, 'Database error: ' . $e->getMessage(), 500);
-}
-
-function sendResponse($success, $data = null, $message = '', $httpCode = 200) {
-    http_response_code($httpCode);
-    echo json_encode([
-        'success' => $success,
-        'data' => $data,
-        'message' => $message,
-        'timestamp' => time()
-    ], JSON_UNESCAPED_UNICODE);
-    exit;
+    http_response_code(500);
+    sendResponse(false, null, 'Database error: ' . $e->getMessage());
 }
