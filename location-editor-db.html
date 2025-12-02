@@ -4230,6 +4230,83 @@
             }
         }
 
+        // Shape Match Puzzle - Molds Management
+        let currentMolds = [];
+
+        function addShapeMatchMold() {
+            const mold = {
+                shape: 'circle',
+                x: 400,
+                y: 300,
+                item: '',
+                label: ''
+            };
+            currentMolds.push(mold);
+            renderShapeMatchMolds();
+            savePuzzle();
+        }
+
+        function editShapeMatchMold(index) {
+            const mold = currentMolds[index];
+
+            const shape = prompt('Forma (circle, square, triangle, rectangle, star):', mold.shape);
+            if (shape === null) return;
+
+            const x = prompt('Posição X (pixels):', mold.x);
+            if (x === null) return;
+
+            const y = prompt('Posição Y (pixels):', mold.y);
+            if (y === null) return;
+
+            const item = prompt('ID do Item do inventário:', mold.item);
+            if (item === null) return;
+
+            const label = prompt('Label (opcional):', mold.label);
+            if (label === null) return;
+
+            mold.shape = shape;
+            mold.x = parseInt(x) || 400;
+            mold.y = parseInt(y) || 300;
+            mold.item = item;
+            mold.label = label;
+
+            renderShapeMatchMolds();
+            savePuzzle();
+        }
+
+        function deleteShapeMatchMold(index) {
+            if (!confirm('Deletar este molde?')) return;
+            currentMolds.splice(index, 1);
+            renderShapeMatchMolds();
+            savePuzzle();
+        }
+
+        function renderShapeMatchMolds() {
+            const container = document.getElementById('molds-list');
+            if (!container) return;
+
+            if (currentMolds.length === 0) {
+                container.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">Nenhum molde adicionado. Clique em "➕ Adicionar Molde"</p>';
+                return;
+            }
+
+            container.innerHTML = currentMolds.map((mold, i) => `
+                <div style="background: white; padding: 12px; margin-bottom: 10px; border-radius: 6px; border: 2px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong>Molde ${i + 1}</strong> -
+                        Forma: <span style="color: #0066cc;">${mold.shape}</span> |
+                        Posição: <span style="color: #666;">(${mold.x}, ${mold.y})</span> |
+                        Item: <span style="color: #ff6600;">${mold.item || 'nenhum'}</span>
+                        ${mold.label ? ` | Label: <span style="color: #009900;">${mold.label}</span>` : ''}
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button type="button" class="btn btn-sm" onclick="editShapeMatchMold(${i})" style="padding: 4px 10px;">✏️ Editar</button>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="deleteShapeMatchMold(${i})" style="padding: 4px 10px;">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
         // Save puzzle
         function savePuzzle() {
 
@@ -4350,6 +4427,25 @@
                 } else if (puzzle.onUnlockedAction.type === 'navigate' && targetLocationEl) {
                     puzzle.onUnlockedAction.targetLocation = targetLocationEl.value;
                 }
+            } else if (currentPuzzleType === 'shape_match') {
+                const titleEl = document.getElementById('puzzle-title');
+                if (titleEl && titleEl.value) puzzle.title = titleEl.value;
+
+                const descEl = document.getElementById('puzzle-description');
+                if (descEl && descEl.value) puzzle.description = descEl.value;
+
+                const hintsEl = document.getElementById('puzzle-hints');
+                if (hintsEl && hintsEl.value) {
+                    try {
+                        puzzle.hints = JSON.parse(hintsEl.value);
+                    } catch (e) {
+                        console.warn('Hints inválidos:', e);
+                        puzzle.hints = [];
+                    }
+                }
+
+                // Salvar moldes
+                puzzle.molds = currentMolds.map(m => ({ ...m }));
             }
 
             const rewardId = document.getElementById('puzzle-reward-id').value;
