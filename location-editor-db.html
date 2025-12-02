@@ -1979,6 +1979,91 @@
             });
         }
 
+        function renderShapeMatchMoldBoxes(puzzle, container) {
+            // Garantir que molds existe
+            if (!puzzle.molds || !Array.isArray(puzzle.molds)) {
+                puzzle.molds = [];
+                return;
+            }
+
+            const shapeIcons = {
+                'circle': '⭕',
+                'square': '⬜',
+                'triangle': '🔺',
+                'rectangle': '▭',
+                'star': '⭐'
+            };
+
+            puzzle.molds.forEach((mold, index) => {
+                const isSelected = selectedVisualType === 'mold' && selectedItemIndex === index;
+
+                // Converter posição de pixels absolutos para porcentagem
+                const container = document.getElementById('visual-canvas');
+                const containerWidth = container?.offsetWidth || 800;
+                const containerHeight = container?.offsetHeight || 600;
+
+                let moldX = mold.x;
+                let moldY = mold.y;
+
+                // Se as coordenadas são em pixels (maiores que 100), converter para %
+                if (moldX > 100) {
+                    moldX = (mold.x / containerWidth) * 100;
+                }
+                if (moldY > 100) {
+                    moldY = (mold.y / containerHeight) * 100;
+                }
+
+                const moldEl = document.createElement('div');
+                moldEl.dataset.visualType = 'mold';
+                moldEl.dataset.moldIndex = index;
+                moldEl.style.cssText = `
+                    position: absolute;
+                    left: ${moldX}%;
+                    top: ${moldY}%;
+                    width: 60px;
+                    height: 60px;
+                    transform: translate(-50%, -50%);
+                    cursor: move;
+                    pointer-events: auto;
+                    z-index: 130;
+                    background: rgba(139, 111, 71, 0.7);
+                    border: 3px solid ${isSelected ? '#00ff00' : '#d4af37'};
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 32px;
+                    ${isSelected ? 'box-shadow: 0 0 0 3px #00ff00;' : ''}
+                `;
+                moldEl.textContent = shapeIcons[mold.shape] || '🔷';
+
+                const label = document.createElement('div');
+                label.textContent = `${mold.shape || 'circle'} - ${mold.item || 'nenhum'}`;
+                label.style.cssText = `
+                    position: absolute;
+                    bottom: -30px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: rgba(212, 175, 55, 0.9);
+                    color: #000;
+                    padding: 4px 8px;
+                    font-size: 10px;
+                    border-radius: 4px;
+                    white-space: nowrap;
+                    pointer-events: none;
+                    font-weight: 600;
+                    max-width: 120px;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                `;
+                moldEl.appendChild(label);
+
+                moldEl.addEventListener('mousedown', startDragItem);
+
+                container.appendChild(moldEl);
+            });
+        }
+
         function renderPositionedItems() {
             if (!currentLocationId) return;
 
@@ -2071,6 +2156,11 @@
                 // Renderizar caixinhas de dígitos para cadeado de 5 dígitos
                 if (location.puzzle.type === 'padlock_5digit') {
                     renderPadlockDigitBoxes(location.puzzle, container);
+                }
+
+                // Renderizar moldes para Conecta Blocos
+                if (location.puzzle.type === 'shape_match') {
+                    renderShapeMatchMoldBoxes(location.puzzle, container);
                 }
             }
 
@@ -2665,6 +2755,11 @@
                 if (!Number.isNaN(index)) {
                     selectDigit(index);
                 }
+            } else if (visualType === 'mold') {
+                const index = parseInt(draggedItem.dataset.moldIndex);
+                if (!Number.isNaN(index)) {
+                    selectMold(index);
+                }
             }
 
             const container = document.getElementById('visual-items-container');
@@ -2744,6 +2839,26 @@
                 const index = parseInt(draggedItem.dataset.digitIndex);
                 if (!Number.isNaN(index) && location.puzzle.digitPositions && location.puzzle.digitPositions[index]) {
                     location.puzzle.digitPositions[index] = { x: newX, y: newY };
+                }
+            } else if (visualType === 'mold' && location.puzzle) {
+                const index = parseInt(draggedItem.dataset.moldIndex);
+                const container = document.getElementById('visual-canvas');
+                const containerWidth = container?.offsetWidth || 800;
+                const containerHeight = container?.offsetHeight || 600;
+
+                // Converter % para pixels absolutos
+                const pixelX = (newX / 100) * containerWidth;
+                const pixelY = (newY / 100) * containerHeight;
+
+                if (!Number.isNaN(index) && location.puzzle.molds && location.puzzle.molds[index]) {
+                    location.puzzle.molds[index].x = Math.round(pixelX);
+                    location.puzzle.molds[index].y = Math.round(pixelY);
+
+                    // Atualizar também o currentMolds para o editor de moldes
+                    if (currentMolds && currentMolds[index]) {
+                        currentMolds[index].x = Math.round(pixelX);
+                        currentMolds[index].y = Math.round(pixelY);
+                    }
                 }
             }
 
