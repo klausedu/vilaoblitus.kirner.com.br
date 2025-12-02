@@ -2631,10 +2631,11 @@ class LocationScene extends Phaser.Scene {
             left: 0;
             width: 100%;
             height: 100%;
-            background: #000;
+            background: transparent;
             z-index: 10000;
             overflow: hidden;
             perspective: 400px;
+            pointer-events: none;
         `;
 
         // Container interno com a animação de perspectiva
