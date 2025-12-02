@@ -38,6 +38,15 @@ class EgyptianPuzzle {
         // NÃO usar scrollFactor(0) pois queremos que ele seja afetado pela câmera
         // Mas posicionado no centro da view, então aparece sempre no centro da tela
 
+        // BLOQUEADOR DE CLIQUES - Um retângulo invisível grande que bloqueia cliques na cena
+        const clickBlocker = this.scene.add.rectangle(0, 0, 2000, 2000, 0x000000, 0.01);
+        clickBlocker.setInteractive();
+        clickBlocker.on('pointerdown', (pointer) => {
+            // Bloquear propagação de cliques para objetos da cena
+            pointer.event.stopPropagation();
+        });
+        this.container.add(clickBlocker);
+
         // Fundo da parede
         const wallBg = this.scene.add.rectangle(0, 0, 500, 300, 0x3d2817);
         wallBg.setStrokeStyle(4, 0xd4af37);
