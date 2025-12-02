@@ -63,7 +63,13 @@ class LocationScene extends Phaser.Scene {
         this.renderDroppedItems();
         this.highlightPendingPuzzleReward();
 
-        // Verificar se é cena final e mostrar créditos
+        // Atualizar UI
+        uiManager.updateLocationInfo(this.locationData);
+
+        // Fade in
+        this.cameras.main.fadeIn(300, 0, 0, 0);
+
+        // Verificar se é cena final e mostrar créditos DEPOIS de carregar tudo
         console.log('🎬 Checking final scene:', {
             isFinalScene: this.locationData.isFinalScene,
             credits: this.locationData.credits,
@@ -71,15 +77,13 @@ class LocationScene extends Phaser.Scene {
         });
 
         if (this.locationData.isFinalScene) {
-            console.log('🌟 Showing Star Wars credits!');
-            this.showStarWarsCredits();
+            console.log('🌟 Will show Star Wars credits in 5 seconds...');
+            // Esperar 5 segundos após o fade-in para mostrar os créditos
+            this.time.delayedCall(5000, () => {
+                console.log('✨ Starting credits now!');
+                this.showStarWarsCredits();
+            });
         }
-
-        // Atualizar UI
-        uiManager.updateLocationInfo(this.locationData);
-
-        // Fade in
-        this.cameras.main.fadeIn(300, 0, 0, 0);
 
         // Listener para redimensionamento (Scale.RESIZE muda dimensões do game)
         this.scale.on('resize', this.handleResize, this);
