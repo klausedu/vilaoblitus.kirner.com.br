@@ -175,15 +175,14 @@ class LocationScene extends Phaser.Scene {
     }
 
     handleDoubleClick(pointer) {
-        // Não dar zoom se o overlay de puzzle HTML estiver ativo
+        // BLOQUEAR COMPLETAMENTE zoom se qualquer puzzle estiver ativo
         const puzzleOverlay = document.getElementById('puzzle-overlay');
         if (puzzleOverlay && puzzleOverlay.style.display === 'flex') {
-            return; // Ignorar zoom quando puzzle HTML está aberto
+            return; // BLOQUEAR zoom/unzoom quando puzzle HTML está aberto
         }
 
-        // Não dar zoom se puzzle Phaser (egyptian, etc) estiver ativo
         if (this.puzzleManager && this.puzzleManager.isAnyPuzzleActive && this.puzzleManager.isAnyPuzzleActive()) {
-            return; // Ignorar zoom quando puzzle Phaser está aberto
+            return; // BLOQUEAR zoom/unzoom quando puzzle Phaser está aberto
         }
 
         const camera = this.cameras.main;

@@ -38,6 +38,10 @@ class EgyptianPuzzle {
         // Ignorar zoom e movimento da câmera
         this.container.setScrollFactor(0);
 
+        // Compensar zoom da câmera para sempre aparecer em tamanho normal
+        const cameraZoom = this.scene.cameras.main.zoom;
+        this.container.setScale(1 / cameraZoom);
+
         // Fundo da parede
         const wallBg = this.scene.add.rectangle(0, 0, 500, 300, 0x3d2817);
         wallBg.setStrokeStyle(4, 0xd4af37);
