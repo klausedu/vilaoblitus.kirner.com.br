@@ -449,9 +449,36 @@ class UIManager {
         const overlay = document.createElement('div');
         overlay.id = 'puzzle-overlay';
         overlay.className = 'phaser-overlay';
+        // Forçar estilos inline para garantir comportamento correto
+        overlay.style.cssText = `
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            background: rgba(0, 0, 0, 0.7) !important;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000 !important;
+            transform: scale(1) !important;
+            transform-origin: center !important;
+        `;
 
         const modal = document.createElement('div');
         modal.className = 'phaser-overlay-content puzzle-modal';
+        // Forçar estilos inline no modal também
+        modal.style.cssText = `
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            transform: scale(1) !important;
+        `;
 
         const closeBtn = document.createElement('button');
         closeBtn.className = 'phaser-close-btn';
@@ -746,9 +773,6 @@ class UIManager {
             this.puzzleOverlay.classList.add('active');
             this.puzzleOverlay.style.display = 'flex';
             this.puzzleOverlay.style.pointerEvents = 'auto';
-            // Forçar escala 100% para ignorar zoom da câmera
-            this.puzzleOverlay.style.transform = 'scale(1)';
-            this.puzzleOverlay.style.transformOrigin = 'center center';
         }
 
         const puzzleType = (puzzle.type ?? '').toString().trim().toLowerCase();
@@ -961,9 +985,6 @@ class UIManager {
             this.puzzleOverlay.classList.add('active');
             this.puzzleOverlay.style.display = 'flex';
             this.puzzleOverlay.style.pointerEvents = 'auto';
-            // Forçar escala 100% para ignorar zoom da câmera
-            this.puzzleOverlay.style.transform = 'scale(1)';
-            this.puzzleOverlay.style.transformOrigin = 'center center';
         }
         if (!this.activePuzzleContext?.onSubmit) {
             setSubmitEnabled(false);
