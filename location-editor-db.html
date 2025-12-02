@@ -766,6 +766,10 @@
                                     <div>𓂀 Parede Egípcia</div>
                                     <small>Rotacionar peças</small>
                                 </div>
+                                <div class="puzzle-type-btn" onclick="selectPuzzleType('shape_match')">
+                                    <div>🔷 Conecta Blocos</div>
+                                    <small>Encaixar formas</small>
+                                </div>
                             </div>
                         </div>
 
@@ -4060,6 +4064,32 @@
                     <div class="form-group">
                         <label>Dicas (JSON array - opcional)</label>
                         <textarea id="puzzle-hints" placeholder='[{"text": "Procure os papiros..."}]' onchange="savePuzzle()"></textarea>
+                        <div class="form-hint">Formato: Array de objetos com propriedade "text"</div>
+                    </div>
+                `,
+                shape_match: `
+                    <div class="form-group">
+                        <label>Título</label>
+                        <input type="text" id="puzzle-title" placeholder="Encaixe as Formas" onchange="savePuzzle()">
+                    </div>
+                    <div class="form-group">
+                        <label>Descrição</label>
+                        <textarea id="puzzle-description" placeholder="Arraste os objetos do inventário para os moldes corretos..." onchange="savePuzzle()"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label style="margin-bottom: 10px; display: block;">Moldes na Cena</label>
+                        <div id="molds-list" style="background: #f5f5f5; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 10px;">
+                            <!-- Moldes serão adicionados aqui dinamicamente -->
+                        </div>
+                        <button type="button" class="btn btn-secondary" onclick="addShapeMatchMold()" style="width: 100%;">
+                            ➕ Adicionar Molde
+                        </button>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Dicas (JSON array - opcional)</label>
+                        <textarea id="puzzle-hints" placeholder='[{"text": "Observe as formas dos moldes..."}]' onchange="savePuzzle()"></textarea>
                         <div class="form-hint">Formato: Array de objetos com propriedade "text"</div>
                     </div>
                 `
