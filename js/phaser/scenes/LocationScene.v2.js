@@ -182,7 +182,7 @@ class LocationScene extends Phaser.Scene {
         }
 
         // Não dar zoom se puzzle Phaser (egyptian, etc) estiver ativo
-        if (this.puzzleManager && this.puzzleManager.isAnyPuzzleActive()) {
+        if (this.puzzleManager && this.puzzleManager.isAnyPuzzleActive && this.puzzleManager.isAnyPuzzleActive()) {
             return; // Ignorar zoom quando puzzle Phaser está aberto
         }
 
