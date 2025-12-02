@@ -511,6 +511,16 @@ class UIManager {
             this.closePuzzleOverlay('backdrop');
         });
 
+        // Prevenir zoom ao dar duplo clique no overlay ou modal
+        overlay.addEventListener('dblclick', (event) => {
+            event.stopPropagation();
+            event.preventDefault();
+        });
+        modal.addEventListener('dblclick', (event) => {
+            event.stopPropagation();
+            event.preventDefault();
+        });
+
         this.puzzleOverlay = overlay;
         this.puzzleTitleEl = title;
         this.puzzleQuestionEl = question;
@@ -736,6 +746,9 @@ class UIManager {
             this.puzzleOverlay.classList.add('active');
             this.puzzleOverlay.style.display = 'flex';
             this.puzzleOverlay.style.pointerEvents = 'auto';
+            // Forçar escala 100% para ignorar zoom da câmera
+            this.puzzleOverlay.style.transform = 'scale(1)';
+            this.puzzleOverlay.style.transformOrigin = 'center center';
         }
 
         const puzzleType = (puzzle.type ?? '').toString().trim().toLowerCase();
@@ -948,6 +961,9 @@ class UIManager {
             this.puzzleOverlay.classList.add('active');
             this.puzzleOverlay.style.display = 'flex';
             this.puzzleOverlay.style.pointerEvents = 'auto';
+            // Forçar escala 100% para ignorar zoom da câmera
+            this.puzzleOverlay.style.transform = 'scale(1)';
+            this.puzzleOverlay.style.transformOrigin = 'center center';
         }
         if (!this.activePuzzleContext?.onSubmit) {
             setSubmitEnabled(false);
