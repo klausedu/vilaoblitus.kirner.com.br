@@ -815,6 +815,11 @@ class UIManager {
                     this.submitActivePuzzle();
                 }
             });
+            // Prevenir zoom ao dar duplo clique no input
+            input.addEventListener('dblclick', (event) => {
+                event.stopPropagation();
+                event.preventDefault();
+            });
             this.puzzleInputArea?.appendChild(input);
             context.primaryInput = input;
             context.buildPayload = () => ({ answer: input.value });
@@ -842,6 +847,11 @@ class UIManager {
                         setSubmitEnabled(true);
                         this.puzzleSubmitBtn?.focus();
                         this.setPuzzleMessage('');
+                    });
+                    // Prevenir zoom ao dar duplo clique no botão
+                    btn.addEventListener('dblclick', (event) => {
+                        event.stopPropagation();
+                        event.preventDefault();
                     });
                     buttons.push(btn);
                     list.appendChild(btn);
