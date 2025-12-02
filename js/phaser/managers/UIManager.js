@@ -527,7 +527,8 @@ class UIManager {
         modal.appendChild(actions);
 
         overlay.appendChild(modal);
-        container.appendChild(overlay);
+        // Adicionar direto no body, não no container, para evitar herdar transforms
+        document.body.appendChild(overlay);
 
         overlay.addEventListener('click', (event) => {
             if (event.target !== overlay) return;

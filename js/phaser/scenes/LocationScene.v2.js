@@ -175,6 +175,12 @@ class LocationScene extends Phaser.Scene {
     }
 
     handleDoubleClick(pointer) {
+        // Não dar zoom se o overlay de puzzle estiver ativo
+        const puzzleOverlay = document.getElementById('puzzle-overlay');
+        if (puzzleOverlay && puzzleOverlay.style.display === 'flex') {
+            return; // Ignorar zoom quando puzzle está aberto
+        }
+
         const camera = this.cameras.main;
 
         if (!this.isZoomed) {
