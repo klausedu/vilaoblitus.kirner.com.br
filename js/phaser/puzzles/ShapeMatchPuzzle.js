@@ -46,9 +46,6 @@ class ShapeMatchPuzzle {
                 this.createMold(moldConfig, index);
             });
         }
-
-        // Setup drag and drop do inventário
-        this.setupInventoryDragDrop();
     }
 
     createMold(moldConfig, index) {
@@ -82,10 +79,6 @@ class ShapeMatchPuzzle {
             moldContainer.add(label);
         }
 
-        // Área interativa para drop
-        const hitArea = new Phaser.Geom.Circle(0, 0, 50);
-        moldBg.setInteractive(hitArea, Phaser.Geom.Circle.Contains);
-
         // Dados do molde
         const moldData = {
             container: moldContainer,
@@ -98,20 +91,7 @@ class ShapeMatchPuzzle {
 
         this.molds.push(moldData);
 
-        // Setup drop zone
-        this.scene.input.setDropZone(moldBg);
-
-        moldBg.on('drop', (pointer, gameObject) => {
-            this.onDropToMold(moldData, gameObject);
-        });
-
         return moldData;
-    }
-
-    setupInventoryDragDrop() {
-        // Este método será chamado quando o inventário estiver pronto
-        // Por enquanto, vamos apenas preparar os listeners
-        console.log('ShapeMatchPuzzle: Inventory drag-drop setup ready');
     }
 
     onDropToMold(mold, draggedObject) {
@@ -162,8 +142,17 @@ class ShapeMatchPuzzle {
         });
 
         // Remover item do inventário
-        if (draggedObject.itemData) {
-            this.scene.inventoryManager.removeItem(draggedObject.itemData.id);
+        if (draggedObject.itemData && typeof gameStateManager !== 'undefined') {
+            delete gameStateManager.state.inventory[draggedObject.itemData.id];
+
+            // Remover dos collectedItems também
+            const index = gameStateManager.state.collectedItems.indexOf(draggedObject.itemData.id);
+            if (index > -1) {
+                gameStateManager.state.collectedItems.splice(index, 1);
+            }
+
+            gameStateManager.saveProgress();
+            gameStateManager.trigger('inventoryChanged');
         }
 
         // Som de encaixe (se disponível)

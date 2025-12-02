@@ -2349,7 +2349,38 @@ class LocationScene extends Phaser.Scene {
         const worldX = this.cameras.main.scrollX + pointerPosition.x;
         const worldY = this.cameras.main.scrollY + pointerPosition.y;
 
-        // Verificar se o item foi solto sobre uma parede
+        // PRIORIDADE 1: Verificar se há um ShapeMatchPuzzle ativo
+        if (this.puzzleManager && this.puzzleManager.activePuzzle &&
+            this.puzzleManager.activePuzzle.constructor.name === 'ShapeMatchPuzzle') {
+
+            const puzzle = this.puzzleManager.activePuzzle;
+
+            // Verificar se o drop foi em algum molde
+            for (let mold of puzzle.molds) {
+                const moldWorldX = mold.container.x;
+                const moldWorldY = mold.container.y;
+                const distance = Phaser.Math.Distance.Between(worldX, worldY, moldWorldX, moldWorldY);
+
+                // Se caiu dentro de 60px do centro do molde, considerar como drop
+                if (distance < 60) {
+                    // Criar objeto temporário para passar ao onDropToMold
+                    const draggedObject = {
+                        itemData: {
+                            id: itemId
+                        }
+                    };
+
+                    puzzle.onDropToMold(mold, draggedObject);
+                    return; // Item processado pelo puzzle, não continuar
+                }
+            }
+
+            // Se chegou aqui, o drop foi fora dos moldes mas o puzzle está ativo
+            uiManager.showNotification('Solte o item em um dos moldes.', 2000);
+            return;
+        }
+
+        // PRIORIDADE 2: Verificar se o item foi solto sobre uma parede
         const wallData = this.checkWallInteraction(worldX, worldY);
 
         if (wallData) {
