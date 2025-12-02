@@ -2760,7 +2760,7 @@ class LocationScene extends Phaser.Scene {
             this.input.off('pointermove');
             this.input.off('pointerup');
 
-        }, 60000);
+        }, 120000);
     }
 
     shutdown() {
