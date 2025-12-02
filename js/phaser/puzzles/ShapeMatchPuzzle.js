@@ -1,6 +1,24 @@
 /**
  * ShapeMatchPuzzle.js
  * Puzzle de encaixe de formas - arraste objetos do inventário para moldes na cena
+ *
+ * CONFIGURAÇÃO DE EXEMPLO:
+ * {
+ *   type: 'shape_match',
+ *   id: 'statue_shapes',
+ *   title: 'Encaixe as Formas',
+ *   description: 'Arraste os objetos do inventário para os moldes corretos',
+ *   molds: [
+ *     { shape: 'circle', x: 300, y: 200, item: 'pedra_circular', label: 'Molde Circular' },
+ *     { shape: 'square', x: 500, y: 200, item: 'pedra_quadrada' },
+ *     { shape: 'triangle', x: 700, y: 200, item: 'pedra_triangular' },
+ *     { shape: 'star', x: 400, y: 400, item: 'pedra_estrela' }
+ *   ],
+ *   hints: ['Observe as formas dos moldes', 'Cada objeto se encaixa em um molde específico'],
+ *   onSolved: () => { console.log('Puzzle resolvido!'); }
+ * }
+ *
+ * FORMAS DISPONÍVEIS: 'circle', 'square', 'triangle', 'rectangle', 'star'
  */
 
 class ShapeMatchPuzzle {
