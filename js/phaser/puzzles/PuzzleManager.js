@@ -412,6 +412,9 @@ class PuzzleManager {
      * PUZZLE 7: Conecta Blocos (Shape Match)
      */
     createShapeMatchPuzzle(config) {
+        console.log('🎮 PuzzleManager.createShapeMatchPuzzle chamado');
+        console.log('Config recebido:', config);
+
         const puzzle = new ShapeMatchPuzzle(this.scene, {
             ...config,
             onSolved: () => this.onPuzzleSolved(config, puzzle)
@@ -421,6 +424,7 @@ class PuzzleManager {
         this.activePuzzle = puzzle;
         this.startHintTimer(config);
 
+        console.log('✅ ShapeMatchPuzzle criado e ativado');
         return puzzle;
     }
 

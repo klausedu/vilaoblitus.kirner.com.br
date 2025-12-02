@@ -40,20 +40,31 @@ class ShapeMatchPuzzle {
     }
 
     create() {
+        console.log('🔷 ShapeMatchPuzzle.create() chamado');
+        console.log('Config:', this.config);
+        console.log('Moldes:', this.config.molds);
+
         // Criar moldes na cena baseado na configuração
         if (this.config.molds && Array.isArray(this.config.molds)) {
+            console.log(`Criando ${this.config.molds.length} moldes...`);
             this.config.molds.forEach((moldConfig, index) => {
                 this.createMold(moldConfig, index);
             });
+        } else {
+            console.warn('⚠️ Nenhum molde definido no config!');
         }
     }
 
     createMold(moldConfig, index) {
         const { x, y, shape, item } = moldConfig;
 
+        console.log(`📍 Criando molde ${index + 1}:`, { x, y, shape, item });
+
         // Container para o molde
         const moldContainer = this.scene.add.container(x, y);
         moldContainer.setDepth(100);
+
+        console.log(`✅ Molde ${index + 1} criado na posição (${x}, ${y})`);
 
         // Fundo do molde (buraco/vazio)
         const moldBg = this.scene.add.graphics();
