@@ -64,7 +64,14 @@ class LocationScene extends Phaser.Scene {
         this.highlightPendingPuzzleReward();
 
         // Verificar se é cena final e mostrar créditos
+        console.log('🎬 Checking final scene:', {
+            isFinalScene: this.locationData.isFinalScene,
+            credits: this.locationData.credits,
+            locationId: this.locationData.id
+        });
+
         if (this.locationData.isFinalScene) {
+            console.log('🌟 Showing Star Wars credits!');
             this.showStarWarsCredits();
         }
 
@@ -2604,7 +2611,12 @@ class LocationScene extends Phaser.Scene {
 
     showStarWarsCredits() {
         const credits = this.locationData.credits || [];
-        if (credits.length === 0) return;
+        console.log('✨ showStarWarsCredits called, credits:', credits);
+
+        if (credits.length === 0) {
+            console.warn('⚠️ No credits to show! Array is empty.');
+            return;
+        }
 
         // Criar container de créditos com perspectiva 3D
         const creditsContainer = document.createElement('div');
