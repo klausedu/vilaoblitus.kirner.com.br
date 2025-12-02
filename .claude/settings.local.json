@@ -20,7 +20,9 @@
       "Bash(node -e:*)",
       "Bash(node safe-cleanup.js:*)",
       "Bash(findstr:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
