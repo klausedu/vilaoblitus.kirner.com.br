@@ -168,18 +168,36 @@ class ShapeMatchPuzzle {
             yoyo: true
         });
 
-        // Remover item do inventário
+        // Remover item do inventário completamente
         if (draggedObject.itemData && typeof gameStateManager !== 'undefined') {
-            delete gameStateManager.state.inventory[draggedObject.itemData.id];
+            const itemId = draggedObject.itemData.id;
+            console.log(`🗑️ Removendo item ${itemId} do jogo`);
+
+            // Remover do inventário
+            delete gameStateManager.state.inventory[itemId];
 
             // Remover dos collectedItems também
-            const index = gameStateManager.state.collectedItems.indexOf(draggedObject.itemData.id);
+            const index = gameStateManager.state.collectedItems.indexOf(itemId);
             if (index > -1) {
                 gameStateManager.state.collectedItems.splice(index, 1);
             }
 
+            // Remover sprite dropped da cena (se existir)
+            if (this.scene.droppedItemSprites) {
+                const droppedSprite = this.scene.droppedItemSprites.find(s => s.itemData?.id === itemId);
+                if (droppedSprite && droppedSprite.sprite) {
+                    console.log(`   Removendo sprite dropped do item ${itemId}`);
+                    droppedSprite.sprite.destroy();
+                    const spriteIndex = this.scene.droppedItemSprites.indexOf(droppedSprite);
+                    if (spriteIndex > -1) {
+                        this.scene.droppedItemSprites.splice(spriteIndex, 1);
+                    }
+                }
+            }
+
             gameStateManager.saveProgress();
             gameStateManager.trigger('inventoryChanged');
+            console.log(`✅ Item ${itemId} removido completamente`);
         }
 
         // Som de encaixe (se disponível)
