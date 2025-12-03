@@ -358,6 +358,9 @@ class LocationScene extends Phaser.Scene {
     }
 
     renderPuzzle() {
+        console.log('🔍 renderPuzzle() chamado');
+        console.log('Location data:', this.locationData);
+        console.log('Puzzle data:', this.locationData?.puzzle);
 
         if (this.puzzleSprite) {
             this.puzzleSprite.destroy();
@@ -367,6 +370,7 @@ class LocationScene extends Phaser.Scene {
         this.currentPuzzleData = this.locationData.puzzle || null;
 
         const puzzle = this.locationData.puzzle;
+        console.log('Puzzle type:', puzzle?.type);
 
         // Shape Match puzzle não precisa de visual sprite - os moldes aparecem direto na cena
         if (puzzle && puzzle.type === 'shape_match') {
