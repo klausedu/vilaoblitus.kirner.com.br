@@ -377,8 +377,10 @@ class LocationScene extends Phaser.Scene {
         console.log('Puzzle type:', puzzle?.type);
 
         // Shape Match puzzle não precisa de visual sprite - processar antes da checagem de visual
+        console.log('🔍 Checando se é shape_match:', puzzle?.type === 'shape_match');
         if (puzzle && puzzle.type === 'shape_match') {
             const isSolved = puzzle.id ? gameStateManager.isPuzzleSolved(puzzle.id) : false;
+            console.log('🔍 Puzzle isSolved?', isSolved);
 
             if (!isSolved) {
                 console.log('🔷 Renderizando Shape Match Puzzle...');
