@@ -181,8 +181,12 @@ class LocationScene extends Phaser.Scene {
             return; // BLOQUEAR zoom/unzoom quando puzzle HTML está aberto
         }
 
+        // ShapeMatchPuzzle NÃO bloqueia zoom (os moldes ficam na cena normal)
         if (this.puzzleManager && this.puzzleManager.isAnyPuzzleActive && this.puzzleManager.isAnyPuzzleActive()) {
-            return; // BLOQUEAR zoom/unzoom quando puzzle Phaser está aberto
+            const activePuzzle = this.puzzleManager.activePuzzle;
+            if (activePuzzle && activePuzzle.constructor.name !== 'ShapeMatchPuzzle') {
+                return; // BLOQUEAR zoom/unzoom quando puzzle Phaser está aberto (exceto ShapeMatch)
+            }
         }
 
         const camera = this.cameras.main;

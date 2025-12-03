@@ -56,13 +56,25 @@ class ShapeMatchPuzzle {
     }
 
     createMold(moldConfig, index) {
-        const { x, y, shape, item } = moldConfig;
+        let { x, y, shape, item } = moldConfig;
 
         console.log(`📍 Criando molde ${index + 1}:`, { x, y, shape, item });
 
+        // Se as coordenadas são em pixels (> 100), converter para porcentagem
+        // (Compatibilidade com coordenadas antigas)
+        const bounds = this.scene.getBackgroundBounds();
+        if (x > 100) {
+            console.log(`   Coordenada X em pixels (${x}), convertendo para %`);
+            x = (x / bounds.bgWidth) * 100;
+        }
+        if (y > 100) {
+            console.log(`   Coordenada Y em pixels (${y}), convertendo para %`);
+            y = (y / bounds.bgHeight) * 100;
+        }
+
         // Converter coordenadas de porcentagem para mundo
         const worldPos = this.scene.percentToWorld({ x, y });
-        console.log(`   Convertido para world: (${worldPos.x}, ${worldPos.y})`);
+        console.log(`   Posição final no mundo: (${worldPos.x}, ${worldPos.y})`);
 
         // Container para o molde
         const moldContainer = this.scene.add.container(worldPos.x, worldPos.y);
