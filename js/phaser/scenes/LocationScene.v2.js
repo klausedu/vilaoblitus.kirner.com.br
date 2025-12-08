@@ -362,10 +362,6 @@ class LocationScene extends Phaser.Scene {
     }
 
     renderPuzzle() {
-        console.log('🔍 renderPuzzle() chamado');
-        console.log('Location data:', this.locationData);
-        console.log('Puzzle data:', this.locationData?.puzzle);
-
         if (this.puzzleSprite) {
             this.puzzleSprite.destroy();
             this.puzzleSprite = null;
@@ -374,15 +370,10 @@ class LocationScene extends Phaser.Scene {
         this.currentPuzzleData = this.locationData.puzzle || null;
 
         const puzzle = this.locationData.puzzle;
-        console.log('Puzzle type:', puzzle?.type);
 
-        // Shape Match puzzle não precisa de visual sprite - processar antes da checagem de visual
-        console.log('🔍 Checando se é shape_match:', puzzle?.type === 'shape_match');
+        // Shape Match puzzle não precisa de visual sprite
         if (puzzle && puzzle.type === 'shape_match') {
             const isSolved = puzzle.id ? gameStateManager.isPuzzleSolved(puzzle.id) : false;
-            console.log('🔍 Puzzle isSolved?', isSolved);
-
-            console.log('🔷 Renderizando Shape Match Puzzle...');
 
             if (!this.puzzleManager) {
                 this.puzzleManager = new PuzzleManager(this);
@@ -657,7 +648,6 @@ class LocationScene extends Phaser.Scene {
 
             // Não renderizar itens consumidos em puzzles
             if (gameStateManager.state.consumedItems && gameStateManager.state.consumedItems.includes(item.id)) {
-                console.log(`Item dropped ${item.id} foi consumido, não renderizando`);
                 return;
             }
 
@@ -1655,7 +1645,6 @@ class LocationScene extends Phaser.Scene {
 
             // Não renderizar itens consumidos em puzzles
             if (gameStateManager.state.consumedItems && gameStateManager.state.consumedItems.includes(item.id)) {
-                console.log(`Item ${item.id} foi consumido, não renderizando`);
                 return;
             }
 
