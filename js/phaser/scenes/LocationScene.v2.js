@@ -35,6 +35,53 @@ class LocationScene extends Phaser.Scene {
         }
     }
 
+    preload() {
+        if (!this.currentLocation) return;
+
+        const locationData = databaseLoader.getLocation(this.currentLocation);
+        if (!locationData) return;
+
+        // Show a small loading indication (optional, Phaser handles the wait)
+        // this.add.text(...) 
+
+        console.log(`[LocationScene] Lazy Loading assets for: ${this.currentLocation}`);
+
+        // Logic similar to BootScene, but specific to this location
+
+        // Background
+        const background = locationData.background || locationData.image;
+        if (background && !this.textures.exists(this.currentLocation)) {
+            this.load.image(this.currentLocation, background);
+        }
+
+        // Items
+        (locationData.items || []).forEach(item => {
+            if (item.id && item.image && !this.textures.exists(`item_${item.id}`)) {
+                this.load.image(`item_${item.id}`, item.image);
+            }
+        });
+
+        // Puzzle
+        if (locationData.puzzle && locationData.puzzle.visual) {
+            const visual = locationData.puzzle.visual;
+            if (visual.beforeImage && !this.textures.exists(`puzzle_${this.currentLocation}_before`)) {
+                this.load.image(`puzzle_${this.currentLocation}_before`, visual.beforeImage);
+            }
+            if (visual.afterImage && !this.textures.exists(`puzzle_${this.currentLocation}_after`)) {
+                this.load.image(`puzzle_${this.currentLocation}_after`, visual.afterImage);
+            }
+        }
+
+        // Rewards
+        const rewardId = locationData.puzzle?.reward?.id;
+        if (rewardId) {
+            const rewardImage = locationData.puzzle.reward.image || `images/items/${rewardId}.png`;
+            if (!this.textures.exists(`puzzle_reward_${rewardId}`)) {
+                this.load.image(`puzzle_reward_${rewardId}`, rewardImage);
+            }
+        }
+    }
+
     create() {
         // Obter dados da location
         this.locationData = databaseLoader.getLocation(this.currentLocation);
@@ -239,7 +286,7 @@ class LocationScene extends Phaser.Scene {
             // Só permite drag se estiver em zoom E não houver puzzle ativo
             const puzzleOverlay = document.getElementById('puzzle-overlay');
             const isPuzzleActive = (puzzleOverlay && puzzleOverlay.style.display === 'flex') ||
-                                  (this.puzzleManager && this.puzzleManager.isAnyPuzzleActive && this.puzzleManager.isAnyPuzzleActive());
+                (this.puzzleManager && this.puzzleManager.isAnyPuzzleActive && this.puzzleManager.isAnyPuzzleActive());
 
             if (this.isZoomed && !isPuzzleActive) {
                 this.isDragging = true;
@@ -255,7 +302,7 @@ class LocationScene extends Phaser.Scene {
             // Verificar se puzzle está ativo antes de arrastar
             const puzzleOverlay = document.getElementById('puzzle-overlay');
             const isPuzzleActive = (puzzleOverlay && puzzleOverlay.style.display === 'flex') ||
-                                  (this.puzzleManager && this.puzzleManager.isAnyPuzzleActive && this.puzzleManager.isAnyPuzzleActive());
+                (this.puzzleManager && this.puzzleManager.isAnyPuzzleActive && this.puzzleManager.isAnyPuzzleActive());
 
             if (this.isDragging && this.isZoomed && !isPuzzleActive) {
                 // Calcular o delta do movimento

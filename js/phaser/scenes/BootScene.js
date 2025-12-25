@@ -98,54 +98,70 @@ class BootScene extends Phaser.Scene {
     preloadOptimizedAssets() {
         const gameMapData = databaseLoader.isLoaded() ? databaseLoader.gameMap : (typeof gameMap !== 'undefined' ? gameMap : {});
 
-        const backgroundSources = new Map();
-        const itemSources = new Map();
-        const puzzleBeforeSources = new Map();
-        const puzzleAfterSources = new Map();
-        const rewardSources = new Map();
+        // Determine start location (peek at Update localStorage to find where we are)
+        let startLocationId = 'floresta';
+        try {
+            const saved = localStorage.getItem('vila_abandonada_phaser');
+            if (saved) {
+                const state = JSON.parse(saved);
+                if (state.currentLocation) {
+                    startLocationId = state.currentLocation;
+                }
+            }
+        } catch (e) {
+            console.warn('Could not read start location from storage, defaulting to floresta');
+        }
 
-        Object.keys(gameMapData).forEach(locationId => {
+        console.log(`[BootScene] Lazy Loading: Preloading only start location: ${startLocationId}`);
+
+        // Helper to load location assets
+        const loadLocationAssets = (locationId) => {
             const location = gameMapData[locationId];
+            if (!location) return;
 
+            // Background
             const background = location.background || location.image;
-            if (background && !backgroundSources.has(locationId)) {
-                backgroundSources.set(locationId, background);
+            if (background && !this.textures.exists(locationId)) {
+                this.load.image(locationId, background);
             }
 
+            // Items in this location
             (location.items || []).forEach(item => {
-                if (item.id && item.image && !itemSources.has(item.id)) {
-                    itemSources.set(item.id, item.image);
+                if (item.id && item.image && !this.textures.exists(`item_${item.id}`)) {
+                    this.load.image(`item_${item.id}`, item.image);
                 }
             });
 
+            // Puzzle visuals
             if (location.puzzle && location.puzzle.visual) {
                 const visual = location.puzzle.visual;
-                if (visual.beforeImage && !puzzleBeforeSources.has(locationId)) {
-                    puzzleBeforeSources.set(locationId, visual.beforeImage);
+                if (visual.beforeImage && !this.textures.exists(`puzzle_${locationId}_before`)) {
+                    this.load.image(`puzzle_${locationId}_before`, visual.beforeImage);
                 }
-                if (visual.afterImage && !puzzleAfterSources.has(locationId)) {
-                    puzzleAfterSources.set(locationId, visual.afterImage);
+                if (visual.afterImage && !this.textures.exists(`puzzle_${locationId}_after`)) {
+                    this.load.image(`puzzle_${locationId}_after`, visual.afterImage);
                 }
             }
 
+            // Puzzle reward
             const rewardId = location.puzzle?.reward?.id;
             if (rewardId) {
                 const rewardImage = location.puzzle.reward.image || `images/items/${rewardId}.png`;
-                if (!rewardSources.has(rewardId)) {
-                    rewardSources.set(rewardId, rewardImage);
+                if (!this.textures.exists(`puzzle_reward_${rewardId}`)) {
+                    this.load.image(`puzzle_reward_${rewardId}`, rewardImage);
                 }
             }
-        });
+        };
 
-        backgroundSources.forEach((src, key) => this.load.image(key, src));
-        itemSources.forEach((src, id) => this.load.image(`item_${id}`, src));
-        puzzleBeforeSources.forEach((src, id) => this.load.image(`puzzle_${id}_before`, src));
-        puzzleAfterSources.forEach((src, id) => this.load.image(`puzzle_${id}_after`, src));
-        rewardSources.forEach((src, id) => this.load.image(`puzzle_reward_${id}`, src));
+        // Load ONLY the start location
+        loadLocationAssets(startLocationId);
 
-        // Load static assets
+        // Load static/global assets (always needed)
         this.load.image('projectile_bullet', 'images/effects/bullet.png');
         this.load.image('wall_texture', 'images/objects/wall_texture.png');
+        
+        // Load common UI items if needed (example: generic icons not part of location)
+        // ...
     }
 
     async create() {

@@ -18,14 +18,11 @@ class DatabaseLoader {
     async loadGameData() {
         try {
 
-            // Strong cache-busting
-            const cacheBuster = 'v=' + Date.now() + '&r=' + Math.random();
-            const response = await fetch('api/locations/list.php?' + cacheBuster, {
-                cache: 'no-store',
+            // Cache-busting relaxed - relying on browser standard caching or ETag
+            const response = await fetch('api/locations/list.php', {
+                // cache: 'default' is the default, so we can omit it or specify it explicitly
                 headers: {
-                    'Cache-Control': 'no-cache, no-store, must-revalidate',
-                    'Pragma': 'no-cache',
-                    'Expires': '0'
+                    // Removed 'Cache-Control': 'no-store' to allow caching
                 }
             });
 
