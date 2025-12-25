@@ -110,6 +110,9 @@ class LocationScene extends Phaser.Scene {
         this.renderDroppedItems();
         this.highlightPendingPuzzleReward();
 
+        // Aplicar scale inicial baseado no zoom da câmera
+        this.updateDOMElementsScale();
+
         // Atualizar UI
         uiManager.updateLocationInfo(this.locationData);
 
@@ -246,7 +249,10 @@ class LocationScene extends Phaser.Scene {
                 targets: camera,
                 zoom: this.zoomLevel,
                 duration: 500,
-                ease: 'Cubic.easeInOut'
+                ease: 'Cubic.easeInOut',
+                onUpdate: () => {
+                    this.updateDOMElementsScale();
+                }
             });
 
             // Centralizar câmera na posição clicada (com animação)
@@ -261,7 +267,10 @@ class LocationScene extends Phaser.Scene {
                 targets: camera,
                 zoom: this.originalZoom,
                 duration: 500,
-                ease: 'Cubic.easeInOut'
+                ease: 'Cubic.easeInOut',
+                onUpdate: () => {
+                    this.updateDOMElementsScale();
+                }
             });
 
             // Recentralizar câmera no centro da cena
@@ -270,6 +279,37 @@ class LocationScene extends Phaser.Scene {
             camera.pan(centerX, centerY, 500, 'Cubic.easeInOut');
 
             this.isZoomed = false;
+        }
+    }
+
+    updateDOMElementsScale() {
+        const zoom = this.cameras.main.zoom;
+
+        // Atualizar apenas items que são DOMElements com transforms
+        if (this.items && Array.isArray(this.items)) {
+            this.items.forEach(item => {
+                if (item.sprite && item.sprite.imgElement && item.sprite.transformData) {
+                    const img = item.sprite.imgElement;
+                    const transform = item.sprite.transformData;
+
+                    // Reconstruir transforms com scale multiplicado pelo zoom
+                    const transforms = [];
+                    transforms.push('translate(-50%, -50%)');
+                    transforms.push(`rotateZ(${transform.rotation || 0}deg)`);
+                    transforms.push(`rotateX(${transform.rotateX || 0}deg)`);
+                    transforms.push(`rotateY(${transform.rotateY || 0}deg)`);
+
+                    const baseScaleX = (transform.scaleX || 1) * (transform.flipX ? -1 : 1);
+                    const baseScaleY = (transform.scaleY || 1) * (transform.flipY ? -1 : 1);
+                    transforms.push(`scaleX(${baseScaleX * zoom})`);
+                    transforms.push(`scaleY(${baseScaleY * zoom})`);
+
+                    transforms.push(`skewX(${transform.skewX || 0}deg)`);
+                    transforms.push(`skewY(${transform.skewY || 0}deg)`);
+
+                    img.style.transform = transforms.join(' ');
+                }
+            });
         }
     }
 
@@ -1766,6 +1806,10 @@ class LocationScene extends Phaser.Scene {
                 element = this.add.dom(x, y, wrapper);
                 element.setOrigin(0.5);
                 element.setDepth(50);
+
+                // Armazenar referências para atualizar durante zoom
+                element.imgElement = img;
+                element.transformData = transform;
 
                 // Eventos
                 element.addListener('pointerover');
