@@ -290,7 +290,6 @@ class LocationScene extends Phaser.Scene {
         if (this.items && Array.isArray(this.items)) {
             this.items.forEach(item => {
                 if (item.sprite && item.sprite.imgElement && item.sprite.transformData) {
-                    console.log('📏 Escalando item:', item.data?.id);
                     const img = item.sprite.imgElement;
                     const transform = item.sprite.transformData;
 
@@ -303,8 +302,13 @@ class LocationScene extends Phaser.Scene {
 
                     const baseScaleX = (transform.scaleX || 1) * (transform.flipX ? -1 : 1);
                     const baseScaleY = (transform.scaleY || 1) * (transform.flipY ? -1 : 1);
-                    transforms.push(`scaleX(${baseScaleX * zoom})`);
-                    transforms.push(`scaleY(${baseScaleY * zoom})`);
+                    const finalScaleX = baseScaleX * zoom;
+                    const finalScaleY = baseScaleY * zoom;
+
+                    console.log('📏 Item:', item.data?.id, 'baseScale:', baseScaleX, 'zoom:', zoom, 'finalScale:', finalScaleX);
+
+                    transforms.push(`scaleX(${finalScaleX})`);
+                    transforms.push(`scaleY(${finalScaleY})`);
 
                     transforms.push(`skewX(${transform.skewX || 0}deg)`);
                     transforms.push(`skewY(${transform.skewY || 0}deg)`);
@@ -1748,10 +1752,24 @@ class LocationScene extends Phaser.Scene {
             const transform = item.transform || {};
             let element;
 
-            console.log('🎯 Renderizando item:', item.id, 'tem transform:', !!item.transform);
+            // Verificar se tem transforms REAIS (não apenas objeto vazio)
+            const hasRealTransforms = transform && (
+                (transform.rotateX && transform.rotateX !== 0) ||
+                (transform.rotateY && transform.rotateY !== 0) ||
+                (transform.rotation && transform.rotation !== 0) ||
+                (transform.skewX && transform.skewX !== 0) ||
+                (transform.skewY && transform.skewY !== 0) ||
+                (transform.scaleX && transform.scaleX !== 1) ||
+                (transform.scaleY && transform.scaleY !== 1) ||
+                transform.flipX || transform.flipY ||
+                (transform.opacity !== undefined && transform.opacity !== 1) ||
+                (transform.shadowBlur && transform.shadowBlur > 0)
+            );
 
-            // Se tem qualquer transformação, usar DOMElement com wrapper div
-            if (item.transform) {
+            console.log('🎯 Item:', item.id, 'hasRealTransforms:', hasRealTransforms);
+
+            // Só usar DOMElement se tiver transforms reais
+            if (hasRealTransforms) {
                 // Criar wrapper div (Phaser posiciona)
                 const wrapper = document.createElement('div');
                 wrapper.style.position = 'relative';
