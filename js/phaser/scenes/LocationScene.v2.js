@@ -284,36 +284,13 @@ class LocationScene extends Phaser.Scene {
 
     updateDOMElementsScale() {
         const zoom = this.cameras.main.zoom;
-        console.log('🔍 updateDOMElementsScale - zoom:', zoom, 'items:', this.items?.length);
 
-        // Atualizar apenas items que são DOMElements com transforms
+        // Escalar wrapper via Phaser (mantém transforms da img)
         if (this.items && Array.isArray(this.items)) {
             this.items.forEach(item => {
-                if (item.sprite && item.sprite.imgElement && item.sprite.transformData) {
-                    const img = item.sprite.imgElement;
-                    const transform = item.sprite.transformData;
-
-                    // Reconstruir transforms com scale multiplicado pelo zoom
-                    const transforms = [];
-                    transforms.push('translate(-50%, -50%)');
-                    transforms.push(`rotateZ(${transform.rotation || 0}deg)`);
-                    transforms.push(`rotateX(${transform.rotateX || 0}deg)`);
-                    transforms.push(`rotateY(${transform.rotateY || 0}deg)`);
-
-                    const baseScaleX = (transform.scaleX || 1) * (transform.flipX ? -1 : 1);
-                    const baseScaleY = (transform.scaleY || 1) * (transform.flipY ? -1 : 1);
-                    const finalScaleX = baseScaleX * zoom;
-                    const finalScaleY = baseScaleY * zoom;
-
-                    console.log('📏 Item:', item.data?.id, 'baseScale:', baseScaleX, 'zoom:', zoom, 'finalScale:', finalScaleX);
-
-                    transforms.push(`scaleX(${finalScaleX})`);
-                    transforms.push(`scaleY(${finalScaleY})`);
-
-                    transforms.push(`skewX(${transform.skewX || 0}deg)`);
-                    transforms.push(`skewY(${transform.skewY || 0}deg)`);
-
-                    img.style.transform = transforms.join(' ');
+                if (item.sprite && item.sprite.node && item.sprite.baseTransformString) {
+                    // Escalar o wrapper via Phaser
+                    item.sprite.setScale(zoom);
                 }
             });
         }
@@ -1752,24 +1729,16 @@ class LocationScene extends Phaser.Scene {
             const transform = item.transform || {};
             let element;
 
-            // Verificar se tem transforms REAIS (não apenas objeto vazio)
-            const hasRealTransforms = transform && (
+            // Só usar DOMElement para transforms que sprites NÃO suportam (3D/skew)
+            const needsDOM = transform && (
                 (transform.rotateX && transform.rotateX !== 0) ||
                 (transform.rotateY && transform.rotateY !== 0) ||
-                (transform.rotation && transform.rotation !== 0) ||
                 (transform.skewX && transform.skewX !== 0) ||
-                (transform.skewY && transform.skewY !== 0) ||
-                (transform.scaleX && transform.scaleX !== 1) ||
-                (transform.scaleY && transform.scaleY !== 1) ||
-                transform.flipX || transform.flipY ||
-                (transform.opacity !== undefined && transform.opacity !== 1) ||
-                (transform.shadowBlur && transform.shadowBlur > 0)
+                (transform.skewY && transform.skewY !== 0)
             );
 
-            console.log('🎯 Item:', item.id, 'hasRealTransforms:', hasRealTransforms);
-
-            // Só usar DOMElement se tiver transforms reais
-            if (hasRealTransforms) {
+            // Usar DOMElement APENAS para 3D/skew, sprites para o resto
+            if (needsDOM) {
                 // Criar wrapper div (Phaser posiciona)
                 const wrapper = document.createElement('div');
                 wrapper.style.position = 'relative';
@@ -1832,6 +1801,7 @@ class LocationScene extends Phaser.Scene {
                 // Armazenar referências para atualizar durante zoom
                 element.imgElement = img;
                 element.transformData = transform;
+                element.baseTransformString = transforms.join(' '); // Transform SEM zoom
 
                 // Eventos
                 element.addListener('pointerover');
