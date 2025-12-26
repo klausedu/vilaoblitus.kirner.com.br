@@ -2455,22 +2455,28 @@ class LocationScene extends Phaser.Scene {
     collectItem(item, element) {
         const collected = gameStateManager.collectItem(item);
 
+        console.log('🎁 collectItem:', item.id, 'collected:', collected, 'element:', element, 'isDOMElement:', !!element?.node);
+
         if (collected) {
             uiManager.showNotification(`✓ Você pegou: ${item.name}`);
             uiManager.renderInventory();
 
             // Remover do array items
             const itemIndex = this.items.findIndex(i => i.data?.id === item.id);
+            console.log('📦 Procurando item no array, index:', itemIndex, 'total items:', this.items.length);
             if (itemIndex > -1) {
                 this.items.splice(itemIndex, 1);
+                console.log('✂️ Item removido do array, total agora:', this.items.length);
             }
 
             // Destruir elemento
             if (element) {
                 // DOMElements precisam ser destruídos imediatamente (tweens não funcionam)
                 if (element.node) {
+                    console.log('💥 Destruindo DOMElement:', item.id);
                     element.destroy();
                 } else {
+                    console.log('🎬 Animando sprite:', item.id);
                     // Sprites podem ter animação
                     this.tweens.add({
                         targets: element,
@@ -2479,6 +2485,7 @@ class LocationScene extends Phaser.Scene {
                         duration: 500,
                         ease: 'Power2',
                         onComplete: () => {
+                            console.log('💥 Destruindo sprite após animação:', item.id);
                             element.destroy();
                         }
                     });
