@@ -901,17 +901,39 @@
         // Transfer item or puzzle between locations
         async function transferItemOrPuzzle(fromLocId, toLocId, type) {
             try {
-                // Carregar ambas as locações via API
-                const [fromResponse, toResponse] = await Promise.all([
-                    fetch(`api/locations/get.php?id=${fromLocId}`),
-                    fetch(`api/locations/get.php?id=${toLocId}`)
-                ]);
+                console.log('🔄 Transferindo:', { fromLocId, toLocId, type });
+
+                // Carregar ambas as locações via API (com encoding)
+                const fromResponse = await fetch(`api/locations/get.php?id=${encodeURIComponent(fromLocId)}`);
+                console.log('📡 Requisição origem:', `api/locations/get.php?id=${encodeURIComponent(fromLocId)}`);
+
+                const toResponse = await fetch(`api/locations/get.php?id=${encodeURIComponent(toLocId)}`);
+                console.log('📡 Requisição destino:', `api/locations/get.php?id=${encodeURIComponent(toLocId)}`);
+
+                console.log('📥 Responses:', { from: fromResponse.status, to: toResponse.status });
+
+                // Verificar se as respostas são OK
+                if (!fromResponse.ok) {
+                    const text = await fromResponse.text();
+                    console.error('❌ Erro ao carregar origem:', text);
+                    alert('Erro ao carregar cena de origem');
+                    return;
+                }
+
+                if (!toResponse.ok) {
+                    const text = await toResponse.text();
+                    console.error('❌ Erro ao carregar destino:', text);
+                    alert('Erro ao carregar cena de destino');
+                    return;
+                }
 
                 const fromData = await fromResponse.json();
                 const toData = await toResponse.json();
 
+                console.log('📦 Dados carregados:', { fromData, toData });
+
                 if (!fromData.success || !toData.success) {
-                    alert('Erro ao carregar locações');
+                    alert('Erro ao carregar locações: ' + (fromData.message || toData.message));
                     return;
                 }
 
@@ -944,24 +966,46 @@
                 }
 
                 // Salvar ambas as locações via API
-                const [saveFromResponse, saveToResponse] = await Promise.all([
-                    fetch('api/locations/save.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(fromLoc)
-                    }),
-                    fetch('api/locations/save.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(toLoc)
-                    })
-                ]);
+                console.log('💾 Salvando cena de origem:', fromLoc);
+                const saveFromResponse = await fetch('api/locations/save.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(fromLoc)
+                });
+
+                console.log('📤 Resposta save origem:', saveFromResponse.status);
+
+                if (!saveFromResponse.ok) {
+                    const text = await saveFromResponse.text();
+                    console.error('❌ Erro ao salvar origem:', text);
+                    alert('Erro ao salvar cena de origem');
+                    return;
+                }
 
                 const saveFromData = await saveFromResponse.json();
+                console.log('✅ Origem salva:', saveFromData);
+
+                console.log('💾 Salvando cena de destino:', toLoc);
+                const saveToResponse = await fetch('api/locations/save.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(toLoc)
+                });
+
+                console.log('📤 Resposta save destino:', saveToResponse.status);
+
+                if (!saveToResponse.ok) {
+                    const text = await saveToResponse.text();
+                    console.error('❌ Erro ao salvar destino:', text);
+                    alert('Erro ao salvar cena de destino');
+                    return;
+                }
+
                 const saveToData = await saveToResponse.json();
+                console.log('✅ Destino salvo:', saveToData);
 
                 if (!saveFromData.success || !saveToData.success) {
-                    alert('Erro ao salvar mudanças');
+                    alert('Erro ao salvar mudanças: ' + (saveFromData.message || saveToData.message));
                     console.error('From:', saveFromData, 'To:', saveToData);
                     return;
                 }
