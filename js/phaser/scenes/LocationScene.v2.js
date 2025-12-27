@@ -2400,6 +2400,7 @@ class LocationScene extends Phaser.Scene {
     }
 
     navigateToLocation(targetLocationId, hotspot) {
+        console.log('🎯 navigateToLocation chamado para:', targetLocationId);
 
         if (!targetLocationId) {
             console.error('❌ targetLocationId está vazio ou undefined!');
@@ -2407,13 +2408,33 @@ class LocationScene extends Phaser.Scene {
         }
 
         // Verificar se o destino existe
-        const targetExists = databaseLoader.getLocation(targetLocationId);
-        if (!targetExists) {
+        const targetLocationData = databaseLoader.getLocation(targetLocationId);
+        if (!targetLocationData) {
             console.error('❌ Localização de destino não encontrada:', targetLocationId);
             uiManager.showNotification('Localização não encontrada: ' + targetLocationId);
             return;
         }
 
+        console.log('📍 Dados da location:', targetLocationData);
+
+        // VERIFICAR SE É CENA FINAL E TEM VÍDEO
+        if (targetLocationData.isFinalScene) {
+            console.log('🎬 É cena final! Verificando vídeo...');
+            const videoPath = targetLocationData.transitionVideo || 'images/Fuga_da_Vila_com_Salvação_Policial.mp4';
+            console.log('🎥 Vídeo configurado:', videoPath);
+
+            if (videoPath) {
+                // Reproduzir vídeo ANTES de navegar
+                this.playTransitionVideo(videoPath, () => {
+                    console.log('✅ Vídeo terminou, navegando para cena final...');
+                    // Atualizar estado
+                    gameStateManager.navigateToLocation(targetLocationId);
+                    // Reiniciar cena com nova location
+                    this.scene.restart({ locationId: targetLocationId });
+                });
+                return; // NÃO continuar com a navegação normal
+            }
+        }
 
         const { bgWidth, bgHeight, bgX, bgY } = this.getBackgroundBounds();
 
@@ -2865,7 +2886,7 @@ class LocationScene extends Phaser.Scene {
             z-index: 10000;
             overflow: hidden;
             perspective: 400px;
-            perspective-origin: 50% 50%;
+            perspective-origin: 50% 40%;
             pointer-events: none;
         `;
 
