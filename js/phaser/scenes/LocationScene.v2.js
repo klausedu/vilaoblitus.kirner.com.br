@@ -2914,6 +2914,7 @@ class LocationScene extends Phaser.Scene {
                 margin-bottom: 80px;
                 line-height: 1.5;
                 text-shadow: 0 0 10px rgba(254, 218, 74, 0.5);
+                white-space: pre-wrap;
             `;
             textEl.textContent = credit.text;
             scrollContainer.appendChild(textEl);
