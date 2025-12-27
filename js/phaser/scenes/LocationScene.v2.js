@@ -2978,10 +2978,14 @@ class LocationScene extends Phaser.Scene {
     }
 
     playTransitionVideo(videoPath, onComplete) {
+        console.log('🎬 Iniciando vídeo de transição:', videoPath);
+
         // Fade out da cena atual
         this.cameras.main.fadeOut(500, 0, 0, 0);
 
         this.cameras.main.once('camerafadeoutcomplete', () => {
+            console.log('📺 Fade out completo, criando player de vídeo...');
+
             // Criar container de vídeo full-screen
             const videoContainer = document.createElement('div');
             videoContainer.id = 'transition-video-container';
@@ -3007,34 +3011,53 @@ class LocationScene extends Phaser.Scene {
             `;
             videoElement.src = videoPath;
             videoElement.autoplay = true;
-            videoElement.controls = false;
+            videoElement.controls = true; // Sempre mostrar controles
             videoElement.preload = 'auto';
+
+            // Eventos de debug
+            videoElement.addEventListener('loadedmetadata', () => {
+                console.log('✅ Vídeo: metadata carregada, duração:', videoElement.duration);
+            });
+
+            videoElement.addEventListener('error', (e) => {
+                console.error('❌ Erro no vídeo:', videoElement.error);
+
+                // Mostrar mensagem e permitir continuar
+                const errorMsg = document.createElement('div');
+                errorMsg.style.cssText = 'color: white; font-size: 24px; text-align: center; padding: 20px;';
+                errorMsg.textContent = 'Erro ao carregar vídeo. Clique para continuar.';
+                videoContainer.appendChild(errorMsg);
+
+                videoContainer.addEventListener('click', () => {
+                    videoContainer.remove();
+                    if (onComplete) onComplete();
+                });
+            });
 
             videoContainer.appendChild(videoElement);
             document.body.appendChild(videoContainer);
+
+            console.log('▶️ Tentando reproduzir vídeo...');
 
             // Tentar dar play explicitamente
             const playPromise = videoElement.play();
 
             if (playPromise !== undefined) {
-                playPromise.catch(() => {
-                    // Se autoplay falhar, mostrar controles
-                    videoElement.controls = true;
-                });
+                playPromise
+                    .then(() => console.log('✅ Play() bem-sucedido'))
+                    .catch((error) => console.error('❌ Erro no play():', error));
             }
 
             // Quando o vídeo terminar
             videoElement.addEventListener('ended', () => {
-                // Fade out do vídeo
+                console.log('🏁 Vídeo terminou');
                 videoContainer.style.transition = 'opacity 500ms';
                 videoContainer.style.opacity = '0';
 
                 setTimeout(() => {
-                    // Remover container de vídeo
                     videoContainer.remove();
-
-                    // Chamar callback (navegar para cena final)
                     if (onComplete) {
+                        console.log('➡️ Navegando para cena final...');
                         onComplete();
                     }
                 }, 500);
@@ -3042,8 +3065,9 @@ class LocationScene extends Phaser.Scene {
 
             // Permitir pular o vídeo com clique
             videoContainer.addEventListener('click', () => {
+                console.log('⏭️ Vídeo pulado pelo usuário');
                 videoElement.pause();
-                videoElement.currentTime = videoElement.duration; // Pula para o final
+                videoElement.currentTime = videoElement.duration;
             });
         });
     }

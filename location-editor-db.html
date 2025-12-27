@@ -628,6 +628,15 @@
                         <label for="edit-final-scene">🎬 Cena Final (Mostrar Créditos Estilo Star Wars)</label>
                     </div>
 
+                    <div id="transition-video-section" style="display: none; margin-top: 15px; padding: 15px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
+                        <h4 style="margin-bottom: 10px; color: #856404;">🎥 Vídeo de Transição</h4>
+                        <div class="form-group">
+                            <label for="edit-transition-video" style="font-weight: normal; color: #856404;">Caminho do vídeo MP4 (relativo à raiz do projeto)</label>
+                            <input type="text" id="edit-transition-video" placeholder="images/Fuga_da_Vila_com_Salvação_Policial.mp4" onchange="saveBasicInfo(); syncToDatabase(true);" style="width: 100%; padding: 8px; border: 1px solid #ffc107; border-radius: 4px;">
+                            <small style="color: #856404; display: block; margin-top: 5px;">Este vídeo será reproduzido antes de entrar na cena final</small>
+                        </div>
+                    </div>
+
                     <div id="credits-section" style="display: none; margin-top: 20px; padding: 15px; background: #f0f8ff; border-radius: 8px; border-left: 4px solid #4a90e2;">
                         <h4 style="margin-bottom: 15px; color: #2a5885;">✨ Créditos Finais</h4>
                         <div style="margin-bottom: 10px;">
@@ -1313,6 +1322,7 @@
             document.getElementById('edit-image').value = location.image;
             document.getElementById('edit-unlocked').checked = location.unlocked || false;
             document.getElementById('edit-final-scene').checked = location.isFinalScene || false;
+            document.getElementById('edit-transition-video').value = location.transitionVideo || '';
             toggleCreditsSection();
 
             // Carregar créditos se existirem
@@ -3787,8 +3797,10 @@
         // Save basic info
         function toggleCreditsSection() {
             const isChecked = document.getElementById('edit-final-scene').checked;
-            const section = document.getElementById('credits-section');
-            section.style.display = isChecked ? 'block' : 'none';
+            const creditsSection = document.getElementById('credits-section');
+            const videoSection = document.getElementById('transition-video-section');
+            creditsSection.style.display = isChecked ? 'block' : 'none';
+            videoSection.style.display = isChecked ? 'block' : 'none';
         }
 
         function addCreditLine() {
@@ -3957,12 +3969,17 @@
             location.image = document.getElementById('edit-image').value;
             location.unlocked = document.getElementById('edit-unlocked').checked;
             location.isFinalScene = document.getElementById('edit-final-scene').checked;
+            location.transitionVideo = document.getElementById('edit-transition-video').value.trim();
 
             // Salvar créditos se for cena final
             if (location.isFinalScene) {
                 location.credits = collectCreditsData();
+                if (!location.transitionVideo) {
+                    delete location.transitionVideo;
+                }
             } else {
                 delete location.credits;
+                delete location.transitionVideo;
             }
 
             // If ID changed, update the object key and all connections

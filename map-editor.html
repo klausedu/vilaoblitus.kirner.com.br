@@ -609,31 +609,13 @@
                     const puzzleX = loc.puzzleIndicatorX !== undefined ? loc.puzzleIndicatorX : (loc.x + defaultDistance);
                     const puzzleY = loc.puzzleIndicatorY !== undefined ? loc.puzzleIndicatorY : loc.y;
 
-                    // Seta da cena para o círculo de puzzle
+                    // Linha da cena para o círculo de puzzle (sem seta)
                     ctx.strokeStyle = '#4CAF50';
                     ctx.lineWidth = 2;
                     ctx.beginPath();
                     ctx.moveTo(loc.x + loc.size, loc.y);
                     ctx.lineTo(puzzleX - indicatorRadius, puzzleY);
                     ctx.stroke();
-
-                    // Ponta da seta - na ponta da reta onde conecta com a cena
-                    const puzzleAngle = Math.atan2(puzzleY - loc.y, puzzleX - loc.x);
-                    const t = 0.15; // 15% do caminho (perto da cena)
-                    const arrowX = (loc.x + loc.size) + ((puzzleX - indicatorRadius) - (loc.x + loc.size)) * t;
-                    const arrowY = loc.y + (puzzleY - loc.y) * t;
-
-                    ctx.save();
-                    ctx.translate(arrowX, arrowY);
-                    ctx.rotate(puzzleAngle);
-                    ctx.beginPath();
-                    ctx.moveTo(0, 0);
-                    ctx.lineTo(-10, -5);
-                    ctx.lineTo(-10, 5);
-                    ctx.closePath();
-                    ctx.fillStyle = '#4CAF50';
-                    ctx.fill();
-                    ctx.restore();
 
                     // Círculo verde
                     ctx.fillStyle = '#4CAF50';
