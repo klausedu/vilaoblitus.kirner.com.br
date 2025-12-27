@@ -537,13 +537,36 @@
                 ctx.strokeText(loc.name, loc.x, loc.y + loc.size + 20);
                 ctx.fillText(loc.name, loc.x, loc.y + loc.size + 20);
 
-                // Indicadores plugados na cena (metade do tamanho)
+                // Indicadores com setas (metade do tamanho)
                 const indicatorRadius = loc.size / 2;
+                const distance = 80; // Distância da cena
 
                 // Items (amarelo) - lado ESQUERDO da cena
                 if (loc.items && loc.items.length > 0) {
-                    const itemX = loc.x - loc.size - indicatorRadius;
+                    const itemX = loc.x - distance;
                     const itemY = loc.y;
+
+                    // Seta da cena para o círculo de items
+                    ctx.strokeStyle = '#FFD700';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(loc.x - loc.size, loc.y);
+                    ctx.lineTo(itemX + indicatorRadius, itemY);
+                    ctx.stroke();
+
+                    // Ponta da seta
+                    const angle = Math.PI;
+                    ctx.save();
+                    ctx.translate(itemX + indicatorRadius, itemY);
+                    ctx.rotate(angle);
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(-10, -5);
+                    ctx.lineTo(-10, 5);
+                    ctx.closePath();
+                    ctx.fillStyle = '#FFD700';
+                    ctx.fill();
+                    ctx.restore();
 
                     // Círculo amarelo
                     ctx.fillStyle = '#FFD700';
@@ -556,26 +579,58 @@
                     ctx.lineWidth = 2;
                     ctx.stroke();
 
-                    // Texto: quantidade de items
+                    // Nome do item (se só 1) ou quantidade
                     ctx.fillStyle = '#000';
-                    ctx.font = 'bold 14px Arial';
+                    ctx.font = 'bold 11px Arial';
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
-                    ctx.fillText(loc.items.length.toString(), itemX, itemY - 2);
 
-                    // Label "Items"
+                    if (loc.items.length === 1) {
+                        // Mostrar nome do item
+                        const itemName = loc.items[0].name || loc.items[0].id || '?';
+                        ctx.fillText(itemName, itemX, itemY);
+                    } else {
+                        // Mostrar quantidade
+                        ctx.fillText(`${loc.items.length}x`, itemX, itemY);
+                    }
+
+                    // Lista de items abaixo
                     ctx.fillStyle = '#FFD700';
                     ctx.strokeStyle = '#000';
                     ctx.lineWidth = 2;
-                    ctx.font = 'bold 10px Arial';
-                    ctx.strokeText('Items', itemX, itemY + indicatorRadius + 12);
-                    ctx.fillText('Items', itemX, itemY + indicatorRadius + 12);
+                    ctx.font = 'bold 9px Arial';
+                    const itemNames = loc.items.map(i => i.name || i.id).slice(0, 3).join(', ');
+                    const displayText = loc.items.length > 3 ? itemNames + '...' : itemNames;
+                    ctx.strokeText(displayText, itemX, itemY + indicatorRadius + 12);
+                    ctx.fillText(displayText, itemX, itemY + indicatorRadius + 12);
                 }
 
                 // Puzzle (verde) - lado DIREITO da cena
                 if (loc.puzzle) {
-                    const puzzleX = loc.x + loc.size + indicatorRadius;
+                    const puzzleX = loc.x + distance;
                     const puzzleY = loc.y;
+
+                    // Seta da cena para o círculo de puzzle
+                    ctx.strokeStyle = '#4CAF50';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(loc.x + loc.size, loc.y);
+                    ctx.lineTo(puzzleX - indicatorRadius, puzzleY);
+                    ctx.stroke();
+
+                    // Ponta da seta
+                    const angle = 0;
+                    ctx.save();
+                    ctx.translate(puzzleX - indicatorRadius, puzzleY);
+                    ctx.rotate(angle);
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(-10, -5);
+                    ctx.lineTo(-10, 5);
+                    ctx.closePath();
+                    ctx.fillStyle = '#4CAF50';
+                    ctx.fill();
+                    ctx.restore();
 
                     // Círculo verde
                     ctx.fillStyle = '#4CAF50';
@@ -588,20 +643,22 @@
                     ctx.lineWidth = 2;
                     ctx.stroke();
 
-                    // Texto: letra P
+                    // Texto: tipo de puzzle
                     ctx.fillStyle = '#000';
-                    ctx.font = 'bold 16px Arial';
+                    ctx.font = 'bold 10px Arial';
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
-                    ctx.fillText('P', puzzleX, puzzleY);
+                    const puzzleType = loc.puzzle.type || 'Puzzle';
+                    ctx.fillText(puzzleType, puzzleX, puzzleY);
 
-                    // Label "Puzzle"
+                    // Nome do puzzle abaixo
                     ctx.fillStyle = '#4CAF50';
                     ctx.strokeStyle = '#000';
                     ctx.lineWidth = 2;
-                    ctx.font = 'bold 10px Arial';
-                    ctx.strokeText('Puzzle', puzzleX, puzzleY + indicatorRadius + 12);
-                    ctx.fillText('Puzzle', puzzleX, puzzleY + indicatorRadius + 12);
+                    ctx.font = 'bold 9px Arial';
+                    const puzzleName = loc.puzzle.name || loc.puzzle.id || 'Puzzle';
+                    ctx.strokeText(puzzleName, puzzleX, puzzleY + indicatorRadius + 12);
+                    ctx.fillText(puzzleName, puzzleX, puzzleY + indicatorRadius + 12);
                 }
             });
 
