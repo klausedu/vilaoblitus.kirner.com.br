@@ -51,8 +51,8 @@ try {
 
     // Prepared statements (reutilizáveis)
     $locationStmt = $pdo->prepare("
-        INSERT INTO locations (id, name, description, background_image, display_order, is_final_scene, credits)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO locations (id, name, description, background_image, display_order, is_final_scene, credits, transition_video)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE
             name = VALUES(name),
             description = VALUES(description),
@@ -60,6 +60,7 @@ try {
             display_order = VALUES(display_order),
             is_final_scene = VALUES(is_final_scene),
             credits = VALUES(credits),
+            transition_video = VALUES(transition_video),
             updated_at = CURRENT_TIMESTAMP
     ");
 

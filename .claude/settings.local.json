@@ -22,7 +22,8 @@
       "Bash(findstr:*)",
       "Bash(find:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(php api/migrations/add-transition-video.php:*)"
     ],
     "deny": [],
     "ask": []

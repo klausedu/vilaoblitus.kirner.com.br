@@ -2817,11 +2817,18 @@ class LocationScene extends Phaser.Scene {
                 const targetLocationData = databaseLoader.getLocation(targetLocation);
 
                 if (targetLocationData && targetLocationData.isFinalScene) {
-                    // Tocar vídeo de transição antes de ir para cena final
-                    this.playTransitionVideo('images/Fuga_da_Vila_com_Salvação_Policial.mp4', () => {
-                        // Após vídeo terminar, navegar para cena final
+                    // Tocar vídeo de transição antes de ir para cena final (se configurado)
+                    const videoPath = targetLocationData.transitionVideo || 'images/Fuga_da_Vila_com_Salvação_Policial.mp4';
+
+                    if (videoPath) {
+                        this.playTransitionVideo(videoPath, () => {
+                            // Após vídeo terminar, navegar para cena final
+                            this.navigateToLocation(targetLocation, { position: { x: 50, y: 50, width: 10, height: 10 } });
+                        });
+                    } else {
+                        // Se não tiver vídeo configurado, navegar direto
                         this.navigateToLocation(targetLocation, { position: { x: 50, y: 50, width: 10, height: 10 } });
-                    });
+                    }
                 } else {
                     // Navegação normal sem vídeo
                     this.navigateToLocation(targetLocation, { position: { x: 50, y: 50, width: 10, height: 10 } });

@@ -5225,7 +5225,8 @@ if (typeof module !== 'undefined' && module.exports) {
                         imageDimensions: { width: 1024, height: 1024 },
                         destructibleWalls: loc.destructible_walls || [],  // ✅ Carregar paredes do banco
                         isFinalScene: loc.is_final_scene || false,  // ✅ Carregar flag de cena final
-                        credits: loc.credits || null  // ✅ Carregar créditos
+                        credits: loc.credits || null,  // ✅ Carregar créditos
+                        transitionVideo: loc.transition_video || null  // ✅ Carregar vídeo de transição
                     };
 
                     if (loc.puzzle) {
@@ -5346,7 +5347,8 @@ if (typeof module !== 'undefined' && module.exports) {
                         puzzle: loc.puzzle,
                         destructible_walls: loc.destructibleWalls || [],
                         is_final_scene: loc.isFinalScene || false,
-                        credits: loc.credits || null
+                        credits: loc.credits || null,
+                        transition_video: loc.transitionVideo || null
                     });
                 }
 
