@@ -901,101 +901,70 @@
         // Transfer item or puzzle between locations
         async function transferItemOrPuzzle(fromLocId, toLocId, type) {
             try {
-                // Abrir IndexedDB
-                const dbName = 'VilaAbandonadaDB';
-                const dbVersion = 1;
+                // Carregar ambas as locações via API
+                const [fromResponse, toResponse] = await Promise.all([
+                    fetch(`api/locations/get.php?id=${fromLocId}`),
+                    fetch(`api/locations/get.php?id=${toLocId}`)
+                ]);
 
-                const db = await new Promise((resolve, reject) => {
-                    const request = indexedDB.open(dbName, dbVersion);
-                    request.onsuccess = () => resolve(request.result);
-                    request.onerror = () => reject(request.error);
-                });
+                const fromData = await fromResponse.json();
+                const toData = await toResponse.json();
 
-                // Carregar locações
-                const transaction = db.transaction(['locations'], 'readwrite');
-                const store = transaction.objectStore('locations');
-
-                const fromLoc = await new Promise((resolve, reject) => {
-                    const req = store.get(fromLocId);
-                    req.onsuccess = () => resolve(req.result);
-                    req.onerror = () => reject(req.error);
-                });
-
-                const toLoc = await new Promise((resolve, reject) => {
-                    const req = store.get(toLocId);
-                    req.onsuccess = () => resolve(req.result);
-                    req.onerror = () => reject(req.error);
-                });
-
-                if (!fromLoc || !toLoc) {
-                    alert('Erro: Locação não encontrada');
+                if (!fromData.success || !toData.success) {
+                    alert('Erro ao carregar locações');
                     return;
                 }
 
+                const fromLoc = fromData.data;
+                const toLoc = toData.data;
+
                 // Transferir item ou puzzle
                 if (type === 'item') {
-                    // Transferir TODOS os items
-                    if (!fromLoc.items || fromLoc.items.length === 0) {
+                    // Encontrar hotspots de tipo 'item' na cena de origem
+                    const itemHotspots = fromLoc.hotspots.filter(h => h.type === 'item');
+
+                    if (itemHotspots.length === 0) {
                         alert('Não há items para transferir');
                         return;
                     }
 
-                    // Mover items mantendo coordenadas, dimensão e distorção
-                    const itemsToTransfer = fromLoc.items.map(item => ({
-                        ...item,
-                        locationId: toLocId // Atualizar locationId
-                    }));
+                    // Mover hotspots de items para a cena de destino
+                    // Remove item_id do hotspot mas mantém todas as propriedades de transformação
+                    toLoc.hotspots = toLoc.hotspots || [];
+                    toLoc.hotspots.push(...itemHotspots);
 
-                    // Adicionar à cena destino
-                    toLoc.items = toLoc.items || [];
-                    toLoc.items.push(...itemsToTransfer);
-
-                    // Remover da cena origem
-                    fromLoc.items = [];
+                    // Remover hotspots de items da cena de origem
+                    fromLoc.hotspots = fromLoc.hotspots.filter(h => h.type !== 'item');
 
                 } else if (type === 'puzzle') {
-                    // Transferir puzzle
-                    if (!fromLoc.puzzle) {
-                        alert('Não há puzzle para transferir');
-                        return;
-                    }
-
-                    // Verificar se destino já tem puzzle
-                    if (toLoc.puzzle) {
-                        if (!confirm(`A cena "${toLoc.name}" já tem um puzzle. Deseja substituir?`)) {
-                            return;
-                        }
-                    }
-
-                    // Mover puzzle mantendo propriedades
-                    toLoc.puzzle = {
-                        ...fromLoc.puzzle,
-                        locationId: toLocId
-                    };
-
-                    // Remover da origem
-                    delete fromLoc.puzzle;
+                    // Para puzzles, precisamos usar a tabela location_puzzles
+                    // Aqui fazemos apenas através de requisição direta
+                    alert('Transferência de puzzles requer uma API específica. Funcionalidade em desenvolvimento.');
+                    return;
                 }
 
-                // Salvar mudanças
-                await new Promise((resolve, reject) => {
-                    const req = store.put(fromLoc);
-                    req.onsuccess = () => resolve();
-                    req.onerror = () => reject(req.error);
-                });
+                // Salvar ambas as locações via API
+                const [saveFromResponse, saveToResponse] = await Promise.all([
+                    fetch('api/locations/save.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(fromLoc)
+                    }),
+                    fetch('api/locations/save.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(toLoc)
+                    })
+                ]);
 
-                await new Promise((resolve, reject) => {
-                    const req = store.put(toLoc);
-                    req.onsuccess = () => resolve();
-                    req.onerror = () => reject(req.error);
-                });
+                const saveFromData = await saveFromResponse.json();
+                const saveToData = await saveToResponse.json();
 
-                await new Promise((resolve, reject) => {
-                    transaction.oncomplete = () => resolve();
-                    transaction.onerror = () => reject(transaction.error);
-                });
-
-                db.close();
+                if (!saveFromData.success || !saveToData.success) {
+                    alert('Erro ao salvar mudanças');
+                    console.error('From:', saveFromData, 'To:', saveToData);
+                    return;
+                }
 
                 // Recarregar dados
                 alert(`${type === 'item' ? 'Items' : 'Puzzle'} transferido(s) com sucesso!`);
