@@ -284,17 +284,21 @@
 
             <!-- Modo de Edição -->
             <h2>Modo de Edição</h2>
-            <div class="mode-selector">
+            <div class="mode-selector" style="grid-template-columns: 1fr 1fr 1fr;">
                 <div class="mode-btn active" data-mode="move">
                     🖐️ Mover
                 </div>
                 <div class="mode-btn" data-mode="connect">
                     🔗 Conectar
                 </div>
+                <div class="mode-btn" data-mode="transfer">
+                    🔄 Transferir
+                </div>
             </div>
             <div class="info-box warning">
                 <strong>🖐️ Modo Mover:</strong> Arraste os locais para reposicionar<br>
-                <strong>🔗 Modo Conectar:</strong> Clique em 2 locais para conectar/desconectar
+                <strong>🔗 Modo Conectar:</strong> Clique em 2 locais para conectar/desconectar<br>
+                <strong>🔄 Modo Transferir:</strong> Clique em item/enigma, depois na cena de destino
             </div>
 
             <!-- Estatísticas -->
@@ -340,6 +344,7 @@
                 <div style="font-size: 0.8em; line-height: 1.8;">
                     <strong>M</strong> - Modo Mover<br>
                     <strong>C</strong> - Modo Conectar<br>
+                    <strong>T</strong> - Modo Transferir<br>
                     <strong>Space</strong> - Pan (arrastar câmera)<br>
                     <strong>+/-</strong> - Zoom<br>
                     <strong>R</strong> - Resetar Zoom<br>
@@ -365,11 +370,12 @@
 
         // Editor state
         let editorState = {
-            mode: 'move', // 'move' or 'connect'
+            mode: 'move', // 'move', 'connect', or 'transfer'
             selectedLocation: null,
             draggingLocation: null,
             draggingIndicator: null, // {locId: "...", type: "item" or "puzzle"}
             firstConnectionPoint: null,
+            transferSource: null, // {locId: "...", type: "item"/"puzzle", itemIndex: N (for items)}
             camera: { x: 0, y: 0, zoom: 1 },
             isDraggingCamera: false,
             dragStartPos: { x: 0, y: 0 }
@@ -570,9 +576,9 @@
                     ctx.lineTo(itemX + indicatorRadius, itemY);
                     ctx.stroke();
 
-                    // Ponta da seta - calcular ângulo correto da cena para o item
+                    // Ponta da seta - na ponta da reta onde conecta com a cena
                     const itemAngle = Math.atan2(itemY - loc.y, itemX - loc.x);
-                    const t = 0.6; // 60% do caminho
+                    const t = 0.15; // 15% do caminho (perto da cena)
                     const arrowX = (loc.x - loc.size) + ((itemX + indicatorRadius) - (loc.x - loc.size)) * t;
                     const arrowY = loc.y + (itemY - loc.y) * t;
 
@@ -594,9 +600,12 @@
                     ctx.arc(itemX, itemY, indicatorRadius, 0, Math.PI * 2);
                     ctx.fill();
 
-                    // Borda preta
-                    ctx.strokeStyle = '#000';
-                    ctx.lineWidth = 2;
+                    // Borda - destacar se selecionado para transferência
+                    const isSelectedForTransfer = editorState.transferSource &&
+                        editorState.transferSource.locId === id &&
+                        editorState.transferSource.type === 'item';
+                    ctx.strokeStyle = isSelectedForTransfer ? '#FFF' : '#000';
+                    ctx.lineWidth = isSelectedForTransfer ? 4 : 2;
                     ctx.stroke();
 
                     // Lista de items abaixo (FORA do círculo apenas)
@@ -626,9 +635,9 @@
                     ctx.lineTo(puzzleX - indicatorRadius, puzzleY);
                     ctx.stroke();
 
-                    // Ponta da seta - calcular ângulo correto da cena para o puzzle
+                    // Ponta da seta - na ponta da reta onde conecta com a cena
                     const puzzleAngle = Math.atan2(puzzleY - loc.y, puzzleX - loc.x);
-                    const t = 0.6; // 60% do caminho
+                    const t = 0.15; // 15% do caminho (perto da cena)
                     const arrowX = (loc.x + loc.size) + ((puzzleX - indicatorRadius) - (loc.x + loc.size)) * t;
                     const arrowY = loc.y + (puzzleY - loc.y) * t;
 
@@ -650,9 +659,12 @@
                     ctx.arc(puzzleX, puzzleY, indicatorRadius, 0, Math.PI * 2);
                     ctx.fill();
 
-                    // Borda preta
-                    ctx.strokeStyle = '#000';
-                    ctx.lineWidth = 2;
+                    // Borda - destacar se selecionado para transferência
+                    const isPuzzleSelectedForTransfer = editorState.transferSource &&
+                        editorState.transferSource.locId === id &&
+                        editorState.transferSource.type === 'puzzle';
+                    ctx.strokeStyle = isPuzzleSelectedForTransfer ? '#FFF' : '#000';
+                    ctx.lineWidth = isPuzzleSelectedForTransfer ? 4 : 2;
                     ctx.stroke();
 
                     // Tipo do puzzle abaixo (FORA do círculo apenas)
@@ -757,10 +769,49 @@
 
             // Check for indicator first (takes priority over locations)
             const indicator = findIndicatorAt(pos.x, pos.y);
+
+            // MODO MOVER: arrastar indicadores
             if (indicator && editorState.mode === 'move') {
                 editorState.draggingIndicator = indicator;
                 render();
                 return;
+            }
+
+            // MODO TRANSFERIR: selecionar item/puzzle e depois cena destino
+            if (editorState.mode === 'transfer') {
+                if (indicator) {
+                    // Primeiro clique: selecionar item/puzzle
+                    const loc = locations[indicator.locId];
+                    let itemIndex = -1;
+
+                    if (indicator.type === 'item') {
+                        // Para items, precisamos saber qual item (se houver múltiplos)
+                        // Por simplicidade, vamos transferir TODOS os items da cena
+                        itemIndex = 0; // Pode expandir para selecionar item específico
+                    }
+
+                    editorState.transferSource = {
+                        locId: indicator.locId,
+                        type: indicator.type,
+                        itemIndex: itemIndex
+                    };
+                    editorState.selectedLocation = indicator.locId;
+                    updateLocationList();
+                    render();
+                    return;
+                } else {
+                    // Segundo clique: clicar em cena destino
+                    const locId = findLocationAt(pos.x, pos.y);
+                    if (locId && editorState.transferSource && editorState.transferSource.locId !== locId) {
+                        // Transferir!
+                        transferItemOrPuzzle(editorState.transferSource.locId, locId, editorState.transferSource.type);
+                        editorState.transferSource = null;
+                        editorState.selectedLocation = null;
+                        updateLocationList();
+                        render();
+                        return;
+                    }
+                }
             }
 
             // Then check for location
@@ -846,6 +897,115 @@
             editorState.camera.zoom = Math.max(0.1, Math.min(3, editorState.camera.zoom + delta));
             render();
         });
+
+        // Transfer item or puzzle between locations
+        async function transferItemOrPuzzle(fromLocId, toLocId, type) {
+            try {
+                // Abrir IndexedDB
+                const dbName = 'VilaAbandonadaDB';
+                const dbVersion = 1;
+
+                const db = await new Promise((resolve, reject) => {
+                    const request = indexedDB.open(dbName, dbVersion);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+
+                // Carregar locações
+                const transaction = db.transaction(['locations'], 'readwrite');
+                const store = transaction.objectStore('locations');
+
+                const fromLoc = await new Promise((resolve, reject) => {
+                    const req = store.get(fromLocId);
+                    req.onsuccess = () => resolve(req.result);
+                    req.onerror = () => reject(req.error);
+                });
+
+                const toLoc = await new Promise((resolve, reject) => {
+                    const req = store.get(toLocId);
+                    req.onsuccess = () => resolve(req.result);
+                    req.onerror = () => reject(req.error);
+                });
+
+                if (!fromLoc || !toLoc) {
+                    alert('Erro: Locação não encontrada');
+                    return;
+                }
+
+                // Transferir item ou puzzle
+                if (type === 'item') {
+                    // Transferir TODOS os items
+                    if (!fromLoc.items || fromLoc.items.length === 0) {
+                        alert('Não há items para transferir');
+                        return;
+                    }
+
+                    // Mover items mantendo coordenadas, dimensão e distorção
+                    const itemsToTransfer = fromLoc.items.map(item => ({
+                        ...item,
+                        locationId: toLocId // Atualizar locationId
+                    }));
+
+                    // Adicionar à cena destino
+                    toLoc.items = toLoc.items || [];
+                    toLoc.items.push(...itemsToTransfer);
+
+                    // Remover da cena origem
+                    fromLoc.items = [];
+
+                } else if (type === 'puzzle') {
+                    // Transferir puzzle
+                    if (!fromLoc.puzzle) {
+                        alert('Não há puzzle para transferir');
+                        return;
+                    }
+
+                    // Verificar se destino já tem puzzle
+                    if (toLoc.puzzle) {
+                        if (!confirm(`A cena "${toLoc.name}" já tem um puzzle. Deseja substituir?`)) {
+                            return;
+                        }
+                    }
+
+                    // Mover puzzle mantendo propriedades
+                    toLoc.puzzle = {
+                        ...fromLoc.puzzle,
+                        locationId: toLocId
+                    };
+
+                    // Remover da origem
+                    delete fromLoc.puzzle;
+                }
+
+                // Salvar mudanças
+                await new Promise((resolve, reject) => {
+                    const req = store.put(fromLoc);
+                    req.onsuccess = () => resolve();
+                    req.onerror = () => reject(req.error);
+                });
+
+                await new Promise((resolve, reject) => {
+                    const req = store.put(toLoc);
+                    req.onsuccess = () => resolve();
+                    req.onerror = () => reject(req.error);
+                });
+
+                await new Promise((resolve, reject) => {
+                    transaction.oncomplete = () => resolve();
+                    transaction.onerror = () => reject(transaction.error);
+                });
+
+                db.close();
+
+                // Recarregar dados
+                alert(`${type === 'item' ? 'Items' : 'Puzzle'} transferido(s) com sucesso!`);
+                await loadFromDatabase();
+
+            } catch (error) {
+                console.error('Erro ao transferir:', error);
+                alert('Erro ao transferir: ' + error.message);
+            }
+        }
 
         // Toggle connection
         function toggleConnection(fromId, toId) {
@@ -1087,6 +1247,8 @@
                 document.querySelector('.mode-btn[data-mode="move"]').click();
             } else if (e.key === 'c' || e.key === 'C') {
                 document.querySelector('.mode-btn[data-mode="connect"]').click();
+            } else if (e.key === 't' || e.key === 'T') {
+                document.querySelector('.mode-btn[data-mode="transfer"]').click();
             } else if (e.key === 'r' || e.key === 'R') {
                 centerView();
             }
