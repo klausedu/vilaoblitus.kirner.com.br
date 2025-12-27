@@ -2856,7 +2856,7 @@ class LocationScene extends Phaser.Scene {
             background: transparent;
             z-index: 10000;
             overflow: hidden;
-            perspective: 400px;
+            perspective: 300px;
             pointer-events: none;
         `;
 
@@ -2870,7 +2870,7 @@ class LocationScene extends Phaser.Scene {
             width: 80%;
             max-width: 800px;
             text-align: center;
-            animation: starWarsScroll 30s linear forwards;
+            animation: starWarsScroll 60s linear forwards;
         `;
 
         // Adicionar cada texto com sua fonte
@@ -2898,10 +2898,10 @@ class LocationScene extends Phaser.Scene {
             style.textContent = `
                 @keyframes starWarsScroll {
                     0% {
-                        transform: translateX(-50%) translateY(100%) rotateX(20deg) scale(1);
+                        transform: translateX(-50%) translateY(100%) rotateX(50deg) scale(1);
                     }
                     100% {
-                        transform: translateX(-50%) translateY(-400%) rotateX(20deg) scale(0.1);
+                        transform: translateX(-50%) translateY(-400%) rotateX(50deg) scale(0.1);
                     }
                 }
             `;
