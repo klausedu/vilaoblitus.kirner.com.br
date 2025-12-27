@@ -570,11 +570,15 @@
                     ctx.lineTo(itemX + indicatorRadius, itemY);
                     ctx.stroke();
 
-                    // Ponta da seta
-                    const angle = Math.PI;
+                    // Ponta da seta - calcular ângulo correto da cena para o item
+                    const itemAngle = Math.atan2(itemY - loc.y, itemX - loc.x);
+                    const t = 0.6; // 60% do caminho
+                    const arrowX = (loc.x - loc.size) + ((itemX + indicatorRadius) - (loc.x - loc.size)) * t;
+                    const arrowY = loc.y + (itemY - loc.y) * t;
+
                     ctx.save();
-                    ctx.translate(itemX + indicatorRadius, itemY);
-                    ctx.rotate(angle);
+                    ctx.translate(arrowX, arrowY);
+                    ctx.rotate(itemAngle);
                     ctx.beginPath();
                     ctx.moveTo(0, 0);
                     ctx.lineTo(-10, -5);
@@ -622,11 +626,15 @@
                     ctx.lineTo(puzzleX - indicatorRadius, puzzleY);
                     ctx.stroke();
 
-                    // Ponta da seta
-                    const angle = 0;
+                    // Ponta da seta - calcular ângulo correto da cena para o puzzle
+                    const puzzleAngle = Math.atan2(puzzleY - loc.y, puzzleX - loc.x);
+                    const t = 0.6; // 60% do caminho
+                    const arrowX = (loc.x + loc.size) + ((puzzleX - indicatorRadius) - (loc.x + loc.size)) * t;
+                    const arrowY = loc.y + (puzzleY - loc.y) * t;
+
                     ctx.save();
-                    ctx.translate(puzzleX - indicatorRadius, puzzleY);
-                    ctx.rotate(angle);
+                    ctx.translate(arrowX, arrowY);
+                    ctx.rotate(puzzleAngle);
                     ctx.beginPath();
                     ctx.moveTo(0, 0);
                     ctx.lineTo(-10, -5);
