@@ -903,116 +903,43 @@
             try {
                 console.log('🔄 Transferindo:', { fromLocId, toLocId, type });
 
-                // Carregar ambas as locações via API (com encoding)
-                const fromResponse = await fetch(`api/locations/get.php?id=${encodeURIComponent(fromLocId)}`);
-                console.log('📡 Requisição origem:', `api/locations/get.php?id=${encodeURIComponent(fromLocId)}`);
-
-                const toResponse = await fetch(`api/locations/get.php?id=${encodeURIComponent(toLocId)}`);
-                console.log('📡 Requisição destino:', `api/locations/get.php?id=${encodeURIComponent(toLocId)}`);
-
-                console.log('📥 Responses:', { from: fromResponse.status, to: toResponse.status });
-
-                // Verificar se as respostas são OK
-                if (!fromResponse.ok) {
-                    const text = await fromResponse.text();
-                    console.error('❌ Erro ao carregar origem:', text);
-                    alert('Erro ao carregar cena de origem');
-                    return;
-                }
-
-                if (!toResponse.ok) {
-                    const text = await toResponse.text();
-                    console.error('❌ Erro ao carregar destino:', text);
-                    alert('Erro ao carregar cena de destino');
-                    return;
-                }
-
-                const fromData = await fromResponse.json();
-                const toData = await toResponse.json();
-
-                console.log('📦 Dados carregados:', { fromData, toData });
-
-                if (!fromData.success || !toData.success) {
-                    alert('Erro ao carregar locações: ' + (fromData.message || toData.message));
-                    return;
-                }
-
-                const fromLoc = fromData.data;
-                const toLoc = toData.data;
-
-                // Transferir item ou puzzle
                 if (type === 'item') {
-                    // Encontrar hotspots de tipo 'item' na cena de origem
-                    const itemHotspots = fromLoc.hotspots.filter(h => h.type === 'item');
+                    // Usar API específica para transferir items
+                    const response = await fetch('api/locations/transfer-items.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            from_location: fromLocId,
+                            to_location: toLocId
+                        })
+                    });
 
-                    if (itemHotspots.length === 0) {
-                        alert('Não há items para transferir');
+                    console.log('📤 Resposta transfer:', response.status);
+
+                    if (!response.ok) {
+                        const text = await response.text();
+                        console.error('❌ Erro na transferência:', text);
+                        alert('Erro ao transferir items');
                         return;
                     }
 
-                    // Mover hotspots de items para a cena de destino
-                    // Remove item_id do hotspot mas mantém todas as propriedades de transformação
-                    toLoc.hotspots = toLoc.hotspots || [];
-                    toLoc.hotspots.push(...itemHotspots);
+                    const data = await response.json();
+                    console.log('✅ Transferência concluída:', data);
 
-                    // Remover hotspots de items da cena de origem
-                    fromLoc.hotspots = fromLoc.hotspots.filter(h => h.type !== 'item');
+                    if (!data.success) {
+                        alert('Erro: ' + data.message);
+                        return;
+                    }
+
+                    // Recarregar dados
+                    alert(`✅ ${data.data.items_transferred} item(s) transferido(s) com sucesso!`);
+                    await loadFromDatabase();
 
                 } else if (type === 'puzzle') {
-                    // Para puzzles, precisamos usar a tabela location_puzzles
-                    // Aqui fazemos apenas através de requisição direta
-                    alert('Transferência de puzzles requer uma API específica. Funcionalidade em desenvolvimento.');
+                    // Transferência de puzzles requer API adicional
+                    alert('Transferência de puzzles em desenvolvimento. Use o editor de locações para mover puzzles.');
                     return;
                 }
-
-                // Salvar ambas as locações via API
-                console.log('💾 Salvando cena de origem:', fromLoc);
-                const saveFromResponse = await fetch('api/locations/save.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(fromLoc)
-                });
-
-                console.log('📤 Resposta save origem:', saveFromResponse.status);
-
-                if (!saveFromResponse.ok) {
-                    const text = await saveFromResponse.text();
-                    console.error('❌ Erro ao salvar origem:', text);
-                    alert('Erro ao salvar cena de origem');
-                    return;
-                }
-
-                const saveFromData = await saveFromResponse.json();
-                console.log('✅ Origem salva:', saveFromData);
-
-                console.log('💾 Salvando cena de destino:', toLoc);
-                const saveToResponse = await fetch('api/locations/save.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(toLoc)
-                });
-
-                console.log('📤 Resposta save destino:', saveToResponse.status);
-
-                if (!saveToResponse.ok) {
-                    const text = await saveToResponse.text();
-                    console.error('❌ Erro ao salvar destino:', text);
-                    alert('Erro ao salvar cena de destino');
-                    return;
-                }
-
-                const saveToData = await saveToResponse.json();
-                console.log('✅ Destino salvo:', saveToData);
-
-                if (!saveFromData.success || !saveToData.success) {
-                    alert('Erro ao salvar mudanças: ' + (saveFromData.message || saveToData.message));
-                    console.error('From:', saveFromData, 'To:', saveToData);
-                    return;
-                }
-
-                // Recarregar dados
-                alert(`${type === 'item' ? 'Items' : 'Puzzle'} transferido(s) com sucesso!`);
-                await loadFromDatabase();
 
             } catch (error) {
                 console.error('Erro ao transferir:', error);
