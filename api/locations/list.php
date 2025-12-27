@@ -61,6 +61,7 @@ try {
             background_image,
             is_final_scene,
             credits,
+            transition_video,
             created_at,
             updated_at
         FROM locations

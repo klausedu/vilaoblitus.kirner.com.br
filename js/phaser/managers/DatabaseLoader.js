@@ -121,7 +121,8 @@ class DatabaseLoader {
                 items: items,  // Items separados
                 destructibleWalls: location.destructible_walls || [], // Paredes destrutíveis
                 isFinalScene: location.is_final_scene || false,  // ✅ Cena final com créditos
-                credits: location.credits || null  // ✅ Array de créditos Star Wars
+                credits: location.credits || null,  // ✅ Array de créditos Star Wars
+                transitionVideo: location.transition_video || null  // ✅ Vídeo de transição
             };
 
             if (location.puzzle) {
