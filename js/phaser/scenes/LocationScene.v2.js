@@ -2415,9 +2415,16 @@ class LocationScene extends Phaser.Scene {
 
         // VERIFICAR SE É CENA FINAL E TEM VÍDEO
         if (targetLocationData.isFinalScene) {
+            console.log('🎬 É CENA FINAL!');
+            console.log('📦 Dados completos da location:', targetLocationData);
+
             const videoPath = targetLocationData.transitionVideo || 'images/Fuga_da_Vila_com_Salvação_Policial.mp4';
             const dramaticMessages = targetLocationData.dramaticMessages;
             const messageDuration = targetLocationData.dramaticMessageDuration || 5;
+
+            console.log('🎥 Video path:', videoPath);
+            console.log('💬 Dramatic messages:', dramaticMessages);
+            console.log('⏱️ Message duration:', messageDuration);
 
             const navigateToFinalScene = () => {
                 // Atualizar estado
@@ -2429,8 +2436,10 @@ class LocationScene extends Phaser.Scene {
             if (videoPath || dramaticMessages) {
                 // Sequência: Mensagens Dramáticas → Vídeo → Cena Final
                 if (dramaticMessages) {
+                    console.log('✅ Chamando showDramaticMessages!');
                     // 1. Mostrar mensagens dramáticas primeiro
                     this.showDramaticMessages(dramaticMessages, messageDuration, () => {
+                        console.log('✅ Mensagens dramáticas terminaram!');
                         // 2. Após mensagens, tocar vídeo (se houver)
                         if (videoPath) {
                             this.playTransitionVideo(videoPath, navigateToFinalScene);
@@ -2439,6 +2448,7 @@ class LocationScene extends Phaser.Scene {
                         }
                     });
                 } else if (videoPath) {
+                    console.log('⚠️ Sem mensagens dramáticas, indo direto pro vídeo');
                     // Apenas vídeo, sem mensagens
                     this.playTransitionVideo(videoPath, navigateToFinalScene);
                 }
