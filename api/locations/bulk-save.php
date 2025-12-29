@@ -115,9 +115,9 @@ try {
         $backgroundImage = $loc['background_image'] ?? '';
         $isFinalScene = isset($loc['is_final_scene']) ? (int)$loc['is_final_scene'] : 0;
         $credits = !empty($loc['credits']) ? json_encode($loc['credits'], JSON_UNESCAPED_UNICODE) : null;
-        $transitionVideo = $loc['transition_video'] ?? null;
-        $dramaticMessages = $loc['dramatic_messages'] ?? null;
-        $dramaticMessageDuration = isset($loc['dramatic_message_duration']) ? (int)$loc['dramatic_message_duration'] : null;
+        $transitionVideo = !empty($loc['transition_video']) ? $loc['transition_video'] : null;
+        $dramaticMessages = !empty($loc['dramatic_messages']) ? $loc['dramatic_messages'] : null;
+        $dramaticMessageDuration = !empty($loc['dramatic_message_duration']) ? (int)$loc['dramatic_message_duration'] : null;
 
         // Get display order from the order array
         $displayOrder = array_search($locationId, $order);

@@ -1191,6 +1191,17 @@
                         initializeLocationOrder();
                     }
                     renderLocationsList();
+
+                    // Restaurar última localização editada (se voltou do jogo com F4)
+                    const lastLocation = localStorage.getItem('editor_last_location');
+                    if (lastLocation && gameLocations[lastLocation]) {
+                        // Pequeno delay para garantir que a lista foi renderizada
+                        setTimeout(() => {
+                            loadLocation(lastLocation);
+                            // Limpar para não reabrir sempre
+                            localStorage.removeItem('editor_last_location');
+                        }, 100);
+                    }
                 } else {
                 }
             } catch (e) {
@@ -3650,6 +3661,22 @@
         // Carregar dados ao iniciar
         window.addEventListener('DOMContentLoaded', () => {
             loadFromLocalStorage();
+        });
+
+        // F4 para testar o jogo e voltar no mesmo lugar
+        document.addEventListener('keydown', (e) => {
+            // F4 key
+            if (e.key === 'F4' || e.keyCode === 115) {
+                e.preventDefault();
+
+                // Salvar localização atual antes de ir para o jogo
+                if (currentLocationId) {
+                    localStorage.setItem('editor_last_location', currentLocationId);
+                }
+
+                // Ir para o jogo
+                window.location.href = 'game-phaser.html';
+            }
         });
 
         // Inicializar eventos de desenho de hotspots
