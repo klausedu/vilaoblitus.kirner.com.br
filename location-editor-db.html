@@ -1224,7 +1224,10 @@
 
                             // ✅ Se veio da URL com tab=visual, trocar para aba de posicionamento visual
                             if (urlTab === 'visual') {
-                                switchTab('visual');
+                                // Delay maior para garantir que a localização foi carregada antes de trocar aba
+                                setTimeout(() => {
+                                    switchTab('visual');
+                                }, 200);
                             }
                         }, 100);
                     }

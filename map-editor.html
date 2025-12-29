@@ -893,15 +893,17 @@
         // Duplo clique em localização - abrir location-editor-db
         canvas.addEventListener('dblclick', (e) => {
             const pos = getMousePos(e);
+            console.log('🖱️ Duplo clique em:', pos);
+
             const locId = findLocationAt(pos.x, pos.y);
+            console.log('🔵 Localização detectada:', locId);
 
             if (locId) {
-                console.log('🔵 Duplo clique na localização:', locId);
-
                 // Abrir location-editor-db na localização específica e aba de posicionamento visual
                 // Adicionar timestamp para forçar reload
                 const timestamp = Date.now();
                 const url = `location-editor-db.html?location=${encodeURIComponent(locId)}&tab=visual&t=${timestamp}`;
+                console.log('🌐 Abrindo URL:', url);
 
                 // Usar nome fixo 'location-editor' para reutilizar a mesma janela
                 const editorWindow = window.open(url, 'location-editor');
@@ -909,7 +911,12 @@
                 // Forçar foco na janela
                 if (editorWindow) {
                     editorWindow.focus();
+                    console.log('✅ Janela aberta/focada');
+                } else {
+                    console.error('❌ Falha ao abrir janela');
                 }
+            } else {
+                console.log('⚠️ Nenhuma localização detectada nessa posição');
             }
         });
 
