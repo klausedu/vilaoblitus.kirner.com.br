@@ -2415,16 +2415,9 @@ class LocationScene extends Phaser.Scene {
 
         // VERIFICAR SE É CENA FINAL E TEM VÍDEO
         if (targetLocationData.isFinalScene) {
-            console.log('🎬 É CENA FINAL!');
-            console.log('📦 Dados completos da location:', targetLocationData);
-
             const videoPath = targetLocationData.transitionVideo || 'images/Fuga_da_Vila_com_Salvação_Policial.mp4';
             const dramaticMessages = targetLocationData.dramaticMessages;
             const messageDuration = targetLocationData.dramaticMessageDuration || 5;
-
-            console.log('🎥 Video path:', videoPath);
-            console.log('💬 Dramatic messages:', dramaticMessages);
-            console.log('⏱️ Message duration:', messageDuration);
 
             const navigateToFinalScene = () => {
                 // Atualizar estado
@@ -2436,10 +2429,8 @@ class LocationScene extends Phaser.Scene {
             if (videoPath || dramaticMessages) {
                 // Sequência: Mensagens Dramáticas → Vídeo → Cena Final
                 if (dramaticMessages) {
-                    console.log('✅ Chamando showDramaticMessages!');
                     // 1. Mostrar mensagens dramáticas primeiro
                     this.showDramaticMessages(dramaticMessages, messageDuration, () => {
-                        console.log('✅ Mensagens dramáticas terminaram!');
                         // 2. Após mensagens, tocar vídeo (se houver)
                         if (videoPath) {
                             this.playTransitionVideo(videoPath, navigateToFinalScene);
@@ -2448,7 +2439,6 @@ class LocationScene extends Phaser.Scene {
                         }
                     });
                 } else if (videoPath) {
-                    console.log('⚠️ Sem mensagens dramáticas, indo direto pro vídeo');
                     // Apenas vídeo, sem mensagens
                     this.playTransitionVideo(videoPath, navigateToFinalScene);
                 }
@@ -3005,18 +2995,11 @@ class LocationScene extends Phaser.Scene {
     }
 
     showDramaticMessages(messagesText, duration, onComplete) {
-        console.log('📝 Texto recebido:', messagesText);
-        console.log('📝 Tipo:', typeof messagesText);
-        console.log('📝 Length:', messagesText.length);
-
         // Substituir \n literal por quebra de linha real (caso o banco/JSON tenha escapado)
         const normalizedText = messagesText.replace(/\\n/g, '\n');
 
         // Dividir mensagens por linha
         const messages = normalizedText.split('\n').filter(msg => msg.trim());
-
-        console.log('📝 Mensagens divididas:', messages);
-        console.log('📝 Quantidade de mensagens:', messages.length);
 
         if (messages.length === 0) {
             if (onComplete) onComplete();
