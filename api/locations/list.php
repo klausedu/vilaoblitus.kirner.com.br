@@ -200,9 +200,9 @@ try {
 
     foreach ($puzzleRows as $puzzleRow) {
         $puzzleData = json_decode($puzzleRow['puzzle_data'], true);
-        if ($puzzleData && isset($puzzleData['onUnlockedAction'])) {
+        if ($puzzleData && is_array($puzzleData) && isset($puzzleData['onUnlockedAction']) && is_array($puzzleData['onUnlockedAction'])) {
             $action = $puzzleData['onUnlockedAction'];
-            if ($action['type'] === 'navigate' && !empty($action['targetLocation'])) {
+            if (isset($action['type']) && $action['type'] === 'navigate' && !empty($action['targetLocation'])) {
                 $connections[] = [
                     'from_location' => $puzzleRow['location_id'],
                     'to_location' => $action['targetLocation']
