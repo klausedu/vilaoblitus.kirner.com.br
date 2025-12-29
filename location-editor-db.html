@@ -1192,13 +1192,16 @@
                     }
                     renderLocationsList();
 
-                    // Restaurar última localização editada (se voltou do jogo com F4)
+                    // Restaurar localização atual (F5) ou última editada (F4)
+                    const currentLocation = localStorage.getItem('editor_current_location');
                     const lastLocation = localStorage.getItem('editor_last_location');
-                    if (lastLocation && gameLocations[lastLocation]) {
+                    const locationToLoad = lastLocation || currentLocation;
+
+                    if (locationToLoad && gameLocations[locationToLoad]) {
                         // Pequeno delay para garantir que a lista foi renderizada
                         setTimeout(() => {
-                            loadLocation(lastLocation);
-                            // Limpar para não reabrir sempre
+                            selectLocation(locationToLoad);
+                            // Limpar apenas o editor_last_location (de F4)
                             localStorage.removeItem('editor_last_location');
                         }, 100);
                     }
@@ -1328,6 +1331,8 @@
         // Select location
         function selectLocation(locationId) {
             currentLocationId = locationId;
+            // Salvar localização atual para restaurar após F5
+            localStorage.setItem('editor_current_location', locationId);
             renderLocationsList();
             loadLocationData();
         }
