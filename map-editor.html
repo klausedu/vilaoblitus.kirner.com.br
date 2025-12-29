@@ -1101,13 +1101,14 @@
 
         // Save layout
         function saveLayout() {
-            // Save x,y positions AND indicator positions to localStorage
+            // Save x,y positions AND indicator positions AND connections to localStorage
             const layoutData = {};
             Object.keys(locations).forEach(id => {
                 const loc = locations[id];
                 layoutData[id] = {
                     x: loc.x,
-                    y: loc.y
+                    y: loc.y,
+                    connections: loc.connections || [] // ✅ Salvar conexões manuais
                 };
 
                 // Only save indicator positions if location has items/puzzles
@@ -1131,7 +1132,7 @@
             });
             const data = JSON.stringify(layoutData, null, 2);
             localStorage.setItem('vila_abandonada_map_layout', data);
-            alert('Layout visual salvo no navegador com sucesso!');
+            alert('Layout visual (posições + conexões) salvo no navegador com sucesso!');
         }
 
         // Load layout (Manual trigger, though auto-loaded on start)
