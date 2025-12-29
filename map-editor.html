@@ -890,6 +890,18 @@
             render();
         });
 
+        // Duplo clique em localização - abrir location-editor-db
+        canvas.addEventListener('dblclick', (e) => {
+            const pos = getMousePos(e);
+            const locId = findLocationAt(pos.x, pos.y);
+
+            if (locId) {
+                // Abrir location-editor-db na localização específica e aba de posicionamento visual
+                const url = `location-editor-db.html?location=${encodeURIComponent(locId)}&tab=visual`;
+                window.open(url, '_blank');
+            }
+        });
+
         // Transfer item or puzzle between locations
         async function transferItemOrPuzzle(fromLocId, toLocId, type, itemId = null) {
             try {
