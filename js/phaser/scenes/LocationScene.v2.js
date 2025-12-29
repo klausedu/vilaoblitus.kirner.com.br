@@ -546,16 +546,10 @@ class LocationScene extends Phaser.Scene {
         if (textureKey && this.textures.exists(textureKey)) {
             this.puzzleSprite = this.add.image(x, y, textureKey);
 
-            const sourceWidth = this.puzzleSprite.width || targetWidth || 1;
-            const sourceHeight = this.puzzleSprite.height || targetHeight || 1;
-            const safeTargetWidth = Math.max(1, targetWidth);
-            const safeTargetHeight = Math.max(1, targetHeight);
-            const containScale = Math.min(safeTargetWidth / sourceWidth, safeTargetHeight / sourceHeight);
-            const finalScale = Number.isFinite(containScale) && containScale > 0 ? containScale : 1;
-
-            this.puzzleSprite.setScale(finalScale);
-            this.puzzleSprite.displayWidth = sourceWidth * finalScale;
-            this.puzzleSprite.displayHeight = sourceHeight * finalScale;
+            // ✅ Usar tamanho original da imagem (sem redimensionar)
+            this.puzzleSprite.setScale(1);
+            this.puzzleSprite.displayWidth = this.puzzleSprite.width;
+            this.puzzleSprite.displayHeight = this.puzzleSprite.height;
         } else {
             // Fallback for missing image
             this.puzzleSprite = this.add.container(x, y);
