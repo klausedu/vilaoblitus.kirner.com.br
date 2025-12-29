@@ -450,13 +450,18 @@
                         puzzle: loc.puzzle // Puzzle da cena (se existir)
                     };
 
-                    // Restore indicator positions if saved AND location still has items/puzzles
-                    if (saved && saved.itemIndicatorX !== undefined && locations[id].items && locations[id].items.length > 0) {
-                        locations[id].itemIndicatorX = saved.itemIndicatorX;
+                    // Restore individual item indicator positions
+                    if (saved && saved.items && Array.isArray(saved.items) && locations[id].items) {
+                        saved.items.forEach(savedItem => {
+                            const currentItem = locations[id].items.find(i => i.id === savedItem.id);
+                            if (currentItem) {
+                                currentItem.indicatorX = savedItem.indicatorX;
+                                currentItem.indicatorY = savedItem.indicatorY;
+                            }
+                        });
                     }
-                    if (saved && saved.itemIndicatorY !== undefined && locations[id].items && locations[id].items.length > 0) {
-                        locations[id].itemIndicatorY = saved.itemIndicatorY;
-                    }
+
+                    // Restore puzzle indicator position
                     if (saved && saved.puzzleIndicatorX !== undefined && locations[id].puzzle) {
                         locations[id].puzzleIndicatorX = saved.puzzleIndicatorX;
                     }
@@ -567,15 +572,14 @@
                 const indicatorRadius = loc.size * 0.8;
                 const defaultDistance = 80; // Distância padrão da cena
 
-                // Items (amarelo) - lado ESQUERDO da cena - UMA BOLINHA POR ITEM
+                // Items (amarelo) - lado ESQUERDO da cena - UMA BOLINHA POR ITEM (INDEPENDENTES)
                 if (loc.items && loc.items.length > 0) {
-                    const itemSpacing = 25; // Espaçamento entre bolinhas
-                    const baseItemX = loc.itemIndicatorX !== undefined ? loc.itemIndicatorX : (loc.x - defaultDistance);
-                    const baseItemY = loc.itemIndicatorY !== undefined ? loc.itemIndicatorY : (loc.y - ((loc.items.length - 1) * itemSpacing / 2));
+                    const itemSpacing = 25; // Espaçamento padrão entre bolinhas
 
                     loc.items.forEach((item, index) => {
-                        const itemX = baseItemX;
-                        const itemY = baseItemY + (index * itemSpacing);
+                        // Cada item tem sua própria posição independente
+                        const itemX = item.indicatorX !== undefined ? item.indicatorX : (loc.x - defaultDistance);
+                        const itemY = item.indicatorY !== undefined ? item.indicatorY : (loc.y - ((loc.items.length - 1) * itemSpacing / 2) + (index * itemSpacing));
 
                         // Linha da cena para o círculo de item
                         ctx.strokeStyle = '#FFD700';
@@ -705,15 +709,14 @@
                 const loc = locations[id];
                 const indicatorRadius = loc.size * 0.8;
 
-                // Check item indicators (yellow, left side) - uma bolinha por item
+                // Check item indicators (yellow, left side) - uma bolinha por item independente
                 if (loc.items && loc.items.length > 0) {
                     const itemSpacing = 25;
-                    const baseItemX = loc.itemIndicatorX !== undefined ? loc.itemIndicatorX : (loc.x - defaultDistance);
-                    const baseItemY = loc.itemIndicatorY !== undefined ? loc.itemIndicatorY : (loc.y - ((loc.items.length - 1) * itemSpacing / 2));
 
                     for (let i = 0; i < loc.items.length; i++) {
-                        const itemX = baseItemX;
-                        const itemY = baseItemY + (i * itemSpacing);
+                        const item = loc.items[i];
+                        const itemX = item.indicatorX !== undefined ? item.indicatorX : (loc.x - defaultDistance);
+                        const itemY = item.indicatorY !== undefined ? item.indicatorY : (loc.y - ((loc.items.length - 1) * itemSpacing / 2) + (i * itemSpacing));
                         const dist = Math.sqrt((x - itemX) ** 2 + (y - itemY) ** 2);
                         if (dist <= indicatorRadius) {
                             return { locId: id, type: 'item', itemIndex: i };
@@ -835,8 +838,12 @@
             if (editorState.draggingIndicator) {
                 const loc = locations[editorState.draggingIndicator.locId];
                 if (editorState.draggingIndicator.type === 'item') {
-                    loc.itemIndicatorX = pos.x;
-                    loc.itemIndicatorY = pos.y;
+                    // Salvar posição individual do item específico
+                    const itemIndex = editorState.draggingIndicator.itemIndex;
+                    if (loc.items[itemIndex]) {
+                        loc.items[itemIndex].indicatorX = pos.x;
+                        loc.items[itemIndex].indicatorY = pos.y;
+                    }
                 } else if (editorState.draggingIndicator.type === 'puzzle') {
                     loc.puzzleIndicatorX = pos.x;
                     loc.puzzleIndicatorY = pos.y;
@@ -1124,14 +1131,13 @@
                     connections: loc.connections || [] // ✅ Salvar conexões manuais
                 };
 
-                // Only save indicator positions if location has items/puzzles
+                // Save individual item indicator positions
                 if (loc.items && loc.items.length > 0) {
-                    if (loc.itemIndicatorX !== undefined) {
-                        layoutData[id].itemIndicatorX = loc.itemIndicatorX;
-                    }
-                    if (loc.itemIndicatorY !== undefined) {
-                        layoutData[id].itemIndicatorY = loc.itemIndicatorY;
-                    }
+                    layoutData[id].items = loc.items.map(item => ({
+                        id: item.id,
+                        indicatorX: item.indicatorX,
+                        indicatorY: item.indicatorY
+                    }));
                 }
 
                 if (loc.puzzle) {
