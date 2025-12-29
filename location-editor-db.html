@@ -2175,29 +2175,44 @@
                     ? `drop-shadow(${shadowX}px ${shadowY}px ${shadowBlur}px rgba(0,0,0,0.5))`
                     : 'none';
 
-                const backgroundStyle = puzzleVisual.beforeImage
-                    ? `background-image: url(${puzzleVisual.beforeImage}); background-size: auto; background-repeat: no-repeat;`
-                    : `background: repeating-linear-gradient(45deg, rgba(240,165,0,0.3), rgba(240,165,0,0.3) 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 20px); border: 3px dashed #f0a500;`;
-
                 const puzzleEl = document.createElement('div');
                 puzzleEl.dataset.visualType = 'puzzle';
                 puzzleEl.style.cssText = `
                     position: absolute;
                     left: ${puzzleVisual.position.x}%;
                     top: ${puzzleVisual.position.y}%;
-                    width: ${puzzleVisual.size.width}px;
-                    height: ${puzzleVisual.size.height}px;
                     transform: ${transforms.join(' ')};
                     cursor: move;
                     pointer-events: auto;
                     z-index: 120;
-                    ${backgroundStyle}
-                    background-position: center;
-                    border-radius: 6px;
                     opacity: ${puzzleVisual.transform.opacity || 1};
                     filter: ${filterString};
                     ${isPuzzleSelected ? 'box-shadow: 0 0 0 3px #f0a500;' : ''}
                 `;
+
+                // ✅ Usar <img> em tamanho original em vez de background
+                if (puzzleVisual.beforeImage) {
+                    const img = document.createElement('img');
+                    img.src = puzzleVisual.beforeImage;
+                    img.style.cssText = `
+                        display: block;
+                        width: auto;
+                        height: auto;
+                        max-width: none;
+                        pointer-events: none;
+                        image-rendering: crisp-edges;
+                    `;
+                    puzzleEl.appendChild(img);
+                } else {
+                    // Fallback: mostrar área de placeholder
+                    puzzleEl.style.cssText += `
+                        width: ${puzzleVisual.size.width}px;
+                        height: ${puzzleVisual.size.height}px;
+                        background: repeating-linear-gradient(45deg, rgba(240,165,0,0.3), rgba(240,165,0,0.3) 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 20px);
+                        border: 3px dashed #f0a500;
+                        border-radius: 6px;
+                    `;
+                }
 
                 const label = document.createElement('div');
                 label.textContent = location.puzzle.id || 'Enigma';
