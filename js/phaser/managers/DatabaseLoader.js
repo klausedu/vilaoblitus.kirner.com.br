@@ -259,14 +259,21 @@ class DatabaseLoader {
     }
 
     /**
-     * Get connections for a location
+     * Get connections for a location (both outgoing and incoming)
      * @param {string} locationId
      * @returns {Array<string>}
      */
     getConnections(locationId) {
-        return this.connections
+        const outgoing = this.connections
             .filter(c => c.from_location === locationId)
             .map(c => c.to_location);
+
+        const incoming = this.connections
+            .filter(c => c.to_location === locationId)
+            .map(c => c.from_location);
+
+        // Remover duplicatas e retornar todas as conexões
+        return [...new Set([...outgoing, ...incoming])];
     }
 }
 
