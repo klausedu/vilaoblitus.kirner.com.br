@@ -3856,11 +3856,23 @@
         function switchTab(tabName) {
             currentTab = tabName;
 
+            // Remover active de todos os botões e painéis
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
 
-            event.target.classList.add('active');
-            document.getElementById('tab-' + tabName).classList.add('active');
+            // Ativar o botão correto (buscar pelo texto ou data-attribute)
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(btn => {
+                if (btn.getAttribute('onclick')?.includes(`'${tabName}'`)) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // Ativar o painel correto
+            const panel = document.getElementById('tab-' + tabName);
+            if (panel) {
+                panel.classList.add('active');
+            }
 
             // Load visual editor when switching to visual tab
             if (tabName === 'visual') {
