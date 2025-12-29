@@ -663,7 +663,10 @@ class LocationScene extends Phaser.Scene {
 
     applyPuzzleTransforms(sprite, transform = {}) {
         if (!sprite) return;
-        this.applySpriteTransform(sprite, transform);
+
+        // ✅ Aplicar transformações MAS sem alterar escala (manter tamanho original)
+        const transformWithoutScale = { ...transform, scaleX: 1, scaleY: 1 };
+        this.applySpriteTransform(sprite, transformWithoutScale);
     }
 
     updatePuzzleVisual(solved = false) {
