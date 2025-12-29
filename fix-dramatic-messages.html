@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Corrigir Colunas Dramatic Messages</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #dc3545;
+            margin-bottom: 20px;
+        }
+        .btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .btn:hover {
+            background: #c82333;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #e83e8c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Corrigir Colunas Dramatic Messages</h1>
+
+        <p><strong>Esta migração irá:</strong></p>
+        <ul>
+            <li>Remover as colunas <code>dramatic_messages</code> e <code>dramatic_message_duration</code> existentes</li>
+            <li>Recriá-las sem constraints problemáticos</li>
+            <li>Garantir que ambas aceitem valores NULL corretamente</li>
+        </ul>
+
+        <p style="color: #856404; background: #fff3cd; padding: 10px; border-radius: 4px; border-left: 4px solid #ffc107;">
+            ⚠️ <strong>Atenção:</strong> Qualquer dado existente nessas colunas será perdido. Como são colunas novas, isso não deve ser um problema.
+        </p>
+
+        <button class="btn" onclick="runMigration()">▶️ Executar Migração</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function runMigration() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = 'info';
+            resultDiv.textContent = '⏳ Executando migração...';
+
+            try {
+                const response = await fetch('api/migrations/fix-dramatic-messages.php');
+                const text = await response.text();
+
+                if (response.ok) {
+                    resultDiv.className = 'success';
+                    resultDiv.innerHTML = '<strong>✅ Migração executada com sucesso!</strong><br><br>' + text;
+                } else {
+                    resultDiv.className = 'error';
+                    resultDiv.innerHTML = '<strong>❌ Erro na migração</strong><br><br>' + text;
+                }
+            } catch (error) {
+                resultDiv.className = 'error';
+                resultDiv.innerHTML = '<strong>❌ Erro de conexão</strong><br><br>' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
