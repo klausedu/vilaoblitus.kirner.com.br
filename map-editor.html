@@ -567,45 +567,50 @@
                 const indicatorRadius = loc.size * 0.8;
                 const defaultDistance = 80; // Distância padrão da cena
 
-                // Items (amarelo) - lado ESQUERDO da cena
+                // Items (amarelo) - lado ESQUERDO da cena - UMA BOLINHA POR ITEM
                 if (loc.items && loc.items.length > 0) {
-                    // Usar posição customizada se existir, senão posição padrão
-                    const itemX = loc.itemIndicatorX !== undefined ? loc.itemIndicatorX : (loc.x - defaultDistance);
-                    const itemY = loc.itemIndicatorY !== undefined ? loc.itemIndicatorY : loc.y;
+                    const itemSpacing = 25; // Espaçamento entre bolinhas
+                    const baseItemX = loc.itemIndicatorX !== undefined ? loc.itemIndicatorX : (loc.x - defaultDistance);
+                    const baseItemY = loc.itemIndicatorY !== undefined ? loc.itemIndicatorY : (loc.y - ((loc.items.length - 1) * itemSpacing / 2));
 
-                    // Linha da cena para o círculo de items (sem seta)
-                    ctx.strokeStyle = '#FFD700';
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.moveTo(loc.x - loc.size, loc.y);
-                    ctx.lineTo(itemX + indicatorRadius, itemY);
-                    ctx.stroke();
+                    loc.items.forEach((item, index) => {
+                        const itemX = baseItemX;
+                        const itemY = baseItemY + (index * itemSpacing);
 
-                    // Círculo amarelo
-                    ctx.fillStyle = '#FFD700';
-                    ctx.beginPath();
-                    ctx.arc(itemX, itemY, indicatorRadius, 0, Math.PI * 2);
-                    ctx.fill();
+                        // Linha da cena para o círculo de item
+                        ctx.strokeStyle = '#FFD700';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.moveTo(loc.x - loc.size, loc.y);
+                        ctx.lineTo(itemX + indicatorRadius, itemY);
+                        ctx.stroke();
 
-                    // Borda - destacar se selecionado para transferência
-                    const isSelectedForTransfer = editorState.transferSource &&
-                        editorState.transferSource.locId === id &&
-                        editorState.transferSource.type === 'item';
-                    ctx.strokeStyle = isSelectedForTransfer ? '#FFF' : '#000';
-                    ctx.lineWidth = isSelectedForTransfer ? 4 : 2;
-                    ctx.stroke();
+                        // Círculo amarelo
+                        ctx.fillStyle = '#FFD700';
+                        ctx.beginPath();
+                        ctx.arc(itemX, itemY, indicatorRadius, 0, Math.PI * 2);
+                        ctx.fill();
 
-                    // Lista de items abaixo (FORA do círculo apenas)
-                    ctx.fillStyle = '#FFD700';
-                    ctx.strokeStyle = '#000';
-                    ctx.lineWidth = 2;
-                    ctx.font = 'bold 9px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    const itemNames = loc.items.map(i => i.name || i.id).slice(0, 3).join(', ');
-                    const displayText = loc.items.length > 3 ? itemNames + '...' : itemNames;
-                    ctx.strokeText(displayText, itemX, itemY + indicatorRadius + 12);
-                    ctx.fillText(displayText, itemX, itemY + indicatorRadius + 12);
+                        // Borda - destacar se selecionado para transferência
+                        const isSelectedForTransfer = editorState.transferSource &&
+                            editorState.transferSource.locId === id &&
+                            editorState.transferSource.type === 'item' &&
+                            editorState.transferSource.itemIndex === index;
+                        ctx.strokeStyle = isSelectedForTransfer ? '#FFF' : '#000';
+                        ctx.lineWidth = isSelectedForTransfer ? 4 : 2;
+                        ctx.stroke();
+
+                        // Nome do item abaixo da bolinha
+                        ctx.fillStyle = '#FFD700';
+                        ctx.strokeStyle = '#000';
+                        ctx.lineWidth = 2;
+                        ctx.font = 'bold 9px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        const itemName = item.name || item.id;
+                        ctx.strokeText(itemName, itemX, itemY + indicatorRadius + 12);
+                        ctx.fillText(itemName, itemX, itemY + indicatorRadius + 12);
+                    });
                 }
 
                 // Puzzle (verde) - lado DIREITO da cena
@@ -700,13 +705,19 @@
                 const loc = locations[id];
                 const indicatorRadius = loc.size * 0.8;
 
-                // Check item indicator (yellow, left side)
+                // Check item indicators (yellow, left side) - uma bolinha por item
                 if (loc.items && loc.items.length > 0) {
-                    const itemX = loc.itemIndicatorX !== undefined ? loc.itemIndicatorX : (loc.x - defaultDistance);
-                    const itemY = loc.itemIndicatorY !== undefined ? loc.itemIndicatorY : loc.y;
-                    const dist = Math.sqrt((x - itemX) ** 2 + (y - itemY) ** 2);
-                    if (dist <= indicatorRadius) {
-                        return { locId: id, type: 'item' };
+                    const itemSpacing = 25;
+                    const baseItemX = loc.itemIndicatorX !== undefined ? loc.itemIndicatorX : (loc.x - defaultDistance);
+                    const baseItemY = loc.itemIndicatorY !== undefined ? loc.itemIndicatorY : (loc.y - ((loc.items.length - 1) * itemSpacing / 2));
+
+                    for (let i = 0; i < loc.items.length; i++) {
+                        const itemX = baseItemX;
+                        const itemY = baseItemY + (i * itemSpacing);
+                        const dist = Math.sqrt((x - itemX) ** 2 + (y - itemY) ** 2);
+                        if (dist <= indicatorRadius) {
+                            return { locId: id, type: 'item', itemIndex: i };
+                        }
                     }
                 }
 
