@@ -924,16 +924,13 @@
             if (from.connections.includes(toId)) {
                 // Remove connection
                 from.connections = from.connections.filter(id => id !== toId);
-                // Also remove reverse if exists? The DB usually has explicit one-way or two-way. 
-                // For editor simplicity we might just toggle this one.
-                // But wait, the standard map is often bidirectional.
-                alert("Nota: Esta mudança é apenas visual no editor. Use o 'Editor de Locais (DB)' para alterar conexões reais.");
+                alert("✅ Conexão removida! Clique em '💾 Salvar Layout' para persistir.");
             } else {
                 // Add connection
                 from.connections.push(toId);
-                // to.connections.push(fromId); // Don't force bidirectionality here
-                alert("Nota: Esta mudança é apenas visual no editor. Use o 'Editor de Locais (DB)' para alterar conexões reais.");
+                alert("✅ Conexão criada! Clique em '💾 Salvar Layout' para persistir.");
             }
+            render();
         }
 
         // Update stats
