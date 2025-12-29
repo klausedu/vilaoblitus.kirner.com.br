@@ -3005,8 +3005,18 @@ class LocationScene extends Phaser.Scene {
     }
 
     showDramaticMessages(messagesText, duration, onComplete) {
+        console.log('📝 Texto recebido:', messagesText);
+        console.log('📝 Tipo:', typeof messagesText);
+        console.log('📝 Length:', messagesText.length);
+
+        // Substituir \n literal por quebra de linha real (caso o banco/JSON tenha escapado)
+        const normalizedText = messagesText.replace(/\\n/g, '\n');
+
         // Dividir mensagens por linha
-        const messages = messagesText.split('\n').filter(msg => msg.trim());
+        const messages = normalizedText.split('\n').filter(msg => msg.trim());
+
+        console.log('📝 Mensagens divididas:', messages);
+        console.log('📝 Quantidade de mensagens:', messages.length);
 
         if (messages.length === 0) {
             if (onComplete) onComplete();
