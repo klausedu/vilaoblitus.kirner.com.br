@@ -720,11 +720,15 @@ class LocationScene extends Phaser.Scene {
             this.droppedItemSprites = [];
             return;
         }
+        // ✅ Destruir apenas sprites NÃO travados
         this.droppedItemSprites.forEach(entry => {
-            entry.sprite?.destroy();
-            entry.label?.destroy();
+            if (!entry.locked) {
+                entry.sprite?.destroy();
+                entry.label?.destroy();
+            }
         });
-        this.droppedItemSprites = [];
+        // ✅ Manter apenas os sprites travados no array
+        this.droppedItemSprites = this.droppedItemSprites.filter(e => e.locked);
     }
 
     renderDroppedItems() {
@@ -752,6 +756,12 @@ class LocationScene extends Phaser.Scene {
             Object.values(gameStateManager.state.placedPuzzleItems).forEach(item => {
                 if (item.locationId !== this.currentLocation) return;
                 if (!item.position) return;
+
+                // ✅ Verificar se já existe um sprite travado para este item (evitar duplicatas)
+                const alreadyExists = this.droppedItemSprites.some(e => e.locked && e.id === item.id);
+                if (alreadyExists) {
+                    return;
+                }
 
                 const world = this.percentToWorld(item.position, bounds);
                 this.createDroppedItemSprite(item, world.x, world.y, true); // true = locked
