@@ -38,7 +38,8 @@
       "Bash(node add-arrow-column.js:*)",
       "Bash(node set-arrows.js:*)",
       "Bash(node check-connections.js:*)",
-      "Bash(node clear-puzzle.js:*)"
+      "Bash(node clear-puzzle.js:*)",
+      "Bash(node check-puzzle.js:*)"
     ],
     "deny": [],
     "ask": []
