@@ -612,9 +612,9 @@ class LocationScene extends Phaser.Scene {
             this.puzzleSprite.setInteractive({ useHandCursor: true });
             this.puzzleSprite.on('pointerdown', () => {
                 if (gameStateManager.isPuzzleSolved(puzzle.id)) {
-                    // Se for cadeado de 5 dígitos e está resolvido (aberto), executar ação especial
-                    if (puzzle.type === 'padlock_5digit' && puzzle.onUnlockedAction) {
-                        this.handlePadlockUnlockedAction(puzzle);
+                    // ✅ TODOS os puzzles podem ter ação ao clicar quando resolvidos
+                    if (puzzle.onUnlockedAction) {
+                        this.handlePuzzleUnlockedAction(puzzle);
                     } else {
                         uiManager.showNotification('Este enigma já foi resolvido.');
                     }
@@ -2849,7 +2849,7 @@ class LocationScene extends Phaser.Scene {
         }
     }
 
-    handlePadlockUnlockedAction(puzzle) {
+    handlePuzzleUnlockedAction(puzzle) {
         const action = puzzle.onUnlockedAction;
 
         if (action.type === 'changeBackground') {
@@ -2864,7 +2864,7 @@ class LocationScene extends Phaser.Scene {
                     // Atualizar dados da localização com novo background
                     this.locationData.image = newBackgroundImage;
 
-                    // Destruir cadeado
+                    // Destruir sprite do puzzle
                     if (this.puzzleSprite) {
                         this.puzzleSprite.destroy();
                         this.puzzleSprite = null;
@@ -2879,7 +2879,9 @@ class LocationScene extends Phaser.Scene {
                     // Fade in
                     this.cameras.main.fadeIn(500, 0, 0, 0);
 
-                    uiManager.showNotification('O portão se abriu!');
+                    // Mensagem customizada ou padrão
+                    const message = action.message || 'O caminho se abriu!';
+                    uiManager.showNotification(message);
                 });
             }
         } else if (action.type === 'navigate') {
