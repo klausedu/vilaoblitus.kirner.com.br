@@ -2990,8 +2990,17 @@
             font-size: 11px;
             cursor: pointer;
             `;
-                    hotspotEl.innerHTML = `
-                <div style="font-weight: bold; margin-bottom: 4px;">📍 ${hotspot.name || 'Hotspot ' + (index + 1)}</div>
+                    // ✅ Emoji de seta baseado em arrowDirection
+                const arrowEmoji = {
+                    'up': '⬆️',
+                    'down': '⬇️',
+                    'left': '⬅️',
+                    'right': '➡️'
+                };
+                const arrowDisplay = hotspot.arrowDirection ? arrowEmoji[hotspot.arrowDirection] || '' : '';
+
+                hotspotEl.innerHTML = `
+                <div style="font-weight: bold; margin-bottom: 4px;">📍 ${hotspot.name || 'Hotspot ' + (index + 1)} ${arrowDisplay}</div>
                         <div style="color: #666; font-size: 10px;">→ ${hotspot.target || 'destino'}</div>
                         <div style="margin-top: 6px; display: flex; gap: 4px;">
                             <button onclick="editVisualHotspot(${index})" style="flex: 1; padding: 4px; font-size: 10px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer;">✏️ Editar</button>
@@ -3306,8 +3315,31 @@
             const newTarget = prompt('Local de destino (ID):', hotspot.target || '');
             if (newTarget === null) return;
 
+            // ✅ Campo para direção da seta (navegação por teclado)
+            const currentDirection = hotspot.arrowDirection || '';
+            const newDirection = prompt(
+                'Direção da seta para navegação por teclado:\n' +
+                '- up (↑ frente)\n' +
+                '- down (↓ trás/voltar)\n' +
+                '- left (← esquerda)\n' +
+                '- right (→ direita)\n' +
+                '- deixe vazio para não usar tecla\n\n' +
+                'Digite a direção:',
+                currentDirection
+            );
+            if (newDirection === null) return;
+
             hotspot.name = newName;
             hotspot.target = newTarget;
+
+            // ✅ Salvar direção da seta (só se for uma direção válida)
+            const validDirections = ['up', 'down', 'left', 'right'];
+            if (newDirection && validDirections.includes(newDirection.toLowerCase())) {
+                hotspot.arrowDirection = newDirection.toLowerCase();
+            } else {
+                // Remove o campo se vazio ou inválido
+                delete hotspot.arrowDirection;
+            }
 
             if (oldTarget !== newTarget) {
                 if (!location.connections) location.connections = [];
