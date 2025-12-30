@@ -37,7 +37,8 @@
       "Bash(php:*)",
       "Bash(node add-arrow-column.js:*)",
       "Bash(node set-arrows.js:*)",
-      "Bash(node check-connections.js:*)"
+      "Bash(node check-connections.js:*)",
+      "Bash(node clear-puzzle.js:*)"
     ],
     "deny": [],
     "ask": []
