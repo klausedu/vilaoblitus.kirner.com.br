@@ -778,14 +778,11 @@ class LocationScene extends Phaser.Scene {
                 if (item.locationId !== this.currentLocation) return;
                 if (!item.position) return;
 
-                // ✅ Verificar se já existe um sprite travado para este item (evitar duplicatas)
                 const alreadyExists = this.droppedItemSprites.some(e => e.locked && e.id === item.id);
-                if (alreadyExists) {
-                    return;
-                }
+                if (alreadyExists) return;
 
                 const world = this.percentToWorld(item.position, bounds);
-                this.createDroppedItemSprite(item, world.x, world.y, true); // true = locked
+                this.createDroppedItemSprite(item, world.x, world.y, true);
             });
         }
     }
@@ -847,10 +844,12 @@ class LocationScene extends Phaser.Scene {
         return percent;
     }
 
-    createDroppedItemSprite(item, worldX, worldY, locked = false) {
+    createDroppedItemSprite(item, worldX, worldY, locked = false, moldContainer = null) {
         const size = item.dropSize || item.size || { width: 80, height: 80 };
-        let transform = item.dropTransform || item.transform || null;
-        let renderMode = item.renderMode || (transform ? 'dom' : 'sprite');
+
+        // ✅ Para itens travados, NÃO usar transforms - deixar comportar como item normal na cena
+        let transform = locked ? null : (item.dropTransform || item.transform || null);
+        let renderMode = locked ? 'sprite' : (item.renderMode || (transform ? 'dom' : 'sprite'));
         let imagePath = item.image;
 
         let definition = null;
@@ -858,7 +857,8 @@ class LocationScene extends Phaser.Scene {
             definition = databaseLoader.getItemDefinition(item.id);
         }
 
-        if ((!transform || (typeof transform === 'object' && Object.keys(transform).length === 0)) && definition && definition.transform) {
+        // ✅ Itens travados NÃO herdam transforms da definição
+        if (!locked && (!transform || (typeof transform === 'object' && Object.keys(transform).length === 0)) && definition && definition.transform) {
             transform = JSON.parse(JSON.stringify(definition.transform));
             if (!item.renderMode) {
                 renderMode = 'dom';
@@ -869,7 +869,7 @@ class LocationScene extends Phaser.Scene {
             imagePath = definition.image;
         }
 
-        const useDom = renderMode === 'dom' || (transform && (transform.rotateX || transform.rotateY || transform.skewX || transform.skewY));
+        const useDom = !locked && (renderMode === 'dom' || (transform && (transform.rotateX || transform.rotateY || transform.skewX || transform.skewY)));
 
         debugSceneDrag('create-dropped-sprite', {
             itemId: item.id,
