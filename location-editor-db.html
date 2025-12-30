@@ -875,6 +875,7 @@
     <!-- Save Button -->
     <div class="export-section">
         <button class="export-btn" onclick="autoSaveEnabled = true; syncToDatabase().then(() => autoSaveEnabled = false);" style="background: #28a745;">💾 Salvar</button>
+        <button class="export-btn" onclick="forceReloadFromDatabase();" style="background: #007bff; margin-left: 10px;">🔄 Recarregar do Banco</button>
     </div>
 
     <!-- Save Indicator -->
@@ -3309,7 +3310,69 @@
             document.removeEventListener('mouseup', handleResizeMouseUp);
         }
 
-        function editVisualHotspot(index) {
+        function showSelectDialog(title, currentValue, options, defaultValue) {
+            return new Promise((resolve) => {
+                // Criar modal
+                const modal = document.createElement('div');
+                modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 10000;';
+
+                const dialog = document.createElement('div');
+                dialog.style.cssText = 'background: #1a1a2e; padding: 30px; border-radius: 10px; border: 2px solid #f0a500; min-width: 400px;';
+
+                const titleEl = document.createElement('h3');
+                titleEl.textContent = title;
+                titleEl.style.cssText = 'color: #f0a500; margin: 0 0 10px 0;';
+
+                const currentEl = document.createElement('p');
+                currentEl.textContent = currentValue;
+                currentEl.style.cssText = 'color: #888; margin: 0 0 20px 0; font-size: 14px;';
+
+                const select = document.createElement('select');
+                select.style.cssText = 'width: 100%; padding: 10px; font-size: 16px; background: #0f0f1e; color: #e0e0e0; border: 2px solid #f0a500; border-radius: 5px; margin-bottom: 20px;';
+
+                options.forEach(opt => {
+                    const option = document.createElement('option');
+                    option.value = opt.value;
+                    option.textContent = opt.label;
+                    if (opt.value === defaultValue) option.selected = true;
+                    select.appendChild(option);
+                });
+
+                const btnContainer = document.createElement('div');
+                btnContainer.style.cssText = 'display: flex; gap: 10px;';
+
+                const btnOk = document.createElement('button');
+                btnOk.textContent = '✅ OK';
+                btnOk.style.cssText = 'flex: 1; padding: 10px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;';
+                btnOk.onclick = () => {
+                    document.body.removeChild(modal);
+                    resolve(select.value);
+                };
+
+                const btnCancel = document.createElement('button');
+                btnCancel.textContent = '❌ Cancelar';
+                btnCancel.style.cssText = 'flex: 1; padding: 10px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;';
+                btnCancel.onclick = () => {
+                    document.body.removeChild(modal);
+                    resolve(null);
+                };
+
+                btnContainer.appendChild(btnOk);
+                btnContainer.appendChild(btnCancel);
+
+                dialog.appendChild(titleEl);
+                dialog.appendChild(currentEl);
+                dialog.appendChild(select);
+                dialog.appendChild(btnContainer);
+
+                modal.appendChild(dialog);
+                document.body.appendChild(modal);
+
+                select.focus();
+            });
+        }
+
+        async function editVisualHotspot(index) {
             if (!currentLocationId) return;
 
             const location = gameLocations[currentLocationId];
@@ -3322,19 +3385,19 @@
             const newTarget = prompt('Local de destino (ID):', hotspot.target || '');
             if (newTarget === null) return;
 
-            // ✅ Campo para direção da seta (navegação por teclado)
-            const currentDirection = hotspot.arrowDirection || '';
-            const directionStatus = currentDirection ? `Atual: ${currentDirection}` : 'Atual: (nenhuma)';
-            const newDirection = prompt(
-                `Direção da seta para navegação por teclado:\n` +
-                `${directionStatus}\n\n` +
-                '- up (↑ frente)\n' +
-                '- down (↓ trás/voltar)\n' +
-                '- left (← esquerda)\n' +
-                '- right (→ direita)\n' +
-                '- deixe vazio para remover\n\n' +
-                'Digite a direção:',
-                currentDirection
+            // ✅ Select para direção da seta
+            const arrowOptions = [
+                { value: '', label: '(Nenhuma)' },
+                { value: 'up', label: '⬆️ Up - Frente' },
+                { value: 'down', label: '⬇️ Down - Trás/Voltar' },
+                { value: 'left', label: '⬅️ Left - Esquerda' },
+                { value: 'right', label: '➡️ Right - Direita' }
+            ];
+            const newDirection = await showSelectDialog(
+                'Direção da Seta (Teclado)',
+                `Atual: ${hotspot.arrowDirection || '(nenhuma)'}`,
+                arrowOptions,
+                hotspot.arrowDirection || ''
             );
             if (newDirection === null) return;
 
@@ -3350,17 +3413,17 @@
                 delete hotspot.arrowDirection;
             }
 
-            // ✅ Campo para direção do zoom (sensação de movimento ao navegar)
-            const currentZoom = hotspot.zoomDirection || '';
-            const zoomStatus = currentZoom ? `Atual: ${currentZoom}` : 'Atual: (nenhum)';
-            const newZoom = prompt(
-                `Direção do zoom ao navegar (sensação de movimento):\n` +
-                `${zoomStatus}\n\n` +
-                '- in (entrar/aproximar)\n' +
-                '- out (sair/afastar)\n' +
-                '- deixe vazio para remover\n\n' +
-                'Digite a direção:',
-                currentZoom
+            // ✅ Select para tipo de zoom
+            const zoomOptions = [
+                { value: '', label: '(Nenhum)' },
+                { value: 'in', label: '🔍+ In - Entrar/Aproximar' },
+                { value: 'out', label: '🔍- Out - Sair/Afastar' }
+            ];
+            const newZoom = await showSelectDialog(
+                'Tipo de Zoom (Navegação)',
+                `Atual: ${hotspot.zoomDirection || '(nenhum)'}`,
+                zoomOptions,
+                hotspot.zoomDirection || ''
             );
             if (newZoom === null) return;
 
@@ -5312,6 +5375,18 @@ if (typeof module !== 'undefined' && module.exports) {
             });
         }
 
+        async function deleteFromIndexedDB(key) {
+            const db = await openGameDB();
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['gameData'], 'readwrite');
+                const store = transaction.objectStore('gameData');
+                const request = store.delete(key);
+
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
+            });
+        }
+
         // Save to game via IndexedDB (suporta arquivos grandes)
         async function saveToGame() {
             try {
@@ -5353,6 +5428,26 @@ if (typeof module !== 'undefined' && module.exports) {
         // ============================================
         // DATABASE SYNC FUNCTIONS
         // ============================================
+
+        async function forceReloadFromDatabase() {
+            if (!confirm('🔄 Recarregar TODOS os dados do banco?\n\nIsso vai SUBSTITUIR qualquer mudança local não salva.')) {
+                return;
+            }
+
+            showToast('🗑️ Limpando cache local...', 'info');
+
+            // Limpar IndexedDB
+            try {
+                await deleteFromIndexedDB('editorData');
+            } catch (e) {
+                console.warn('Erro ao limpar IndexedDB:', e);
+            }
+
+            // Recarregar do banco
+            await loadFromDatabase(false);
+
+            showToast('✅ Dados recarregados do banco!', 'success');
+        }
 
         async function loadFromDatabase(auto = false) {
             if (!auto) {
