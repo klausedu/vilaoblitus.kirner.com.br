@@ -5451,6 +5451,8 @@ if (typeof module !== 'undefined' && module.exports) {
         }
 
         async function loadFromDatabase(auto = false) {
+            console.log('🚀 [LOAD FROM DATABASE] Versão com fix de connections - 2025-12-30');
+
             if (!auto) {
                 showToast('🔄 Carregando do banco...', 'info');
             } else {
