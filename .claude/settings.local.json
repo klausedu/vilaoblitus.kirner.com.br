@@ -28,7 +28,11 @@
       "Bash(where:*)",
       "Bash(php -r:*)",
       "Bash(powershell -ExecutionPolicy Bypass -File sobe-git.ps1)",
-      "Bash(mysql:*)"
+      "Bash(mysql:*)",
+      "Bash(cmd /c dir \"C:\\\\tools\\\\mysql\\\\current\\\\lib\\\\plugin\\\\*.dll\")",
+      "Bash(node --version:*)",
+      "Bash(node query-db.js:*)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []
