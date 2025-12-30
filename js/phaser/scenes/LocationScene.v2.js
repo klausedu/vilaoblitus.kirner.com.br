@@ -294,6 +294,17 @@ class LocationScene extends Phaser.Scene {
                 }
             });
         }
+
+        // ✅ TAMBÉM escalar itens dropados (incluindo itens travados em puzzles)
+        if (this.droppedItemSprites && Array.isArray(this.droppedItemSprites)) {
+            this.droppedItemSprites.forEach(entry => {
+                if (entry.sprite && entry.sprite.node) {
+                    // DOM element - escalar via Phaser
+                    entry.sprite.setScale(zoom);
+                }
+                // Sprites Phaser normais já seguem o zoom da câmera automaticamente
+            });
+        }
     }
 
     setupDragPan() {
