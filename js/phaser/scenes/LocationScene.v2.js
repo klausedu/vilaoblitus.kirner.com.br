@@ -299,6 +299,7 @@ class LocationScene extends Phaser.Scene {
         if (this.droppedItemSprites && Array.isArray(this.droppedItemSprites)) {
             this.droppedItemSprites.forEach(entry => {
                 if (entry.sprite && entry.sprite.node) {
+                    // DOM elements
                     if (entry.locked) {
                         // ✅ Itens travados: manter escala fixa = 1 (tamanho natural da cena)
                         entry.sprite.setScale(1);
@@ -309,8 +310,13 @@ class LocationScene extends Phaser.Scene {
                         }
                         entry.sprite.setScale(entry.sprite.__baseZoomScale * zoom);
                     }
+                } else if (entry.sprite && entry.locked) {
+                    // ✅ Phaser sprites travados: counteract camera zoom to keep natural size
+                    // Camera zooms the sprite automatically, so we scale inversely
+                    // Example: camera zoom 2x, sprite scale 0.5x = final display 1x (natural)
+                    entry.sprite.setScale(1 / zoom);
                 }
-                // Sprites Phaser normais seguem o zoom da câmera automaticamente
+                // Sprites Phaser não travados seguem o zoom da câmera automaticamente (não precisa fazer nada)
             });
         }
     }
