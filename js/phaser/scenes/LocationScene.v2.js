@@ -1801,15 +1801,77 @@ class LocationScene extends Phaser.Scene {
             const x = bgX + (item.position.x / 100) * bgWidth;
             const y = bgY + (item.position.y / 100) * bgHeight;
 
-            // ✅ SEMPRE usar sprites Phaser para comportamento consistente durante zoom
-            // Aplicar transforms básicos (opacity, rotation, scale) sem usar DOM
+            // ✅ Usar DOM para transforms 3D/skew, sprites Phaser para o resto
             const size = item.size || { width: 80, height: 80 };
             const transform = item.transform || {};
             const textureKey = `item_${item.id}`;
             let element;
 
-            // ✅ Criar sprite Phaser puro (suporta transforms básicos nativamente)
-            if (this.textures.exists(textureKey)) {
+            // Verificar se precisa de DOM (transforms 3D/skew)
+            const needsDOM = transform && (
+                (transform.rotateX && transform.rotateX !== 0) ||
+                (transform.rotateY && transform.rotateY !== 0) ||
+                (transform.skewX && transform.skewX !== 0) ||
+                (transform.skewY && transform.skewY !== 0)
+            );
+
+            if (needsDOM) {
+                // ✅ Usar DOM element para transforms 3D/skew
+                const wrapper = document.createElement('div');
+                wrapper.style.position = 'relative';
+                wrapper.style.width = `${size.width}px`;
+                wrapper.style.height = `${size.height}px`;
+                wrapper.style.perspective = `${transform.perspective || 800}px`;
+                wrapper.style.transformStyle = 'preserve-3d';
+
+                const img = document.createElement('img');
+                img.src = item.image;
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.display = 'block';
+                img.style.transformStyle = 'preserve-3d';
+                img.style.position = 'absolute';
+                img.style.left = '50%';
+                img.style.top = '50%';
+                img.style.pointerEvents = 'auto';
+
+                // Construir transforms CSS
+                const transforms = [];
+                transforms.push('translate(-50%, -50%)');
+                transforms.push(`rotateZ(${transform.rotation || 0}deg)`);
+                transforms.push(`rotateX(${transform.rotateX || 0}deg)`);
+                transforms.push(`rotateY(${transform.rotateY || 0}deg)`);
+
+                const scaleX = (transform.scaleX || 1) * (transform.flipX ? -1 : 1);
+                const scaleY = (transform.scaleY || 1) * (transform.flipY ? -1 : 1);
+                transforms.push(`scaleX(${scaleX})`);
+                transforms.push(`scaleY(${scaleY})`);
+
+                transforms.push(`skewX(${transform.skewX || 0}deg)`);
+                transforms.push(`skewY(${transform.skewY || 0}deg)`);
+
+                img.style.transform = transforms.join(' ');
+                img.style.transformOrigin = 'center center';
+
+                if (transform.opacity !== undefined) {
+                    img.style.opacity = transform.opacity;
+                }
+
+                const shadowBlur = transform.shadowBlur || 0;
+                if (shadowBlur > 0) {
+                    const shadowX = transform.shadowOffsetX || 0;
+                    const shadowY = transform.shadowOffsetY || 0;
+                    img.style.filter = `drop-shadow(${shadowX}px ${shadowY}px ${shadowBlur}px rgba(0,0,0,0.5))`;
+                }
+
+                wrapper.appendChild(img);
+                element = this.add.dom(x, y, wrapper);
+                element.setOrigin(0.5);
+                element.setDepth(50);
+                element.baseTransformString = transforms.join(' ');
+
+            } else if (this.textures.exists(textureKey)) {
+                // ✅ Usar sprite Phaser para items sem transforms 3D
                 element = this.add.image(x, y, textureKey);
                 element.setDisplaySize(size.width, size.height);
             } else if (item.image) {
@@ -1838,40 +1900,68 @@ class LocationScene extends Phaser.Scene {
                 this.load.start();
             }
 
-            // ✅ Configurar sprite com interatividade e transforms
+            // ✅ Configurar interatividade (diferente para DOM vs Sprite)
             if (element) {
-                element.setOrigin(0.5);
-                element.setDepth(50);
-
-                // ✅ Aplicar transforms básicos (opacity, rotation, scale, flip)
-                this.applySpriteTransform(element, transform);
-
-                element.setInteractive({ useHandCursor: true });
-
-                // Salvar escala original para hover
-                const originalScaleX = element.scaleX;
-                const originalScaleY = element.scaleY;
-
-                // Hover effect
-                element.on('pointerover', () => {
-                    this.tweens.add({
-                        targets: element,
-                        scaleX: originalScaleX * 1.15,
-                        scaleY: originalScaleY * 1.15,
-                        duration: 200,
-                        ease: 'Power2'
+                if (needsDOM) {
+                    // DOM elements: usar event listeners CSS
+                    element.addListener('pointerover');
+                    element.on('pointerover', () => {
+                        const img = element.node.querySelector('img');
+                        if (img) img.style.filter = (img.style.filter || '') + ' brightness(1.2)';
                     });
-                });
 
-                element.on('pointerout', () => {
-                    this.tweens.killTweensOf(element);
-                    element.setScale(originalScaleX, originalScaleY);
-                });
+                    element.addListener('pointerout');
+                    element.on('pointerout', () => {
+                        const img = element.node.querySelector('img');
+                        if (img) {
+                            const shadowBlur = transform.shadowBlur || 0;
+                            if (shadowBlur > 0) {
+                                const shadowX = transform.shadowOffsetX || 0;
+                                const shadowY = transform.shadowOffsetY || 0;
+                                img.style.filter = `drop-shadow(${shadowX}px ${shadowY}px ${shadowBlur}px rgba(0,0,0,0.5))`;
+                            } else {
+                                img.style.filter = '';
+                            }
+                        }
+                    });
 
-                // Click handler
-                element.on('pointerdown', () => {
-                    this.collectItem(item, element);
-                });
+                    element.addListener('pointerdown');
+                    element.on('pointerdown', () => {
+                        this.collectItem(item, element);
+                    });
+
+                } else {
+                    // Sprites Phaser: comportamento normal
+                    element.setOrigin(0.5);
+                    element.setDepth(50);
+
+                    // Aplicar transforms básicos
+                    this.applySpriteTransform(element, transform);
+
+                    element.setInteractive({ useHandCursor: true });
+
+                    const originalScaleX = element.scaleX;
+                    const originalScaleY = element.scaleY;
+
+                    element.on('pointerover', () => {
+                        this.tweens.add({
+                            targets: element,
+                            scaleX: originalScaleX * 1.15,
+                            scaleY: originalScaleY * 1.15,
+                            duration: 200,
+                            ease: 'Power2'
+                        });
+                    });
+
+                    element.on('pointerout', () => {
+                        this.tweens.killTweensOf(element);
+                        element.setScale(originalScaleX, originalScaleY);
+                    });
+
+                    element.on('pointerdown', () => {
+                        this.collectItem(item, element);
+                    });
+                }
             }
 
             if (false) { // ✅ CÓDIGO ANTIGO DOM/SPRITE - DESABILITADO
