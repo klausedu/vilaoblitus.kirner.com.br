@@ -344,9 +344,17 @@ class LocationScene extends Phaser.Scene {
         // Listener para início do drag (pointerdown)
         this.input.on('pointerdown', (pointer) => {
             // Só permite drag se estiver em zoom E não houver puzzle ativo
+            // ShapeMatchPuzzle NÃO bloqueia drag (os moldes ficam na cena normal)
             const puzzleOverlay = document.getElementById('puzzle-overlay');
-            const isPuzzleActive = (puzzleOverlay && puzzleOverlay.style.display === 'flex') ||
-                (this.puzzleManager && this.puzzleManager.isAnyPuzzleActive && this.puzzleManager.isAnyPuzzleActive());
+            let isPuzzleActive = (puzzleOverlay && puzzleOverlay.style.display === 'flex');
+
+            if (!isPuzzleActive && this.puzzleManager && this.puzzleManager.isAnyPuzzleActive && this.puzzleManager.isAnyPuzzleActive()) {
+                const activePuzzle = this.puzzleManager.activePuzzle;
+                // ShapeMatchPuzzle não bloqueia drag
+                if (activePuzzle && activePuzzle.constructor.name !== 'ShapeMatchPuzzle') {
+                    isPuzzleActive = true;
+                }
+            }
 
             if (this.isZoomed && !isPuzzleActive) {
                 this.isDragging = true;
@@ -360,9 +368,17 @@ class LocationScene extends Phaser.Scene {
         // Listener para movimento do drag (pointermove)
         this.input.on('pointermove', (pointer) => {
             // Verificar se puzzle está ativo antes de arrastar
+            // ShapeMatchPuzzle NÃO bloqueia drag (os moldes ficam na cena normal)
             const puzzleOverlay = document.getElementById('puzzle-overlay');
-            const isPuzzleActive = (puzzleOverlay && puzzleOverlay.style.display === 'flex') ||
-                (this.puzzleManager && this.puzzleManager.isAnyPuzzleActive && this.puzzleManager.isAnyPuzzleActive());
+            let isPuzzleActive = (puzzleOverlay && puzzleOverlay.style.display === 'flex');
+
+            if (!isPuzzleActive && this.puzzleManager && this.puzzleManager.isAnyPuzzleActive && this.puzzleManager.isAnyPuzzleActive()) {
+                const activePuzzle = this.puzzleManager.activePuzzle;
+                // ShapeMatchPuzzle não bloqueia drag
+                if (activePuzzle && activePuzzle.constructor.name !== 'ShapeMatchPuzzle') {
+                    isPuzzleActive = true;
+                }
+            }
 
             if (this.isDragging && this.isZoomed && !isPuzzleActive) {
                 // Calcular o delta do movimento
@@ -405,9 +421,29 @@ class LocationScene extends Phaser.Scene {
             console.log('[KEYBOARD] Seta pressionada:', event.key, '→ Direção:', direction);
 
             // Verificar se há puzzle ativo - não navega se tiver
+            // ShapeMatchPuzzle NÃO bloqueia navegação (os moldes ficam na cena normal)
             const puzzleOverlay = document.getElementById('puzzle-overlay');
-            const isPuzzleActive = (puzzleOverlay && puzzleOverlay.style.display === 'flex') ||
-                (this.puzzleManager && this.puzzleManager.isAnyPuzzleActive && this.puzzleManager.isAnyPuzzleActive());
+            const overlayActive = puzzleOverlay && puzzleOverlay.style.display === 'flex';
+
+            let managerActive = false;
+            if (this.puzzleManager && this.puzzleManager.isAnyPuzzleActive && this.puzzleManager.isAnyPuzzleActive()) {
+                const activePuzzle = this.puzzleManager.activePuzzle;
+                // ShapeMatchPuzzle não bloqueia navegação por teclado
+                if (activePuzzle && activePuzzle.constructor.name !== 'ShapeMatchPuzzle') {
+                    managerActive = true;
+                }
+            }
+
+            const isPuzzleActive = overlayActive || managerActive;
+
+            console.log('[KEYBOARD] Verificação puzzle:', {
+                overlayExists: !!puzzleOverlay,
+                overlayDisplay: puzzleOverlay?.style.display,
+                overlayActive,
+                managerActive,
+                activePuzzleType: this.puzzleManager?.activePuzzle?.constructor?.name,
+                isPuzzleActive
+            });
 
             if (isPuzzleActive) {
                 console.log('[KEYBOARD] Puzzle ativo - navegação bloqueada');
