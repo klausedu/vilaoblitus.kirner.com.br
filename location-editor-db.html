@@ -2873,8 +2873,19 @@
                 visual.data.transform.scaleX = scaleX;
                 visual.data.transform.scaleY = scaleY;
 
-                // Atualizar visual imediatamente
-                renderPositionedItems();
+                // Atualizar transform no DOM diretamente (sem re-renderizar)
+                const puzzleVisual = visual.data;
+                const transforms = [
+                    'translate(-50%, -50%)',
+                    `rotateZ(${puzzleVisual.transform.rotation || 0}deg)`,
+                    `rotateX(${puzzleVisual.transform.rotateX || 0}deg)`,
+                    `rotateY(${puzzleVisual.transform.rotateY || 0}deg)`,
+                    `scaleX(${(puzzleVisual.transform.scaleX || 1) * (puzzleVisual.transform.flipX ? -1 : 1)})`,
+                    `scaleY(${(puzzleVisual.transform.scaleY || 1) * (puzzleVisual.transform.flipY ? -1 : 1)})`,
+                    `skewX(${puzzleVisual.transform.skewX || 0}deg)`,
+                    `skewY(${puzzleVisual.transform.skewY || 0}deg)`
+                ];
+                resizingItem.style.transform = transforms.join(' ');
             } else {
                 // Para items, usar SIZE (comportamento original)
                 const newWidth = Math.abs(mouseX - centerX) * 2;
