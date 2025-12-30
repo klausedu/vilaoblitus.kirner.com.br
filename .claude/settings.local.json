@@ -36,7 +36,8 @@
       "Bash(node check-arrows.js:*)",
       "Bash(php:*)",
       "Bash(node add-arrow-column.js:*)",
-      "Bash(node set-arrows.js:*)"
+      "Bash(node set-arrows.js:*)",
+      "Bash(node check-connections.js:*)"
     ],
     "deny": [],
     "ask": []
