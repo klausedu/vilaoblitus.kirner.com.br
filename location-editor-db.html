@@ -5421,7 +5421,7 @@ if (typeof module !== 'undefined' && module.exports) {
                             let action = h.type || 'navigate';
                             if (action === 'navigation') action = 'navigate';
 
-                            hotspots.push({
+                            const hotspotData = {
                                 id: 'hotspot_' + Date.now() + Math.random(),
                                 name: h.label || 'Hotspot',
                                 action: action,
@@ -5432,9 +5432,18 @@ if (typeof module !== 'undefined' && module.exports) {
                                     width: parseFloat(h.width) || 10,
                                     height: parseFloat(h.height) || 10
                                 },
-                                arrowDirection: 'up',
                                 item: h.item_id || null
-                            });
+                            };
+
+                            // ✅ Preservar arrow_direction e zoom_direction do banco
+                            if (h.arrow_direction) {
+                                hotspotData.arrowDirection = h.arrow_direction;
+                            }
+                            if (h.zoom_direction) {
+                                hotspotData.zoomDirection = h.zoom_direction;
+                            }
+
+                            hotspots.push(hotspotData);
                         }
                     });
 
