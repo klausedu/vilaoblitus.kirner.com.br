@@ -4,7 +4,7 @@ async function checkConnections() {
     const connection = await mysql.createConnection({
         host: 'srv1364.hstgr.io',
         user: 'u181238044_kirner',
-        password: 'sk_UaBeCkUrc9EwTJ4RaCJZYb4q4C7DrKHI6Z11jqyuz11XrImMfdOojmn6PYtC1q0t',
+        password: 'Italia2018!123',
         database: 'u181238044_codexoblitus'
     });
 

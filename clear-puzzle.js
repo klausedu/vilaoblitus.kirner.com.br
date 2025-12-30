@@ -3,9 +3,9 @@ const mysql = require('mysql2/promise');
 async function clearPuzzle() {
     const connection = await mysql.createConnection({
         host: 'srv1364.hstgr.io',
-        user: 'u181238044_kirner',
-        password: 'sk_UaBeCkUrc9EwTJ4RaCJZYb4q4C7DrKHI6Z11jqyuz11XrImMfdOojmn6PYtC1q0t',
-        database: 'u181238044_codexoblitus'
+        user: 'u811529511_vobadmin',
+        password: 'Italia2018!123',
+        database: 'u811529511_voblitus'
     });
 
     console.log('🗑️ Limpando puzzle de casa_abandonada_01_sala...\n');
