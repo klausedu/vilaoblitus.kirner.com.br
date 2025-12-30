@@ -2181,18 +2181,14 @@
                     ${isPuzzleSelected ? 'box-shadow: 0 0 0 3px #f0a500;' : ''}
                 `;
 
-                // ✅ Usar <img> com tamanho configurável
+                // ✅ Usar <img> em tamanho original (auto) - scale controlado por transform
                 if (puzzleVisual.beforeImage) {
                     const img = document.createElement('img');
                     img.src = puzzleVisual.beforeImage;
-
-                    // Se puzzle tem size definido, usar; senão, usar tamanho original (auto)
-                    const hasCustomSize = puzzleVisual.size && (puzzleVisual.size.width || puzzleVisual.size.height);
-
                     img.style.cssText = `
                         display: block;
-                        width: ${hasCustomSize ? puzzleVisual.size.width + 'px' : 'auto'};
-                        height: ${hasCustomSize ? puzzleVisual.size.height + 'px' : 'auto'};
+                        width: auto;
+                        height: auto;
                         max-width: none;
                         pointer-events: none;
                         image-rendering: crisp-edges;
@@ -2852,23 +2848,41 @@
             const mouseX = e.clientX - rect.left;
             const mouseY = e.clientY - rect.top;
 
-            const newWidth = Math.abs(mouseX - centerX) * 2;
-            const newHeight = Math.abs(mouseY - centerY) * 2;
-
-            visual.data.size.width = Math.max(20, Math.round(newWidth));
-            visual.data.size.height = Math.max(20, Math.round(newHeight));
-
-            // Atualizar DOM
             const visualType = resizingItem.dataset.visualType;
+
             if (visualType === 'puzzle') {
-                // Para puzzle, atualizar a <img> dentro do elemento
+                // Para puzzle, usar SCALE em vez de SIZE (manter tamanho original da imagem)
                 const img = resizingItem.querySelector('img');
-                if (img) {
-                    img.style.width = visual.data.size.width + 'px';
-                    img.style.height = visual.data.size.height + 'px';
-                }
+                if (!img) return;
+
+                // Pegar tamanho natural da imagem
+                const naturalWidth = img.naturalWidth;
+                const naturalHeight = img.naturalHeight;
+
+                if (!naturalWidth || !naturalHeight) return;
+
+                // Calcular nova largura/altura desejada
+                const newWidth = Math.abs(mouseX - centerX) * 2;
+                const newHeight = Math.abs(mouseY - centerY) * 2;
+
+                // Calcular scale baseado no tamanho natural
+                const scaleX = Math.max(0.1, newWidth / naturalWidth);
+                const scaleY = Math.max(0.1, newHeight / naturalHeight);
+
+                // Atualizar transform (não size!)
+                visual.data.transform.scaleX = scaleX;
+                visual.data.transform.scaleY = scaleY;
+
+                // Atualizar visual imediatamente
+                renderPositionedItems();
             } else {
-                // Para items, atualizar o próprio elemento
+                // Para items, usar SIZE (comportamento original)
+                const newWidth = Math.abs(mouseX - centerX) * 2;
+                const newHeight = Math.abs(mouseY - centerY) * 2;
+
+                visual.data.size.width = Math.max(20, Math.round(newWidth));
+                visual.data.size.height = Math.max(20, Math.round(newHeight));
+
                 resizingItem.style.width = visual.data.size.width + 'px';
                 resizingItem.style.height = visual.data.size.height + 'px';
             }
