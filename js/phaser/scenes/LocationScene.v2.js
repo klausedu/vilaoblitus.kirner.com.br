@@ -402,15 +402,23 @@ class LocationScene extends Phaser.Scene {
             // Se não é uma tecla de seta, ignora
             if (!direction) return;
 
+            console.log('[KEYBOARD] Seta pressionada:', event.key, '→ Direção:', direction);
+
             // Verificar se há puzzle ativo - não navega se tiver
             const puzzleOverlay = document.getElementById('puzzle-overlay');
             const isPuzzleActive = (puzzleOverlay && puzzleOverlay.style.display === 'flex') ||
                 (this.puzzleManager && this.puzzleManager.isAnyPuzzleActive && this.puzzleManager.isAnyPuzzleActive());
 
-            if (isPuzzleActive) return;
+            if (isPuzzleActive) {
+                console.log('[KEYBOARD] Puzzle ativo - navegação bloqueada');
+                return;
+            }
 
             // Procurar hotspot com a direção correspondente
             const hotspot = this.locationData.hotspots?.find(h => h.arrowDirection === direction);
+
+            console.log('[KEYBOARD] Hotspots disponíveis:', this.locationData.hotspots?.map(h => ({ label: h.label, arrow: h.arrowDirection })));
+            console.log('[KEYBOARD] Hotspot encontrado para', direction, ':', hotspot ? hotspot.label : 'NENHUM');
 
             if (hotspot) {
                 // Navegar para o hotspot encontrado
