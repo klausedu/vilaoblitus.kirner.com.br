@@ -874,7 +874,7 @@
 
     <!-- Save Button -->
     <div class="export-section">
-        <button class="export-btn" onclick="autoSaveEnabled = true; syncToDatabase().then(() => autoSaveEnabled = false);" style="background: #28a745;">💾 Salvar</button>
+        <button class="export-btn" onclick="savePuzzle(); saveBasicInfo(false); autoSaveEnabled = true; syncToDatabase().then(() => autoSaveEnabled = false);" style="background: #28a745;">💾 Salvar</button>
         <button class="export-btn" onclick="forceReloadFromDatabase();" style="background: #007bff; margin-left: 10px;">🔄 Recarregar do Banco</button>
     </div>
 
@@ -5820,6 +5820,14 @@ if (typeof module !== 'undefined' && module.exports) {
                         dramatic_messages: loc.dramaticMessages || null,
                         dramatic_message_duration: loc.dramaticMessageDuration || null
                     });
+                }
+
+                // 🐛 Debug: Log puzzle data being sent
+                const locWithPuzzle = allLocations.find(l => l.puzzle);
+                if (locWithPuzzle) {
+                    console.log('📦 Enviando puzzle para', locWithPuzzle.id, ':', locWithPuzzle.puzzle);
+                } else {
+                    console.log('⚠️ Nenhum puzzle encontrado em allLocations');
                 }
 
                 const response = await fetch('api/locations/bulk-save.php', {

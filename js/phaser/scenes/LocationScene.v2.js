@@ -802,9 +802,8 @@ class LocationScene extends Phaser.Scene {
     applyPuzzleTransforms(sprite, transform = {}) {
         if (!sprite) return;
 
-        // ✅ Aplicar transformações MAS sem alterar escala (manter tamanho original)
-        const transformWithoutScale = { ...transform, scaleX: 1, scaleY: 1 };
-        this.applySpriteTransform(sprite, transformWithoutScale);
+        // ✅ Aplicar todas as transformações, incluindo escala definida no editor
+        this.applySpriteTransform(sprite, transform);
     }
 
     updatePuzzleVisual(solved = false) {
