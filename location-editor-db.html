@@ -3324,13 +3324,15 @@
 
             // ✅ Campo para direção da seta (navegação por teclado)
             const currentDirection = hotspot.arrowDirection || '';
+            const directionStatus = currentDirection ? `Atual: ${currentDirection}` : 'Atual: (nenhuma)';
             const newDirection = prompt(
-                'Direção da seta para navegação por teclado:\n' +
+                `Direção da seta para navegação por teclado:\n` +
+                `${directionStatus}\n\n` +
                 '- up (↑ frente)\n' +
                 '- down (↓ trás/voltar)\n' +
                 '- left (← esquerda)\n' +
                 '- right (→ direita)\n' +
-                '- deixe vazio para não usar tecla\n\n' +
+                '- deixe vazio para remover\n\n' +
                 'Digite a direção:',
                 currentDirection
             );
@@ -3350,11 +3352,13 @@
 
             // ✅ Campo para direção do zoom (sensação de movimento ao navegar)
             const currentZoom = hotspot.zoomDirection || '';
+            const zoomStatus = currentZoom ? `Atual: ${currentZoom}` : 'Atual: (nenhum)';
             const newZoom = prompt(
-                'Direção do zoom ao navegar (sensação de movimento):\n' +
+                `Direção do zoom ao navegar (sensação de movimento):\n` +
+                `${zoomStatus}\n\n` +
                 '- in (entrar/aproximar)\n' +
                 '- out (sair/afastar)\n' +
-                '- deixe vazio para não usar zoom\n\n' +
+                '- deixe vazio para remover\n\n' +
                 'Digite a direção:',
                 currentZoom
             );
