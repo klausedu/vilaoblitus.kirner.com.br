@@ -2394,22 +2394,31 @@
                     ${isSelected ? 'box-shadow: 0 0 0 3px #667eea;' : ''}
                 `;
 
+                // ✅ Wrapper para conteúdo visual (não interfere com handles)
+                const contentWrapper = document.createElement('div');
+                contentWrapper.style.cssText = `
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    pointer-events: none;
+                    overflow: hidden;
+                    z-index: 1;
+                `;
+                itemEl.appendChild(contentWrapper);
+
                 // ✅ Detectar se é spritesheet e animar
                 if (item.image && item.image.includes('_spritesheet.png')) {
                     // SPRITESHEET: Criar canvas animado
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
                     canvas.style.cssText = `
-                        position: absolute;
-                        top: 0;
-                        left: 0;
                         width: 100%;
                         height: 100%;
-                        pointer-events: none;
                         display: block;
-                        z-index: 1;
                     `;
-                    itemEl.appendChild(canvas);
+                    contentWrapper.appendChild(canvas);
 
                     // Carregar spritesheet e animar
                     const spriteImg = new Image();
@@ -2454,17 +2463,12 @@
                     const img = document.createElement('img');
                     img.src = item.image;
                     img.style.cssText = `
-                        position: absolute;
-                        top: 0;
-                        left: 0;
                         width: 100%;
                         height: 100%;
                         object-fit: contain;
-                        pointer-events: none;
                         display: block;
-                        z-index: 1;
                     `;
-                    itemEl.appendChild(img);
+                    contentWrapper.appendChild(img);
                 } else {
                     // Fallback: sem imagem
                     itemEl.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';

@@ -79,7 +79,7 @@ class DatabaseLoader {
                         id: h.item_id,
                         name: h.label || h.item_id,
                         description: h.description || '',
-                        image: h.item_image || '',  // ✅ Imagem do JOIN
+                        image: h.display_image || h.item_image || '',  // ✅ Prioriza display_image (spritesheets)
                         isDisplayItem: h.is_display_item === 1 || h.is_display_item === '1' || h.is_display_item === true,
                         isDecorative: h.is_decorative === 1 || h.is_decorative === '1' || h.is_decorative === true,
                         displayImage: h.display_image || null,
