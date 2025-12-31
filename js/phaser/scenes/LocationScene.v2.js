@@ -692,9 +692,20 @@ class LocationScene extends Phaser.Scene {
             });
         }
 
+        // 🔍 DEBUG: Sempre logar info do puzzle
+        console.log('🎯 PUZZLE DETECTADO:', {
+            id: puzzle.id,
+            type: puzzle.type,
+            isSolved: isSolved,
+            temDigitPositions: !!puzzle.digitPositions
+        });
+
         // Renderizar caixinhas de números para cadeado de 5 dígitos
         if (puzzle.type === 'padlock_5digit' && !isSolved) {
+            console.log('➡️ Vai renderizar cadeado...');
             this.renderPadlockDigits(puzzle, visual, bgX, bgY, bgWidth, bgHeight);
+        } else if (puzzle.type === 'padlock_5digit' && isSolved) {
+            console.log('⚠️ Cadeado JÁ RESOLVIDO - não renderiza dígitos');
         }
     }
 
@@ -2872,6 +2883,18 @@ class LocationScene extends Phaser.Scene {
         this.padlockDigitSprites = [];
         this.padlockCurrentCode = ['0', '0', '0', '0', '0'];
 
+        // 🔍 DEBUG: Log para ver se digitPositions vem do banco
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('🔐 RENDERIZANDO CADEADO');
+        console.log('   Puzzle ID:', puzzle.id);
+        console.log('   Tem puzzle.digitPositions?', !!puzzle.digitPositions);
+        if (puzzle.digitPositions) {
+            console.log('   digitPositions do BANCO:', puzzle.digitPositions);
+        } else {
+            console.log('   ⚠️ Usando posições DEFAULT (não veio do banco)');
+        }
+        console.log('   visual.position:', visual.position);
+
         // Posição das caixinhas (pode ser configurada no editor)
         const digitPositions = puzzle.digitPositions || [
             { x: visual.position.x - 8, y: visual.position.y + 12 },
@@ -2881,11 +2904,18 @@ class LocationScene extends Phaser.Scene {
             { x: visual.position.x + 8, y: visual.position.y + 12 }
         ];
 
+        console.log('   digitPositions FINAL:', digitPositions);
+        console.log('   DIMENSÕES DO FUNDO:');
+        console.log('     bgWidth:', bgWidth, 'bgHeight:', bgHeight);
+        console.log('     bgX:', bgX, 'bgY:', bgY);
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
         const digitSize = puzzle.digitSize || { width: 40, height: 50 };
 
         digitPositions.forEach((pos, index) => {
             const worldX = bgX + (pos.x / 100) * bgWidth;
             const worldY = bgY + (pos.y / 100) * bgHeight;
+            console.log(`   Dígito ${index}: ${pos.x}%, ${pos.y}% → worldX: ${worldX}, worldY: ${worldY}`);
 
             // Criar background (retângulo com borda)
             const background = this.add.graphics();

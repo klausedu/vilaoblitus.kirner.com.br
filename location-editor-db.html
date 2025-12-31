@@ -5334,16 +5334,27 @@
                 return;
             }
 
-            // 🔒 CRIAR NOVO OBJETO PUZZLE (sem referências compartilhadas)
+            // 🔒 PRESERVAR propriedades visuais existentes (não vêm do formulário)
             const previousVisual = location.puzzle?.visual ? JSON.parse(JSON.stringify(location.puzzle.visual)) : null;
+            const previousDigitPositions = location.puzzle?.digitPositions ? JSON.parse(JSON.stringify(location.puzzle.digitPositions)) : null;
+            const previousDigitSize = location.puzzle?.digitSize ? JSON.parse(JSON.stringify(location.puzzle.digitSize)) : null;
 
             // Usar JSON para garantir deep copy (sem referências)
             location.puzzle = JSON.parse(JSON.stringify(puzzle));
 
+            // Restaurar propriedades visuais preservadas
             if (previousVisual) {
                 location.puzzle.visual = previousVisual;
             } else {
                 ensurePuzzleDefaults(location.puzzle);
+            }
+
+            // 🔐 Restaurar posições dos dígitos do cadeado
+            if (previousDigitPositions) {
+                location.puzzle.digitPositions = previousDigitPositions;
+            }
+            if (previousDigitSize) {
+                location.puzzle.digitSize = previousDigitSize;
             }
 
             console.log(`✅ Puzzle salvo EXCLUSIVAMENTE para "${currentLocationId}":`, location.puzzle.id);

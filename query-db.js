@@ -10,29 +10,37 @@ async function queryDatabase() {
     });
 
     try {
-        // Buscar todas as locations que contenham triangulo no campo puzzle
-        const [locs] = await connection.execute("SELECT id, name, puzzle FROM locations WHERE puzzle LIKE '%triangulo%'");
+        // Buscar todos os puzzles na tabela location_puzzles
+        const [puzzles] = await connection.execute("SELECT location_id, puzzle_id, puzzle_data FROM location_puzzles");
 
-        console.log(`=== LOCATIONS COM TRIÂNGULO (${locs.length} encontradas) ===\n`);
+        console.log(`=== PUZZLES NO BANCO (${puzzles.length} encontrados) ===\n`);
 
-        locs.forEach(loc => {
-            console.log(`📍 ${loc.id} (${loc.name})`);
+        puzzles.forEach((p, i) => {
+            console.log(`${i + 1}. Location: ${p.location_id}`);
+            console.log(`   Puzzle ID: ${p.puzzle_id}`);
 
-            if (loc.puzzle) {
-                try {
-                    const puzzleData = JSON.parse(loc.puzzle);
+            try {
+                const data = JSON.parse(p.puzzle_data);
+                console.log(`   Type: ${data.type}`);
+                console.log(`   Tem digitPositions? ${!!data.digitPositions}`);
+                console.log(`   Tem digitSize? ${!!data.digitSize}`);
+                console.log(`   Tem visual? ${!!data.visual}`);
 
-                    if (puzzleData.items) {
-                        const triangulo = puzzleData.items.find(i => i.id === 'triangulo');
-                        if (triangulo) {
-                            console.log('🔺 TRIÂNGULO:');
-                            console.log(JSON.stringify(triangulo, null, 2));
-                            console.log('');
-                        }
-                    }
-                } catch (e) {
-                    console.log('❌ Erro ao parsear puzzle:', e.message);
+                if (data.digitPositions) {
+                    console.log(`   digitPositions:`);
+                    data.digitPositions.forEach((pos, idx) => {
+                        console.log(`     [${idx}] x: ${pos.x}, y: ${pos.y}`);
+                    });
                 }
+
+                if (data.digitSize) {
+                    console.log(`   digitSize:`, data.digitSize);
+                }
+
+                console.log('');
+            } catch (e) {
+                console.log('   ❌ Erro ao parsear puzzle_data:', e.message);
+                console.log('');
             }
         });
 
