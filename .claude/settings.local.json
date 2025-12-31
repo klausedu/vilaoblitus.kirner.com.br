@@ -51,7 +51,8 @@
       "Bash(node check-column-exists.js:*)",
       "Bash(node set-item-decorative.js:*)",
       "Bash(node update-arvore-spritesheet.js:*)",
-      "Bash(node check-arvore.js:*)"
+      "Bash(node check-arvore.js:*)",
+      "Bash(node fix-arvore.js:*)"
     ],
     "deny": [],
     "ask": []
