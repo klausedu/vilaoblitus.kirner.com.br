@@ -3571,14 +3571,24 @@
                 const hotspot = gameLocations[currentLocationId].hotspots[selectedHotspotIndex];
                 console.log('🔧 Corner mouseup - hotspot:', hotspot.name, 'corners:', JSON.stringify(hotspot.corners));
 
-                // IMPORTANTE: Aguardar autoSave completar ANTES de sync
-                await autoSave();
-                console.log('💾 AutoSave completado');
+                // Salvar no IndexedDB sem debounce
+                const saveData = {
+                    locations: gameLocations,
+                    order: locationOrder
+                };
+                await saveToIndexedDB('editorData', saveData);
+                console.log('💾 Salvo no IndexedDB');
 
-                // Agora sync ao banco (com dados já salvos no IndexedDB)
-                syncToDatabase(true).then(() => {
-                    console.log('✅ Sync após corner drag completado!');
-                }).catch(err => console.error('❌ Erro ao sincronizar corners:', err));
+                // Cancelar qualquer timer pendente (evitar sync duplicado)
+                if (autoSaveTimer) {
+                    clearTimeout(autoSaveTimer);
+                    autoSaveTimer = null;
+                    console.log('⏱️ Timer cancelado');
+                }
+
+                // Sync imediato ao MySQL
+                await syncToDatabase(true);
+                console.log('✅ Sync ao MySQL completado!');
             }
             document.removeEventListener('mousemove', handleCornerMouseMove);
             document.removeEventListener('mouseup', handleCornerMouseUp);
