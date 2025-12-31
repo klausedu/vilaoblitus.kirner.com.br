@@ -3139,7 +3139,7 @@
             selectedVisualType = 'item';
             selectedItemIndex = itemIndex;
             renderTransformControls();
-            highlightSelectedVisual();
+            renderVisuals(); // ✅ Re-renderiza para mostrar resize handles
         }
 
         function selectPuzzleVisual() {

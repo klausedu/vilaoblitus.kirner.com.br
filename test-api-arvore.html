@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test API - Arvore</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1a1a1a; color: #0f0; }
+        pre { background: #000; padding: 15px; border: 1px solid #0f0; }
+        .decorative { color: #ff0; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h2>Testing API Response for Arvore</h2>
+    <button onclick="testAPI()">Fetch API Data</button>
+    <pre id="output"></pre>
+
+    <script>
+        async function testAPI() {
+            const output = document.getElementById('output');
+            output.textContent = 'Loading...\n';
+
+            try {
+                const response = await fetch('api/locations/list.php');
+                const data = await response.json();
+
+                output.textContent = '';
+
+                // Find casa_abandonada_01_quintal
+                const location = data.data.locations.find(loc => loc.id === 'casa_abandonada_01_quintal');
+
+                if (!location) {
+                    output.textContent = 'Location not found!';
+                    return;
+                }
+
+                output.textContent += `Location: ${location.name}\n`;
+                output.textContent += `Hotspots: ${location.hotspots.length}\n\n`;
+
+                // Find arvore hotspot
+                const arvoreHotspot = location.hotspots.find(h => h.item_id === 'arvore');
+
+                if (!arvoreHotspot) {
+                    output.textContent += 'Arvore hotspot not found!\n';
+                } else {
+                    output.textContent += '=== ARVORE HOTSPOT ===\n';
+                    output.textContent += `item_id: ${arvoreHotspot.item_id}\n`;
+                    output.textContent += `display_image: ${arvoreHotspot.display_image}\n`;
+                    output.textContent += `is_decorative: ${arvoreHotspot.is_decorative}\n`;
+                    output.textContent += `type: ${arvoreHotspot.type}\n\n`;
+
+                    if (arvoreHotspot.is_decorative === 1 || arvoreHotspot.is_decorative === '1') {
+                        output.innerHTML += '<span class="decorative">✓ IS DECORATIVE!</span>\n';
+                    } else {
+                        output.innerHTML += '<span style="color: #f00;">✗ NOT DECORATIVE!</span>\n';
+                    }
+                }
+
+            } catch (error) {
+                output.textContent = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
