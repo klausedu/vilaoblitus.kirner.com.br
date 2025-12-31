@@ -1861,6 +1861,16 @@ class LocationScene extends Phaser.Scene {
         const { bgWidth, bgHeight, bgX, bgY } = this.getBackgroundBounds();
 
         this.locationData.items.forEach(item => {
+            // ✅ DEBUG: Ver item árvore
+            if (item.id === 'arvore') {
+                console.log('[DEBUG ARVORE] Renderizando:', {
+                    id: item.id,
+                    isDecorative: item.isDecorative,
+                    image: item.image,
+                    displayImage: item.displayImage
+                });
+            }
+
             // ✅ Itens decorativos SEMPRE renderizam (não são coletáveis)
             if (!item.isDecorative) {
                 if (gameStateManager.isItemCollected(item.id)) return;

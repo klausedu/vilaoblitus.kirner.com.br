@@ -78,6 +78,18 @@ class DatabaseLoader {
                     const isDecorative = h.is_decorative === 1 || h.is_decorative === '1' || h.is_decorative === true;
                     const itemImage = h.display_image || h.item_image || '';
 
+                    // ✅ DEBUG: Ver valores do banco
+                    if (h.item_id === 'arvore') {
+                        console.log('[DEBUG ARVORE] Dados do banco:', {
+                            item_id: h.item_id,
+                            is_decorative: h.is_decorative,
+                            isDecorative: isDecorative,
+                            display_image: h.display_image,
+                            item_image: h.item_image,
+                            itemImage: itemImage
+                        });
+                    }
+
                     items.push({
                         id: h.item_id,
                         name: h.label || h.item_id,
