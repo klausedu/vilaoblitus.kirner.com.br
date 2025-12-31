@@ -1442,7 +1442,15 @@
         function loadLocationData() {
             if (!currentLocationId) return;
 
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log('📂 LOAD LOCATION DATA');
+            console.log('   Location ID:', currentLocationId);
+
             const location = gameLocations[currentLocationId];
+            console.log('   Tem puzzle?', !!location.puzzle);
+            if (location.puzzle) {
+                console.log('   Puzzle ID:', location.puzzle.id);
+            }
             document.getElementById('currentLocationName').textContent = location.name;
             document.getElementById('currentLocationId').textContent = location.id;
 
@@ -1465,10 +1473,23 @@
                 document.getElementById('credits-list').innerHTML = '';
             }
 
-            // Puzzle
+            // Puzzle - LIMPAR PRIMEIRO, depois carregar
             const hasPuzzle = !!location.puzzle;
-            document.getElementById('has-puzzle').checked = hasPuzzle;
-            togglePuzzleEditor();
+
+            // 🔧 SEMPRE limpar campos ANTES de carregar (previne dados fantasmas)
+            clearPuzzleFormFields();
+
+            // ⚡ Setar checkbox SEM disparar onchange (previne save indevido)
+            const puzzleCheckbox = document.getElementById('has-puzzle');
+            const originalOnChange = puzzleCheckbox.onchange;
+            puzzleCheckbox.onchange = null;  // Desabilita temporariamente
+            puzzleCheckbox.checked = hasPuzzle;
+            puzzleCheckbox.onchange = originalOnChange;  // Restaura
+
+            // Mostrar/ocultar editor SEM salvar
+            document.getElementById('puzzle-editor').style.display = hasPuzzle ? 'block' : 'none';
+
+            // Carregar dados do puzzle da localização atual
             if (hasPuzzle) {
                 loadPuzzleData(location.puzzle);
             }
@@ -4556,6 +4577,14 @@
 
             document.getElementById('puzzle-editor').style.display = hasPuzzle ? 'block' : 'none';
 
+            // 🔧 Quando marca "tem puzzle", auto-gerar ID se estiver vazio
+            if (hasPuzzle && currentLocationId) {
+                const puzzleIdField = document.getElementById('puzzle-id');
+                if (!puzzleIdField.value.trim()) {
+                    puzzleIdField.value = currentLocationId + '_puzzle';
+                }
+            }
+
             // Salvar automaticamente quando marcar/desmarcar
             savePuzzle();
         }
@@ -4780,9 +4809,85 @@
             container.innerHTML = templates[type] || '';
         }
 
+        // 🔍 DEBUG: Função para inspecionar puzzles (chamar no console)
+        window.debugPuzzles = function() {
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log('🔍 DEBUG: Estado atual de todos os puzzles');
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log('Location atual:', currentLocationId);
+            console.log('Puzzle ID no campo de formulário:', document.getElementById('puzzle-id').value);
+            console.log('\nPuzzles em gameLocations:');
+            for (const locId in gameLocations) {
+                const loc = gameLocations[locId];
+                if (loc.puzzle) {
+                    console.log(`  📍 ${locId}:`);
+                    console.log(`     Puzzle ID: ${loc.puzzle.id}`);
+                    console.log(`     Type: ${loc.puzzle.type}`);
+                    console.log(`     Objeto:`, loc.puzzle);
+                } else {
+                    console.log(`  📍 ${locId}: sem puzzle`);
+                }
+            }
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        };
+
         // Load puzzle data
+        // Limpar todos os campos do formulário de puzzle
+        function clearPuzzleFormFields() {
+            console.log('🧹 Limpando campos do formulário de puzzle');
+            document.getElementById('puzzle-id').value = '';
+            currentPuzzleType = null;
+
+            // Desmarcar todos os botões de tipo
+            document.querySelectorAll('.puzzle-type-btn').forEach(btn => btn.classList.remove('selected'));
+
+            // Limpar todos os campos possíveis
+            const fieldsToClear = [
+                'puzzle-question',
+                'puzzle-options',
+                'puzzle-answer',
+                'puzzle-hint',
+                'puzzle-sequence',
+                'puzzle-required-items',
+                'puzzle-title',
+                'puzzle-description',
+                'puzzle-hints',
+                'puzzle-secret-code',
+                'slider-background-image',
+                'slider-rows',
+                'slider-cols'
+            ];
+
+            fieldsToClear.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) field.value = '';
+            });
+
+            // Limpar campos específicos do egyptian puzzle
+            for (let i = 1; i <= 4; i++) {
+                const initialEl = document.getElementById(`piece${i}-initial`);
+                const correctEl = document.getElementById(`piece${i}-correct`);
+                if (initialEl) initialEl.value = '';
+                if (correctEl) correctEl.value = '';
+            }
+
+            // Limpar shape match molds
+            if (typeof currentMolds !== 'undefined') {
+                currentMolds = [];
+            }
+
+            // Limpar área de opções de puzzle
+            const puzzleOptionsDiv = document.getElementById('puzzle-options-container');
+            if (puzzleOptionsDiv) {
+                puzzleOptionsDiv.innerHTML = '';
+            }
+        }
+
         function loadPuzzleData(puzzle) {
             if (!puzzle) return;
+
+            console.log('📥 Carregando dados do puzzle:', puzzle.id);
+            console.log('   Type:', puzzle.type);
 
             document.getElementById('puzzle-id').value = puzzle.id || '';
             currentPuzzleType = puzzle.type;
@@ -5042,6 +5147,7 @@
         function savePuzzle() {
 
             if (!currentLocationId) {
+                console.log('⚠️ savePuzzle() chamado sem currentLocationId!');
                 return;
             }
             // ✅ REMOVIDO: não bloqueia mais o salvamento na memória
@@ -5050,8 +5156,12 @@
             const hasPuzzle = document.getElementById('has-puzzle').checked;
             const location = gameLocations[currentLocationId];
 
-            // 🔍 DEBUG: Verificar se puzzles estão compartilhados
-            console.log('🔍 Salvando puzzle para location:', currentLocationId);
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log('🔍 SAVE PUZZLE chamado');
+            console.log('   Location atual:', currentLocationId);
+            console.log('   Has puzzle checkbox:', hasPuzzle);
+            console.log('   Puzzle ID no campo:', document.getElementById('puzzle-id').value);
+            console.log('   Puzzle atual da location:', location.puzzle?.id || 'nenhum');
             for (const locId in gameLocations) {
                 const loc = gameLocations[locId];
                 if (loc.puzzle && locId !== currentLocationId) {
@@ -5217,12 +5327,31 @@
                 }
             }
 
+            // 🛡️ PROTEÇÃO: Garantir que estamos salvando APENAS na localização atual
+            if (!gameLocations[currentLocationId]) {
+                console.error('❌ ERRO CRÍTICO: Location não encontrada:', currentLocationId);
+                showToast('Erro: localização não encontrada!', 'error');
+                return;
+            }
+
+            // 🔒 CRIAR NOVO OBJETO PUZZLE (sem referências compartilhadas)
             const previousVisual = location.puzzle?.visual ? JSON.parse(JSON.stringify(location.puzzle.visual)) : null;
-            location.puzzle = puzzle;
+
+            // Usar JSON para garantir deep copy (sem referências)
+            location.puzzle = JSON.parse(JSON.stringify(puzzle));
+
             if (previousVisual) {
                 location.puzzle.visual = previousVisual;
             } else {
                 ensurePuzzleDefaults(location.puzzle);
+            }
+
+            console.log(`✅ Puzzle salvo EXCLUSIVAMENTE para "${currentLocationId}":`, location.puzzle.id);
+
+            // 🔍 VERIFICAÇÃO: Alertar se puzzle ID não corresponde à location
+            const expectedPuzzleId = currentLocationId + '_puzzle';
+            if (location.puzzle.id !== expectedPuzzleId && location.puzzle.id !== currentLocationId) {
+                console.warn(`⚠️ AVISO: Puzzle ID "${location.puzzle.id}" não segue o padrão esperado "${expectedPuzzleId}"`);
             }
 
             // ✅ Só sincroniza com banco se auto-save habilitado (clicou em Salvar)
