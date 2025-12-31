@@ -1175,7 +1175,18 @@
 
         // Initialize
         window.onload = async function () {
-            await loadFromDatabase(true); // Carrega automaticamente do banco
+            // Tentar carregar do IndexedDB primeiro (fonte da verdade)
+            const indexedDBData = await loadFromIndexedDB('editorData');
+            if (indexedDBData && indexedDBData.locations && Object.keys(indexedDBData.locations).length > 0) {
+                console.log('📦 Carregando do IndexedDB (fonte da verdade)');
+                gameLocations = indexedDBData.locations;
+                locationOrder = indexedDBData.order || Object.keys(gameLocations);
+                renderLocationsList();
+            } else {
+                // Se IndexedDB vazio, carregar do MySQL
+                console.log('🔄 IndexedDB vazio, carregando do MySQL...');
+                await loadFromDatabase(true);
+            }
         };
 
         // Sync to database when page becomes hidden (F5, tab switch, close, etc)
@@ -5974,8 +5985,14 @@ if (typeof module !== 'undefined' && module.exports) {
                     });
                 }
 
-                // ⚠️ NÃO salvar no IndexedDB aqui! Isso sobrescreve mudanças feitas durante o load.
-                // O IndexedDB é atualizado apenas por handleCornerMouseUp e autoSave.
+                // Salvar no IndexedDB SOMENTE se NÃO houver mudanças pendentes
+                // Isso mantém IndexedDB sincronizado com MySQL, mas não sobrescreve mudanças recentes
+                if (!hasUnsyncedChanges) {
+                    await saveToIndexedDB('editorData', {
+                        locations: gameLocations,
+                        order: locationOrder
+                    });
+                }
 
                 renderLocationsList();
 
