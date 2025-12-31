@@ -106,6 +106,7 @@ try {
                 h.target_location,
                 h.item_id,
                 h.is_display_item,
+                h.is_decorative,
                 h.display_image,
                 h.interaction_data,
                 h.rotation,
@@ -123,6 +124,7 @@ try {
                 h.shadow_offset_y,
                 h.arrow_direction,
                 h.zoom_direction,
+                h.corners,
                 i.image as item_image
             FROM hotspots h
             LEFT JOIN items i ON h.item_id = i.id AND h.type = 'item'
