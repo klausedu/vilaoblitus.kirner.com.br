@@ -3101,6 +3101,17 @@
             const container = document.getElementById('visual-items-container');
             const rect = container.getBoundingClientRect();
 
+            // 🔍 DEBUG: Log das dimensões do container (só primeira vez)
+            if (!window.__editorDimensionsLogged) {
+                console.log('📐 DIMENSÕES DO CONTAINER DO EDITOR:', {
+                    width: rect.width,
+                    height: rect.height,
+                    aspectRatio: (rect.width / rect.height).toFixed(2),
+                    nota: 'Jogo usa 911x911 (ratio 1.00)'
+                });
+                window.__editorDimensionsLogged = true;
+            }
+
             let x = ((e.clientX - rect.left - dragOffsetX) / rect.width) * 100;
             let y = ((e.clientY - rect.top - dragOffsetY) / rect.height) * 100;
 
