@@ -5865,6 +5865,17 @@ if (typeof module !== 'undefined' && module.exports) {
                                 item: h.item_id || null
                             };
 
+                            // ✅ Carregar corners do banco (quadrilátero irregular)
+                            if (h.corners) {
+                                try {
+                                    hotspotData.corners = typeof h.corners === 'string'
+                                        ? JSON.parse(h.corners)
+                                        : h.corners;
+                                } catch (e) {
+                                    console.error('Erro ao parsear corners:', e);
+                                }
+                            }
+
                             // ✅ Preservar arrow_direction e zoom_direction do banco
                             if (h.arrow_direction) {
                                 hotspotData.arrowDirection = h.arrow_direction;
@@ -5980,6 +5991,7 @@ if (typeof module !== 'undefined' && module.exports) {
                         y: h.position?.y || 0,
                         width: h.position?.width || 10,
                         height: h.position?.height || 10,
+                        corners: h.corners ? JSON.stringify(h.corners) : null,
                         label: h.name || '',
                         description: h.description || '',
                         target_location: h.target || null,
