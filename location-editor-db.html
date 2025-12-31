@@ -3305,16 +3305,6 @@
 
                 const isSelected = index === selectedHotspotIndex;
 
-                // Aplicar transformações CSS
-                const transform = hotspot.transform || {};
-                const transformParts = [];
-                if (transform.rotateX) transformParts.push(`rotateX(${transform.rotateX}deg)`);
-                if (transform.rotateY) transformParts.push(`rotateY(${transform.rotateY}deg)`);
-                if (transform.skewX) transformParts.push(`skewX(${transform.skewX}deg)`);
-                if (transform.skewY) transformParts.push(`skewY(${transform.skewY}deg)`);
-                const transformStyle = transformParts.length > 0 ? `transform: ${transformParts.join(' ')}; ` : '';
-                const perspectiveStyle = (transform.rotateX || transform.rotateY) ? `perspective: ${transform.perspective || 800}px; ` : '';
-
                 const hotspotEl = document.createElement('div');
                 hotspotEl.dataset.hotspotIndex = index;
                 hotspotEl.style.cssText = `
@@ -3323,14 +3313,11 @@
             top: ${hotspot.position.y}%;
             width: ${hotspot.position.width}%;
             height: ${hotspot.position.height}%;
-            border: 3px ${isSelected ? '#ff4444' : 'dashed #28a745'};
+            border: 3px ${isSelected ? 'solid #ff4444' : 'dashed #28a745'};
             background: ${isSelected ? 'rgba(255, 68, 68, 0.3)' : 'rgba(40, 167, 69, 0.2)'};
             cursor: move;
             pointer-events: auto;
             z-index: 50;
-            ${perspectiveStyle}
-            ${transformStyle}
-            transform-origin: center;
             `;
 
                 const label = document.createElement('div');
@@ -3350,10 +3337,10 @@
             cursor: pointer;
             `;
                 label.textContent = hotspot.name || 'Hotspot';
-                label.title = 'Duplo clique para navegar para ' + (hotspot.target || 'destino');
+                label.title = 'Clique para navegar para ' + (hotspot.target || 'destino');
 
-                // Duplo clique no label navega para destino
-                label.addEventListener('dblclick', (e) => {
+                // Clique no label navega para destino
+                label.addEventListener('click', (e) => {
                     e.stopPropagation();
                     if (hotspot.target) {
                         loadLocation(hotspot.target);
@@ -3377,15 +3364,19 @@
                         handleEl.dataset.direction = handle;
                         handleEl.style.cssText = `
             position: absolute;
-            width: 12px; height: 12px;
-            background: #ff4444; border: 1px solid white;
+            width: 16px;
+            height: 16px;
+            background: #ff8800;
+            border: 2px solid white;
+            border-radius: 50%;
             z-index: 100;
             cursor: ${handle}-resize;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
             `;
-                        if (handle.includes('n')) handleEl.style.top = '-6px';
-                        if (handle.includes('s')) handleEl.style.bottom = '-6px';
-                        if (handle.includes('w')) handleEl.style.left = '-6px';
-                        if (handle.includes('e')) handleEl.style.right = '-6px';
+                        if (handle.includes('n')) handleEl.style.top = '-8px';
+                        if (handle.includes('s')) handleEl.style.bottom = '-8px';
+                        if (handle.includes('w')) handleEl.style.left = '-8px';
+                        if (handle.includes('e')) handleEl.style.right = '-8px';
 
                         handleEl.addEventListener('mousedown', handleResizeMouseDown);
                         hotspotEl.appendChild(handleEl);
