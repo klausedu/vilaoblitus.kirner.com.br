@@ -1216,6 +1216,8 @@
             try {
                 // Salvar localmente imediatamente
                 await saveToIndexedDB('editorData', saveData);
+                // Marcar que há mudanças não sincronizadas
+                localStorage.setItem('unsyncedChanges', 'true');
                 // showSaveIndicator(); // Removido daqui para evitar piscar excessivo
 
                 // Debounce para sincronização com banco de dados
@@ -5796,11 +5798,12 @@ if (typeof module !== 'undefined' && module.exports) {
         }
 
         async function loadFromDatabase(auto = false) {
-            // ⚠️ IMPORTANTE: Antes de carregar do banco, sync mudanças pendentes!
-            if (autoSaveTimer) {
-                clearTimeout(autoSaveTimer);
-                console.log('⏰ Sincronizando mudanças pendentes antes de carregar...');
+            // ⚠️ IMPORTANTE: Sync mudanças não sincronizadas antes de carregar!
+            if (localStorage.getItem('unsyncedChanges') === 'true') {
+                console.log('⏰ Detectadas mudanças não sincronizadas. Carregando do IndexedDB e sincronizando...');
+                await loadFromLocalStorage();
                 await syncToDatabase(true);
+                console.log('✅ Mudanças sincronizadas. Agora carregando do banco...');
             }
 
             if (!auto) {
@@ -5958,7 +5961,7 @@ if (typeof module !== 'undefined' && module.exports) {
                     });
                 }
 
-                // Save to IndexedDB
+                // Salvar no IndexedDB (agora é seguro - mudanças pendentes já foram sincronizadas)
                 await saveToIndexedDB('editorData', {
                     locations: gameLocations,
                     order: locationOrder
@@ -6103,6 +6106,8 @@ if (typeof module !== 'undefined' && module.exports) {
                     const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
 
                     if (result.success) {
+                        // Limpar flag de mudanças não sincronizadas
+                        localStorage.removeItem('unsyncedChanges');
                         if (!silent) {
                             showToast(`✅ ${result.data.locations} localizações e ${result.data.hotspots} hotspots salvos em ${elapsed}s!`, 'success');
                         }
