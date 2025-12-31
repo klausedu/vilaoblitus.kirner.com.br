@@ -6308,7 +6308,7 @@ if (typeof module !== 'undefined' && module.exports) {
 
                     // IMPORTANTE: Converter items para hotspots do tipo 'item'
                     const itemHotspots = (loc.items || []).map(item => {
-                        return {
+                        const hotspot = {
                             type: 'item',
                             item_id: item.id,
                             label: item.name,
@@ -6336,6 +6336,13 @@ if (typeof module !== 'undefined' && module.exports) {
                         shadow_offset_x: item.transform?.shadowOffsetX || 0,
                         shadow_offset_y: item.transform?.shadowOffsetY || 0
                         };
+
+                        // 🔍 DEBUG: Log árvore antes de enviar
+                        if (item.id === 'arvore') {
+                            console.log('🔍 [SYNC DEBUG] Enviando árvore para API:', hotspot);
+                        }
+
+                        return hotspot;
                     });
 
                     // Combinar hotspots de navegação + items
