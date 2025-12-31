@@ -127,11 +127,27 @@ class BootScene extends Phaser.Scene {
 
             // Items in this location
             (location.items || []).forEach(item => {
-                // ✅ Pular itens decorativos (GIFs animados) - usar DOM direto
-                if (item.isDecorative) return;
+                if (!item.id || !item.image) return;
 
-                if (item.id && item.image && !this.textures.exists(`item_${item.id}`)) {
-                    this.load.image(`item_${item.id}`, item.image);
+                const textureKey = `item_${item.id}`;
+                if (this.textures.exists(textureKey)) return;
+
+                // ✅ Detectar se é spritesheet (termina com _spritesheet.png)
+                if (item.image.includes('_spritesheet.png')) {
+                    // Carregar como spritesheet
+                    const frameWidth = item.spritesheetFrameWidth || 249; // Default ou customizado
+                    const frameHeight = item.spritesheetFrameHeight || 341;
+
+                    this.load.spritesheet(textureKey, item.image, {
+                        frameWidth: frameWidth,
+                        frameHeight: frameHeight
+                    });
+                } else if (item.isDecorative) {
+                    // Itens decorativos com GIF - pular (usar DOM)
+                    return;
+                } else {
+                    // Itens normais - carregar como imagem estática
+                    this.load.image(textureKey, item.image);
                 }
             });
 

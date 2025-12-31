@@ -55,11 +55,26 @@ class LocationScene extends Phaser.Scene {
 
         // Items
         (locationData.items || []).forEach(item => {
-            // ✅ Pular itens decorativos (GIFs animados) - usar DOM direto
-            if (item.isDecorative) return;
+            if (!item.id || !item.image) return;
 
-            if (item.id && item.image && !this.textures.exists(`item_${item.id}`)) {
-                this.load.image(`item_${item.id}`, item.image);
+            const textureKey = `item_${item.id}`;
+            if (this.textures.exists(textureKey)) return;
+
+            // ✅ Detectar se é spritesheet (termina com _spritesheet.png)
+            if (item.image.includes('_spritesheet.png')) {
+                const frameWidth = item.spritesheetFrameWidth || 249;
+                const frameHeight = item.spritesheetFrameHeight || 341;
+
+                this.load.spritesheet(textureKey, item.image, {
+                    frameWidth: frameWidth,
+                    frameHeight: frameHeight
+                });
+            } else if (item.isDecorative) {
+                // Itens decorativos com GIF - pular (usar DOM)
+                return;
+            } else {
+                // Itens normais
+                this.load.image(textureKey, item.image);
             }
         });
 
@@ -1870,13 +1885,20 @@ class LocationScene extends Phaser.Scene {
             const textureKey = `item_${item.id}`;
             let element;
 
-            // Verificar se precisa de DOM (transforms 3D/skew OU decorativo para suportar GIF)
-            const needsDOM = item.isDecorative || (transform && (
-                (transform.rotateX && transform.rotateX !== 0) ||
-                (transform.rotateY && transform.rotateY !== 0) ||
-                (transform.skewX && transform.skewX !== 0) ||
-                (transform.skewY && transform.skewY !== 0)
-            ));
+            // ✅ Detectar se é spritesheet
+            const isSpritesheet = item.image && item.image.includes('_spritesheet.png');
+
+            // Verificar se precisa de DOM
+            // DOM apenas para: transforms 3D/skew OU decorativo com GIF (não spritesheet)
+            const needsDOM = !isSpritesheet && (
+                (item.isDecorative) ||
+                (transform && (
+                    (transform.rotateX && transform.rotateX !== 0) ||
+                    (transform.rotateY && transform.rotateY !== 0) ||
+                    (transform.skewX && transform.skewX !== 0) ||
+                    (transform.skewY && transform.skewY !== 0)
+                ))
+            );
 
             if (needsDOM) {
                 // ✅ Usar DOM element para transforms 3D/skew (e itens decorativos para GIF)
@@ -1940,6 +1962,50 @@ class LocationScene extends Phaser.Scene {
                 element.setOrigin(0.5);
                 element.setDepth(50);
                 element.baseTransformString = transforms.join(' ');
+
+            } else if (isSpritesheet && this.textures.exists(textureKey)) {
+                // ✅ SPRITESHEET ANIMADO - criar sprite animado
+                element = this.add.sprite(x, y, textureKey);
+                element.setOrigin(0.5);
+                element.setDepth(50);
+
+                // Criar animação se ainda não existir
+                const animKey = `${item.id}_anim`;
+                if (!this.anims.exists(animKey)) {
+                    const texture = this.textures.get(textureKey);
+                    const frameCount = texture.frameTotal;
+
+                    this.anims.create({
+                        key: animKey,
+                        frames: this.anims.generateFrameNumbers(textureKey, {
+                            start: 0,
+                            end: frameCount - 1
+                        }),
+                        frameRate: item.spritesheetFrameRate || 10, // FPS customizável
+                        repeat: -1 // Loop infinito
+                    });
+                }
+
+                // Reproduzir animação
+                element.play(animKey);
+                element.setDisplaySize(size.width, size.height);
+
+                // Aplicar transforms
+                this.applySpriteTransform(element, transform);
+
+                // Interatividade: APENAS se NÃO for decorativo
+                if (!item.isDecorative) {
+                    element.setInteractive({ useHandCursor: true });
+                    element.on('pointerdown', () => {
+                        this.collectItem(item, element);
+                    });
+                }
+
+                // Salvar posição percentual para zoom
+                element.__itemPercentPosition = {
+                    x: item.position.x,
+                    y: item.position.y
+                };
 
             } else if (this.textures.exists(textureKey)) {
                 // ✅ Usar sprite Phaser para items sem transforms 3D
