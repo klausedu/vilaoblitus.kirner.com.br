@@ -94,8 +94,8 @@ try {
         error_log("💾 SAVE API - Salvando " . count($hotspots) . " hotspots para: $locationId");
         $hotspotStmt = $pdo->prepare("
             INSERT INTO hotspots
-            (location_id, type, x, y, width, height, label, description, target_location, item_id, is_display_item, display_image, interaction_data)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (location_id, type, x, y, width, height, label, description, target_location, item_id, is_display_item, is_decorative, display_image, interaction_data, rotation, rotate_x, rotate_y, scale_x, scale_y, skew_x, skew_y, flip_x, flip_y, opacity, shadow_blur, shadow_offset_x, shadow_offset_y, arrow_direction, zoom_direction, corners)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
 
         foreach ($hotspots as $hotspot) {
@@ -118,8 +118,25 @@ try {
                 $hotspot['target_location'] ?? null,
                 $hotspot['item_id'] ?? null,
                 $hotspot['is_display_item'] ?? 0,
+                $hotspot['is_decorative'] ?? 0,  // ✅ ADICIONADO
                 $hotspot['display_image'] ?? null,
-                $interactionData
+                $interactionData,
+                $hotspot['rotation'] ?? 0,
+                $hotspot['rotate_x'] ?? 0,
+                $hotspot['rotate_y'] ?? 0,
+                $hotspot['scale_x'] ?? 1,
+                $hotspot['scale_y'] ?? 1,
+                $hotspot['skew_x'] ?? 0,
+                $hotspot['skew_y'] ?? 0,
+                $hotspot['flip_x'] ?? 0,
+                $hotspot['flip_y'] ?? 0,
+                $hotspot['opacity'] ?? 1,
+                $hotspot['shadow_blur'] ?? 0,
+                $hotspot['shadow_offset_x'] ?? 0,
+                $hotspot['shadow_offset_y'] ?? 0,
+                $hotspot['arrow_direction'] ?? null,
+                $hotspot['zoom_direction'] ?? null,
+                $hotspot['corners'] ?? null
             ]);
         }
     }
