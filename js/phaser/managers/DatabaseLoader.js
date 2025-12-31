@@ -75,13 +75,28 @@ class DatabaseLoader {
             (location.hotspots || []).forEach(h => {
                 if (h.type === 'item' && h.item_id) {
                     // Este é um item colecionável
+                    const isDecorative = h.is_decorative === 1 || h.is_decorative === '1' || h.is_decorative === true;
+                    const itemImage = h.display_image || h.item_image || '';
+
+                    // DEBUG: Log para arvore
+                    if (h.item_id === 'arvore') {
+                        console.log('[DatabaseLoader] ARVORE:', {
+                            item_id: h.item_id,
+                            display_image: h.display_image,
+                            item_image: h.item_image,
+                            is_decorative: h.is_decorative,
+                            calculated_isDecorative: isDecorative,
+                            final_image: itemImage
+                        });
+                    }
+
                     items.push({
                         id: h.item_id,
                         name: h.label || h.item_id,
                         description: h.description || '',
-                        image: h.display_image || h.item_image || '',  // ✅ Prioriza display_image (spritesheets)
+                        image: itemImage,  // ✅ Prioriza display_image (spritesheets)
                         isDisplayItem: h.is_display_item === 1 || h.is_display_item === '1' || h.is_display_item === true,
-                        isDecorative: h.is_decorative === 1 || h.is_decorative === '1' || h.is_decorative === true,
+                        isDecorative: isDecorative,
                         displayImage: h.display_image || null,
                         position: {
                             x: parseFloat(h.x),

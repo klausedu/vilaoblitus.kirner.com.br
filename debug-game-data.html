@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Game Data</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1a1a1a; color: #0f0; }
+        pre { background: #000; padding: 15px; border: 1px solid #0f0; white-space: pre-wrap; }
+        .error { color: #f00; }
+        .success { color: #0f0; }
+        .warning { color: #ff0; }
+    </style>
+</head>
+<body>
+    <h2>Debug: Verificar dados da árvore no jogo</h2>
+    <button onclick="checkData()">Verificar Dados</button>
+    <pre id="output"></pre>
+
+    <script src="js/phaser/managers/DatabaseLoader.js"></script>
+    <script>
+        async function checkData() {
+            const output = document.getElementById('output');
+            output.innerHTML = 'Carregando dados...\n\n';
+
+            try {
+                // Carregar dados do banco
+                await databaseLoader.loadGameData();
+
+                const gameMap = databaseLoader.gameMap;
+                const location = gameMap['casa_abandonada_01_quintal'];
+
+                if (!location) {
+                    output.innerHTML += '<span class="error">✗ Location não encontrada!</span>\n';
+                    return;
+                }
+
+                output.innerHTML += `<span class="success">✓ Location encontrada: ${location.name}</span>\n\n`;
+
+                // Procurar item arvore
+                const arvore = location.items.find(item => item.id === 'arvore');
+
+                if (!arvore) {
+                    output.innerHTML += '<span class="error">✗ Item arvore não encontrado!</span>\n';
+                    return;
+                }
+
+                output.innerHTML += '=== ITEM ARVORE ===\n';
+                output.innerHTML += `ID: ${arvore.id}\n`;
+                output.innerHTML += `Name: ${arvore.name}\n`;
+                output.innerHTML += `Image: ${arvore.image}\n`;
+                output.innerHTML += `DisplayImage: ${arvore.displayImage}\n`;
+                output.innerHTML += `isDecorative: ${arvore.isDecorative}\n\n`;
+
+                // Validações
+                if (arvore.image && arvore.image.includes('_spritesheet.png')) {
+                    output.innerHTML += '<span class="success">✓ É SPRITESHEET</span>\n';
+                } else {
+                    output.innerHTML += '<span class="warning">⚠ NÃO é spritesheet</span>\n';
+                }
+
+                if (arvore.isDecorative === true) {
+                    output.innerHTML += '<span class="success">✓ É DECORATIVO (não deve ser coletável)</span>\n';
+                } else {
+                    output.innerHTML += '<span class="error">✗ NÃO é decorativo (vai ser coletável!)</span>\n';
+                }
+
+                output.innerHTML += '\n\n=== OBJETO COMPLETO ===\n';
+                output.innerHTML += JSON.stringify(arvore, null, 2);
+
+            } catch (error) {
+                output.innerHTML += `<span class="error">Erro: ${error.message}</span>\n`;
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>
