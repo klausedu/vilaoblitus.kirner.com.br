@@ -3139,7 +3139,8 @@
             selectedVisualType = 'item';
             selectedItemIndex = itemIndex;
             renderTransformControls();
-            renderVisuals(); // ✅ Re-renderiza para mostrar resize handles
+            // ✅ Re-renderiza após o evento atual terminar
+            setTimeout(() => renderVisuals(), 0);
         }
 
         function selectPuzzleVisual() {
@@ -5486,17 +5487,23 @@
             const newName = prompt('Nome do item:', item.name);
             if (newName === null) return;
 
-            const newImage = prompt('Imagem do item (pode ser PNG ou GIF):', item.image || '');
-
             // Perguntar se é item decorativo (mostrar status atual)
             const currentStatus = item.isDecorative ? 'SIM (já é decorativo)' : 'NÃO (item normal coletável)';
-            const isDecorative = confirm(`Este item é DECORATIVO (sem interação)?\n\n⚠️ STATUS ATUAL: ${currentStatus}\n\nItens decorativos:\n• NÃO podem ser coletados\n• NÃO aparecem no inventário\n• Servem apenas para animação/decoração visual\n• Suportam GIFs animados que ficam em loop\n\nClique OK para DECORATIVO, Cancelar para NORMAL.`);
+            const isDecorative = confirm(`Este item é DECORATIVO (sem interação)?\n\n⚠️ STATUS ATUAL: ${currentStatus}\n\nItens decorativos:\n• NÃO podem ser coletados\n• NÃO aparecem no inventário\n• Servem apenas para animação/decoração visual\n• Suportam GIFs animados e spritesheets\n\nClique OK para DECORATIVO, Cancelar para NORMAL.`);
 
             let isDisplayItem = false;
             let displayImage = '';
 
-            // Se NÃO é decorativo, perguntar se é item de exibição
-            if (!isDecorative) {
+            if (isDecorative) {
+                // ✅ DECORATIVO: pedir imagem do spritesheet/GIF (salva em displayImage)
+                const currentImage = item.displayImage || item.image || '';
+                displayImage = prompt('Imagem decorativa (PNG, GIF ou spritesheet):', currentImage);
+            } else {
+                // ITEM NORMAL: pedir imagem do inventário
+                const newImage = prompt('Imagem do item no inventário:', item.image || '');
+                if (newImage) item.image = newImage;
+
+                // Perguntar se é item de exibição
                 isDisplayItem = confirm('Este item é um ITEM DE EXIBIÇÃO (mapa, papel, foto)?\n\nQuando clicado no inventário, abrirá uma imagem em tela cheia para visualização.\n\nClique OK para SIM, Cancelar para NÃO.');
 
                 if (isDisplayItem) {
@@ -5507,20 +5514,19 @@
             // Atualizar item
             item.id = newId;
             item.name = newName;
-            if (newImage) item.image = newImage;
 
             // Definir flags
             item.isDecorative = isDecorative;
 
             if (isDecorative) {
-                // Itens decorativos não têm display item
+                // ✅ PRESERVAR displayImage para itens decorativos
+                if (displayImage) item.displayImage = displayImage;
                 delete item.isDisplayItem;
-                delete item.displayImage;
             } else {
                 item.isDisplayItem = isDisplayItem;
                 if (isDisplayItem && displayImage) {
                     item.displayImage = displayImage;
-                } else {
+                } else if (!isDisplayItem) {
                     delete item.displayImage;
                 }
             }
