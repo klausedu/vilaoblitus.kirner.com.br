@@ -5476,7 +5476,12 @@
             const location = gameLocations[currentLocationId];
             if (!location.items) location.items = [];
 
-            location.items.push({ id: itemId, name: itemName, found: false });
+            location.items.push({
+                id: itemId,
+                name: itemName,
+                found: false,
+                isDecorative: false  // ✅ Default: item normal coletável
+            });
             autoSave();
             renderItemsList();
         }
@@ -6112,6 +6117,7 @@ if (typeof module !== 'undefined' && module.exports) {
                                 description: h.description || '',
                                 image: h.item_image || '',  // ✅ Incluir imagem do JOIN
                                 isDisplayItem: h.is_display_item === 1 || h.is_display_item === '1' || h.is_display_item === true,
+                                isDecorative: h.is_decorative === 1 || h.is_decorative === '1' || h.is_decorative === true,  // ✅ Carregar flag decorativo do banco
                                 displayImage: h.display_image || null,
                                 position: {
                                     x: parseFloat(h.x) || 50,

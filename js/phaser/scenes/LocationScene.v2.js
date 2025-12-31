@@ -1888,10 +1888,14 @@ class LocationScene extends Phaser.Scene {
             // ✅ Detectar se é spritesheet
             const isSpritesheet = item.image && item.image.includes('_spritesheet.png');
 
+            // ✅ Verificar se tem sombra
+            const hasShadow = transform && transform.shadowBlur && transform.shadowBlur > 0;
+
             // Verificar se precisa de DOM
-            // DOM apenas para: transforms 3D/skew OU decorativo com GIF (não spritesheet)
+            // DOM para: transforms 3D/skew OU decorativo (GIF) OU sombra (mas NÃO para spritesheets)
             const needsDOM = !isSpritesheet && (
                 (item.isDecorative) ||
+                (hasShadow) ||  // ✅ Sombra força DOM (exceto spritesheets)
                 (transform && (
                     (transform.rotateX && transform.rotateX !== 0) ||
                     (transform.rotateY && transform.rotateY !== 0) ||
