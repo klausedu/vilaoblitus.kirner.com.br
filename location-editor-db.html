@@ -3564,14 +3564,18 @@
             renderPositionedHotspots();
         }
 
-        function handleCornerMouseUp(e) {
+        async function handleCornerMouseUp(e) {
             if (isResizingHotspot) {
                 isResizingHotspot = false;
                 draggedCornerIndex = -1;
                 const hotspot = gameLocations[currentLocationId].hotspots[selectedHotspotIndex];
-                console.log('🔧 Corner mouseup - corners:', JSON.stringify(hotspot.corners));
-                autoSave();
-                // Sync imediatamente ao banco sem debounce (corners são críticos)
+                console.log('🔧 Corner mouseup - hotspot:', hotspot.name, 'corners:', JSON.stringify(hotspot.corners));
+
+                // IMPORTANTE: Aguardar autoSave completar ANTES de sync
+                await autoSave();
+                console.log('💾 AutoSave completado');
+
+                // Agora sync ao banco (com dados já salvos no IndexedDB)
                 syncToDatabase(true).then(() => {
                     console.log('✅ Sync após corner drag completado!');
                 }).catch(err => console.error('❌ Erro ao sincronizar corners:', err));
