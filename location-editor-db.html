@@ -1624,13 +1624,13 @@
                         <div style="font-weight: 600; margin-bottom: 8px;">${item.name}</div>
                         <input type="file"
                                id="item-image-${index}"
-                               accept="image/png"
+                               accept="image/png,image/gif"
                                style="display: none;"
                                onchange="handleItemImageUpload(${index}, event)">
                         <button class="btn btn-secondary btn-small"
                                 style="width: 100%; margin-bottom: 5px;"
                                 onclick="document.getElementById('item-image-${index}').click()">
-                            ${item.image ? '✓ Alterar PNG' : '📁 Upload PNG'}
+                            ${item.image ? '✓ Alterar Imagem' : '📁 Upload PNG/GIF'}
                         </button>
                         ${item.image ? `
                             <div style="text-align: center; margin-top: 8px;">
@@ -2375,10 +2375,6 @@
                     ? `drop-shadow(${shadowX}px ${shadowY}px ${shadowBlur}px rgba(0,0,0,0.5))`
                     : 'none';
 
-                const backgroundStyle = item.image
-                    ? `background-image: url(${item.image}); background-size: contain; background-repeat: no-repeat;`
-                    : `background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: 3px dashed white;`;
-
                 const itemEl = document.createElement('div');
                 itemEl.dataset.visualType = 'item';
                 itemEl.dataset.itemIndex = index;
@@ -2392,13 +2388,29 @@
                     cursor: move;
                     pointer-events: auto;
                     z-index: 100;
-                    ${backgroundStyle}
-                    background-position: center;
                     border-radius: 4px;
                     opacity: ${item.transform.opacity || 1};
                     filter: ${filterString};
                     ${isSelected ? 'box-shadow: 0 0 0 3px #667eea;' : ''}
                 `;
+
+                // ✅ Usar <img> tag para suportar GIFs animados
+                if (item.image) {
+                    const img = document.createElement('img');
+                    img.src = item.image;
+                    img.style.cssText = `
+                        width: 100%;
+                        height: 100%;
+                        object-fit: contain;
+                        pointer-events: none;
+                        display: block;
+                    `;
+                    itemEl.appendChild(img);
+                } else {
+                    // Fallback: sem imagem
+                    itemEl.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                    itemEl.style.border = '3px dashed white';
+                }
 
                 const label = document.createElement('div');
                 label.textContent = item.name;
