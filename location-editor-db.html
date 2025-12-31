@@ -3576,8 +3576,9 @@
                     locations: gameLocations,
                     order: locationOrder
                 };
+                console.log('💾 Salvando no IndexedDB - hotspot tem corners:', hotspot.corners);
                 await saveToIndexedDB('editorData', saveData);
-                console.log('💾 Salvo no IndexedDB');
+                console.log('✅ Salvo no IndexedDB com sucesso');
 
                 // Cancelar qualquer timer pendente (evitar sync duplicado)
                 if (autoSaveTimer) {
@@ -5824,6 +5825,19 @@ if (typeof module !== 'undefined' && module.exports) {
                 console.log('⏰ Detectadas mudanças não sincronizadas. Carregando do IndexedDB e sincronizando...');
                 await loadFromLocalStorage();
                 console.log('📦 IndexedDB carregado');
+
+                // Debug: verificar corners no gameLocations
+                for (const locId in gameLocations) {
+                    const loc = gameLocations[locId];
+                    if (loc.hotspots) {
+                        loc.hotspots.forEach(h => {
+                            if (h.corners) {
+                                console.log(`🔍 Hotspot "${h.name}" em ${locId} tem corners:`, h.corners);
+                            }
+                        });
+                    }
+                }
+
                 await syncToDatabase(true);
                 console.log('✅ Mudanças sincronizadas. Agora carregando do banco...');
             }
