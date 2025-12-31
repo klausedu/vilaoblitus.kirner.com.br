@@ -3147,8 +3147,7 @@
             selectedVisualType = 'item';
             selectedItemIndex = itemIndex;
             renderTransformControls();
-            // ✅ Re-renderiza após o evento atual terminar
-            setTimeout(() => renderPositionedItems(), 0);
+            highlightSelectedVisual();
         }
 
         function selectPuzzleVisual() {
