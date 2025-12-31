@@ -3567,6 +3567,8 @@
                 isResizingHotspot = false;
                 draggedCornerIndex = -1;
                 autoSave();
+                // Sync imediatamente ao banco sem debounce (corners são críticos)
+                syncToDatabase(true).catch(err => console.error('Erro ao sincronizar corners:', err));
             }
             document.removeEventListener('mousemove', handleCornerMouseMove);
             document.removeEventListener('mouseup', handleCornerMouseUp);
