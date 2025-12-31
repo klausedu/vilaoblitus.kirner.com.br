@@ -2399,11 +2399,15 @@
                     const img = document.createElement('img');
                     img.src = item.image;
                     img.style.cssText = `
+                        position: absolute;
+                        top: 0;
+                        left: 0;
                         width: 100%;
                         height: 100%;
                         object-fit: contain;
                         pointer-events: none;
                         display: block;
+                        z-index: 1;
                     `;
                     itemEl.appendChild(img);
                 } else {
@@ -2426,6 +2430,7 @@
                     border-radius: 4px;
                     white-space: nowrap;
                     pointer-events: none;
+                    z-index: 2;
                 `;
 
                 itemEl.appendChild(label);
