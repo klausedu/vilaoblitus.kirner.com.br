@@ -1886,6 +1886,9 @@ class LocationScene extends Phaser.Scene {
                 wrapper.style.height = `${size.height}px`;
                 wrapper.style.perspective = `${transform.perspective || 800}px`;
                 wrapper.style.transformStyle = 'preserve-3d';
+                wrapper.style.userSelect = 'none'; // Prevenir seleção de texto
+                wrapper.style.webkitUserSelect = 'none';
+                wrapper.style.msUserSelect = 'none';
 
                 const img = document.createElement('img');
                 img.src = item.image;
@@ -1896,6 +1899,10 @@ class LocationScene extends Phaser.Scene {
                 img.style.position = 'absolute';
                 img.style.left = '50%';
                 img.style.top = '50%';
+                img.style.userSelect = 'none'; // Prevenir seleção
+                img.style.webkitUserSelect = 'none';
+                img.style.msUserSelect = 'none';
+                img.draggable = false; // Prevenir drag da imagem
                 // ✅ Desabilitar pointer events para itens decorativos (não coletáveis)
                 img.style.pointerEvents = item.isDecorative ? 'none' : 'auto';
 
