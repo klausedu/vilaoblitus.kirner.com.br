@@ -894,6 +894,27 @@
         </div>
     </div>
 
+    <!-- Hotspot Navigation Modal -->
+    <div class="modal" id="hotspotNavModal" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <h2 id="hotspotNavModalTitle">Adicionar Hotspot de Navegação</h2>
+            <div class="form-group">
+                <label>Nome do Hotspot:</label>
+                <input type="text" id="hotspotNavName" placeholder="Ex: Porta da Entrada" style="width: 100%; padding: 8px; margin-top: 5px;">
+            </div>
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Local de Destino:</label>
+                <select id="hotspotNavTarget" style="width: 100%; padding: 8px; margin-top: 5px;">
+                    <option value="">-- Selecione uma localização --</option>
+                </select>
+            </div>
+            <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+                <button onclick="cancelHotspotNav()" style="padding: 10px 20px; background: #ccc; border: none; border-radius: 4px; cursor: pointer;">Cancelar</button>
+                <button onclick="confirmHotspotNav()" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
     <script src="js/map.js?v=123456789"></script>
     <script>
         // Load initial game data from original map.js structure
@@ -3476,12 +3497,15 @@
             const location = gameLocations[currentLocationId];
             const hotspot = location.hotspots[index];
 
-            const newName = prompt('Nome do hotspot:', hotspot.name || '');
-            if (newName === null) return;
+            // Usar modal para editar nome e destino
+            let hotspotData;
+            try {
+                hotspotData = await showHotspotNavModal(hotspot.name || '', hotspot.target || '');
+            } catch (err) {
+                return; // Cancelado
+            }
 
             const oldTarget = hotspot.target;
-            const newTarget = prompt('Local de destino (ID):', hotspot.target || '');
-            if (newTarget === null) return;
 
             // ✅ Select para direção da seta
             const arrowOptions = [
@@ -3499,8 +3523,8 @@
             );
             if (newDirection === null) return;
 
-            hotspot.name = newName;
-            hotspot.target = newTarget;
+            hotspot.name = hotspotData.name;
+            hotspot.target = hotspotData.target;
 
             // ✅ Salvar direção da seta (só se for uma direção válida)
             const validDirections = ['up', 'down', 'left', 'right'];
@@ -3534,10 +3558,10 @@
                 delete hotspot.zoomDirection;
             }
 
-            if (oldTarget !== newTarget) {
+            if (oldTarget !== hotspotData.target) {
                 if (!location.connections) location.connections = [];
-                if (!location.connections.includes(newTarget)) {
-                    location.connections.push(newTarget);
+                if (!location.connections.includes(hotspotData.target)) {
+                    location.connections.push(hotspotData.target);
                 }
             }
 
@@ -4007,7 +4031,7 @@
                 currentDrawingRect.style.height = height / scale + 'px';
             });
 
-            visualWrapper.addEventListener('mouseup', (e) => {
+            visualWrapper.addEventListener('mouseup', async (e) => {
                 if (!isDrawingHotspot || !currentDrawingRect) return;
 
                 const visualImage = document.getElementById('visual-location-image');
@@ -4033,17 +4057,12 @@
                 const w = (width / imgRect.width) * 100;
                 const h = (height / imgRect.height) * 100;
 
-                // Pedir informações
-                const name = prompt('Nome do hotspot:');
-                if (!name) {
-                    currentDrawingRect.remove();
-                    currentDrawingRect = null;
-                    isDrawingHotspot = false;
-                    return;
-                }
-
-                const target = prompt('Local de destino (ID):');
-                if (!target) {
+                // Pedir informações via modal
+                let hotspotData;
+                try {
+                    hotspotData = await showHotspotNavModal();
+                } catch (err) {
+                    // Cancelado
                     currentDrawingRect.remove();
                     currentDrawingRect = null;
                     isDrawingHotspot = false;
@@ -4056,9 +4075,9 @@
 
                 const newHotspot = {
                     id: 'hotspot_' + Date.now(),
-                    name: name,
+                    name: hotspotData.name,
                     action: 'navigate',
-                    target: target,
+                    target: hotspotData.target,
                     position: {
                         x: x,
                         y: y,
@@ -4071,8 +4090,8 @@
 
                 // Adicionar conexão automaticamente se não existir
                 if (!location.connections) location.connections = [];
-                if (!location.connections.includes(target)) {
-                    location.connections.push(target);
+                if (!location.connections.includes(hotspotData.target)) {
+                    location.connections.push(hotspotData.target);
                 }
 
                 autoSave();
@@ -5511,6 +5530,73 @@ if (typeof module !== 'undefined' && module.exports) {
             navigator.clipboard.writeText(code).then(() => {
                 showToast('✓ Código copiado!');
             });
+        }
+
+        // Hotspot Navigation Modal Functions
+        let hotspotNavResolve = null;
+        let hotspotNavReject = null;
+
+        function showHotspotNavModal(initialName = '', initialTarget = '') {
+            return new Promise((resolve, reject) => {
+                hotspotNavResolve = resolve;
+                hotspotNavReject = reject;
+
+                // Set title based on mode (edit vs add)
+                const isEditMode = initialName !== '' || initialTarget !== '';
+                document.getElementById('hotspotNavModalTitle').textContent =
+                    isEditMode ? 'Editar Hotspot de Navegação' : 'Adicionar Hotspot de Navegação';
+
+                // Populate location select
+                const select = document.getElementById('hotspotNavTarget');
+                select.innerHTML = '<option value="">-- Selecione uma localização --</option>';
+
+                for (const locationId in gameLocations) {
+                    const location = gameLocations[locationId];
+                    const option = document.createElement('option');
+                    option.value = locationId;
+                    option.textContent = `${locationId} - ${location.name}`;
+                    select.appendChild(option);
+                }
+
+                // Set initial values
+                document.getElementById('hotspotNavName').value = initialName;
+                document.getElementById('hotspotNavTarget').value = initialTarget;
+
+                // Show modal
+                document.getElementById('hotspotNavModal').style.display = 'flex';
+                document.getElementById('hotspotNavName').focus();
+            });
+        }
+
+        function confirmHotspotNav() {
+            const name = document.getElementById('hotspotNavName').value.trim();
+            const target = document.getElementById('hotspotNavTarget').value;
+
+            if (!name) {
+                showToast('❌ Nome do hotspot é obrigatório', 'error');
+                return;
+            }
+
+            if (!target) {
+                showToast('❌ Local de destino é obrigatório', 'error');
+                return;
+            }
+
+            document.getElementById('hotspotNavModal').style.display = 'none';
+            if (hotspotNavResolve) {
+                hotspotNavResolve({ name, target });
+                hotspotNavResolve = null;
+                hotspotNavReject = null;
+            }
+        }
+
+        function cancelHotspotNav() {
+            document.getElementById('hotspotNavModal').style.display = 'none';
+            if (hotspotNavReject) {
+                hotspotNavReject(new Error('Cancelled'));
+                hotspotNavResolve = null;
+                hotspotNavReject = null;
+            }
         }
 
         function resetEditorData() {
