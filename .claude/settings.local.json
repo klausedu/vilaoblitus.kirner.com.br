@@ -39,7 +39,8 @@
       "Bash(node set-arrows.js:*)",
       "Bash(node check-connections.js:*)",
       "Bash(node clear-puzzle.js:*)",
-      "Bash(node check-puzzle.js:*)"
+      "Bash(node check-puzzle.js:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []
