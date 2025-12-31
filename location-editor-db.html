@@ -5429,8 +5429,9 @@
 
             const newImage = prompt('Imagem do item (pode ser PNG ou GIF):', item.image || '');
 
-            // Perguntar se é item decorativo
-            const isDecorative = confirm('Este item é DECORATIVO (sem interação)?\n\nItens decorativos:\n• NÃO podem ser coletados\n• NÃO aparecem no inventário\n• Servem apenas para animação/decoração visual\n• Suportam GIFs animados que ficam em loop\n\nClique OK para SIM, Cancelar para NÃO.');
+            // Perguntar se é item decorativo (mostrar status atual)
+            const currentStatus = item.isDecorative ? 'SIM (já é decorativo)' : 'NÃO (item normal coletável)';
+            const isDecorative = confirm(`Este item é DECORATIVO (sem interação)?\n\n⚠️ STATUS ATUAL: ${currentStatus}\n\nItens decorativos:\n• NÃO podem ser coletados\n• NÃO aparecem no inventário\n• Servem apenas para animação/decoração visual\n• Suportam GIFs animados que ficam em loop\n\nClique OK para DECORATIVO, Cancelar para NORMAL.`);
 
             let isDisplayItem = false;
             let displayImage = '';
