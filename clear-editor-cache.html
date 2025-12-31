@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Limpar Cache do Editor</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 40px;
+            background: #1a1a1a;
+            color: #0f0;
+            text-align: center;
+        }
+        button {
+            background: #f00;
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 8px;
+            margin: 20px;
+        }
+        button:hover {
+            background: #c00;
+        }
+        .success {
+            color: #0f0;
+            font-size: 24px;
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🗑️ Limpar Cache do Editor</h1>
+    <p>Isso vai limpar IndexedDB e LocalStorage,<br>forçando o editor a carregar dados frescos do banco MySQL.</p>
+
+    <button onclick="clearAll()">LIMPAR TUDO</button>
+
+    <div id="result"></div>
+
+    <script>
+        function clearAll() {
+            const result = document.getElementById('result');
+
+            // Clear localStorage
+            localStorage.clear();
+
+            // Clear IndexedDB
+            const DBDeleteRequest = indexedDB.deleteDatabase('LocationEditorDB');
+
+            DBDeleteRequest.onsuccess = function() {
+                result.innerHTML = '<div class="success">✅ CACHE LIMPO!<br><br>Agora abra o editor normalmente.<br>Ele vai carregar do MySQL.</div>';
+            };
+
+            DBDeleteRequest.onerror = function() {
+                result.innerHTML = '<div style="color: #f00;">❌ Erro ao limpar IndexedDB</div>';
+            };
+        }
+    </script>
+</body>
+</html>
