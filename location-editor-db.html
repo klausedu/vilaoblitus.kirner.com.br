@@ -1150,13 +1150,13 @@
             renderTransformControls();
             highlightSelectedVisual();
 
-            // ✅ Re-renderizar após delay para mostrar resize handles
+            // ✅ Re-renderizar para mostrar resize handles
             if (!isRendering) {
                 isRendering = true;
                 setTimeout(() => {
                     renderPositionedItems();
                     isRendering = false;
-                }, 300);
+                }, 0);
             }
         }
 
@@ -3150,7 +3150,15 @@
             selectedVisualType = 'item';
             selectedItemIndex = itemIndex;
             renderTransformControls();
-            highlightSelectedVisual();
+
+            // ✅ Renderizar para mostrar resize handles (igual quando muda um valor)
+            if (!isRendering) {
+                isRendering = true;
+                setTimeout(() => {
+                    renderPositionedItems();
+                    isRendering = false;
+                }, 0);
+            }
         }
 
         function selectPuzzleVisual() {
