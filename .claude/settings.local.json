@@ -55,7 +55,8 @@
       "Bash(node fix-arvore.js:*)",
       "Bash(cmd /c dir \"C:\\\\src\\\\codex.oblitus\\\\images\\\\objects\\\\arvore*.png\" /b)",
       "Bash(ls:*)",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(node backup.js:*)"
     ],
     "deny": [],
     "ask": []

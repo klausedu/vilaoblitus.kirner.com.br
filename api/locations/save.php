@@ -56,7 +56,6 @@ try {
 
     if ($exists) {
         // Update existing location
-        error_log("✏️ SAVE API - Atualizando localização existente: $locationId");
         $stmt = $pdo->prepare("
             UPDATE locations
             SET name = ?,
@@ -69,7 +68,6 @@ try {
         $message = 'Location updated successfully';
     } else {
         // Insert new location
-        error_log("➕ SAVE API - Criando nova localização: $locationId");
         $stmt = $pdo->prepare("
             INSERT INTO locations (id, name, description, background_image, created_by)
             VALUES (?, ?, ?, ?, ?)
@@ -81,11 +79,9 @@ try {
     // Delete existing hotspots for this location
     $deleteStmt = $pdo->prepare("DELETE FROM hotspots WHERE location_id = ?");
     $deleteStmt->execute([$locationId]);
-    error_log("🗑️ SAVE API - Hotspots antigos deletados para: $locationId");
 
     // Insert new hotspots
     if (!empty($hotspots)) {
-        error_log("💾 SAVE API - Salvando " . count($hotspots) . " hotspots para: $locationId");
         $hotspotStmt = $pdo->prepare("
             INSERT INTO hotspots
             (location_id, type, x, y, width, height, label, description, target_location, item_id, is_display_item, is_decorative, display_image, interaction_data, rotation, rotate_x, rotate_y, scale_x, scale_y, skew_x, skew_y, flip_x, flip_y, opacity, shadow_blur, shadow_offset_x, shadow_offset_y, arrow_direction, zoom_direction, corners)
@@ -157,7 +153,6 @@ try {
 
     // Commit transaction
     $pdo->commit();
-    error_log("✅ SAVE API - Transação commitada com sucesso para: $locationId");
 
     sendResponse(true, ['id' => $locationId], $message);
 
