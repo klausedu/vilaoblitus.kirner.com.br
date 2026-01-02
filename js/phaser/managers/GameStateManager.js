@@ -12,7 +12,8 @@ class GameStateManager {
             inventory: {},
             hasKey: false,
             gameCompleted: false,
-            photographAlbum: [], // Sistema de câmera/fotografias
+            photographAlbum: [], // Sistema de câmera/fotografias (antigo)
+            photos: [], // Sistema de screenshots (novo)
             destroyedWalls: [] // Paredes destruídas
         };
 
@@ -284,6 +285,121 @@ class GameStateManager {
             return true;
         }
         return false;
+    }
+
+    /**
+     * NOVO: Tirar foto da tela (screenshot)
+     */
+    takePhoto() {
+        const game = window.game;
+        if (!game || !game.renderer) {
+            console.error('[CAMERA] Game não está inicializado');
+            return;
+        }
+
+        const scene = game.scene.getScene('LocationScene');
+        if (!scene) {
+            console.error('[CAMERA] LocationScene não encontrada');
+            return;
+        }
+
+        // Play flash effect
+        this.showFlashEffect(scene);
+
+        // Play camera sound
+        this.playCameraSound(scene);
+
+        // Animate camera button
+        this.animateCameraButton();
+
+        // Capture screenshot
+        game.renderer.snapshot((image) => {
+            const photoData = {
+                id: Date.now(),
+                timestamp: new Date().toISOString(),
+                location: this.state.currentLocation,
+                imageData: image.src // base64 string
+            };
+
+            if (!this.state.photos) {
+                this.state.photos = [];
+            }
+
+            // FIFO queue: Limit to 10 photos
+            if (this.state.photos.length >= 10) {
+                this.state.photos.shift(); // Remove oldest (first) photo
+            }
+
+            this.state.photos.push(photoData);
+
+            // Save to localStorage
+            this.saveProgress();
+
+            console.log('[CAMERA] Foto capturada!', photoData.location);
+        });
+    }
+
+    /**
+     * Efeito de flash branco na tela
+     */
+    showFlashEffect(scene) {
+        if (!scene || !scene.add || !scene.cameras) return;
+
+        const flash = scene.add.rectangle(
+            scene.cameras.main.centerX,
+            scene.cameras.main.centerY,
+            scene.cameras.main.width,
+            scene.cameras.main.height,
+            0xffffff
+        );
+        flash.setAlpha(0);
+        flash.setDepth(10000);
+
+        scene.tweens.add({
+            targets: flash,
+            alpha: { from: 0, to: 0.8 },
+            duration: 100,
+            yoyo: true,
+            onComplete: () => flash.destroy()
+        });
+    }
+
+    /**
+     * Som de câmera
+     */
+    playCameraSound(scene) {
+        if (!scene || !scene.sound) return;
+
+        // Tentar tocar som se existir
+        if (scene.sound.get('camera-click')) {
+            scene.sound.play('camera-click');
+        }
+        // Caso contrário, silencioso (ou adicionar beep depois)
+    }
+
+    /**
+     * Animação do botão de câmera
+     */
+    animateCameraButton() {
+        const btn = document.getElementById('btn-camera');
+        if (!btn) return;
+
+        btn.style.transform = 'scale(1.3)';
+        btn.style.transition = 'transform 0.2s';
+
+        setTimeout(() => {
+            btn.style.transform = 'scale(1)';
+        }, 200);
+    }
+
+    /**
+     * Obter todas as fotos (novo sistema)
+     */
+    getPhotos() {
+        if (!this.state.photos) {
+            this.state.photos = [];
+        }
+        return this.state.photos;
     }
 
     /**

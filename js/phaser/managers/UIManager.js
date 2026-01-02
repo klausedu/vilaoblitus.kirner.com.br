@@ -100,6 +100,7 @@ class UIManager {
                 </div>
             </div>
             <div style="display: flex; gap: 10px;">
+                <button id="btn-camera" class="phaser-btn" title="Câmera">📷</button>
                 <button id="btn-inventory" class="phaser-btn" title="Inventário">🎒</button>
                 <button id="btn-save" class="phaser-btn" title="Salvar">💾</button>
                 <button id="btn-reset" class="phaser-btn" title="Resetar">🔄</button>
@@ -394,10 +395,47 @@ class UIManager {
                 display: flex;
                 justify-content: flex-end;
             }
+            .photo-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 15px;
+                max-height: 500px;
+                overflow-y: auto;
+                padding: 10px;
+            }
+            .photo-item {
+                position: relative;
+                border: 2px solid #f0a500;
+                border-radius: 8px;
+                overflow: hidden;
+                cursor: pointer;
+                transition: transform 0.2s;
+                background: rgba(0,0,0,0.5);
+            }
+            .photo-item:hover {
+                transform: scale(1.05);
+                border-color: #ffd700;
+            }
+            .photo-item img {
+                width: 100%;
+                height: auto;
+                display: block;
+            }
+            .photo-info {
+                background: rgba(0,0,0,0.8);
+                padding: 8px;
+                font-size: 11px;
+                color: #ccc;
+            }
+            .photo-info small {
+                display: block;
+                line-height: 1.4;
+            }
         `;
         document.head.appendChild(style);
 
         // Event listeners
+        document.getElementById('btn-camera').addEventListener('click', () => this.openPhotoGallery());
         document.getElementById('btn-inventory').addEventListener('click', () => this.toggleInventory());
         document.getElementById('btn-save').addEventListener('click', () => this.saveGame());
         document.getElementById('btn-reset').addEventListener('click', () => this.resetGame());
@@ -1443,6 +1481,196 @@ class UIManager {
             localStorage.removeItem('is_admin');
             window.location.href = 'index.html';
         }
+    }
+
+    /**
+     * Abrir galeria de fotos
+     */
+    openPhotoGallery() {
+        const photos = gameStateManager.getPhotos() || [];
+
+        // Criar overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'phaser-overlay active';
+        overlay.id = 'photo-gallery-overlay';
+
+        // Criar conteúdo do modal
+        const modal = document.createElement('div');
+        modal.className = 'phaser-overlay-content';
+        modal.style.maxWidth = '800px';
+
+        // Cabeçalho
+        const header = document.createElement('h2');
+        header.textContent = `📷 Álbum de Fotos (${photos.length}/10)`;
+        header.style.color = '#f0a500';
+        header.style.marginBottom = '20px';
+        modal.appendChild(header);
+
+        // Grid de fotos
+        const grid = document.createElement('div');
+        grid.className = 'photo-grid';
+
+        if (photos.length === 0) {
+            const emptyMsg = document.createElement('div');
+            emptyMsg.style.color = '#999';
+            emptyMsg.style.textAlign = 'center';
+            emptyMsg.style.padding = '40px';
+            emptyMsg.textContent = 'Nenhuma foto ainda. Clique no botão 📷 para tirar uma foto!';
+            grid.appendChild(emptyMsg);
+        } else {
+            photos.forEach(photo => {
+                const photoItem = document.createElement('div');
+                photoItem.className = 'photo-item';
+                photoItem.dataset.photoId = photo.id;
+
+                // Imagem
+                const img = document.createElement('img');
+                img.src = photo.imageData;
+                img.alt = 'Foto';
+                photoItem.appendChild(img);
+
+                // Info
+                const info = document.createElement('div');
+                info.className = 'photo-info';
+
+                const timestamp = document.createElement('small');
+                timestamp.textContent = new Date(photo.timestamp).toLocaleString('pt-BR');
+                info.appendChild(timestamp);
+
+                const location = document.createElement('small');
+                location.textContent = photo.location || 'Local desconhecido';
+                location.style.display = 'block';
+                info.appendChild(location);
+
+                photoItem.appendChild(info);
+
+                // Click para ampliar
+                photoItem.addEventListener('click', () => {
+                    this.showPhotoFullSize(photo);
+                });
+
+                grid.appendChild(photoItem);
+            });
+        }
+
+        modal.appendChild(grid);
+
+        // Botão "Tirar Nova Foto"
+        const takePhotoBtn = document.createElement('button');
+        takePhotoBtn.className = 'phaser-btn-primary';
+        takePhotoBtn.textContent = '📷 Tirar Nova Foto';
+        takePhotoBtn.style.cssText = `
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+        `;
+        takePhotoBtn.addEventListener('click', () => {
+            this.closePhotoGallery();
+            // Pequeno delay para fechar o modal antes de tirar a foto
+            setTimeout(() => {
+                gameStateManager.takePhoto();
+            }, 100);
+        });
+        modal.appendChild(takePhotoBtn);
+
+        // Botão fechar
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'phaser-close-btn';
+        closeBtn.textContent = '✕';
+        closeBtn.addEventListener('click', () => this.closePhotoGallery());
+        modal.appendChild(closeBtn);
+
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+
+        // Fechar ao clicar fora
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                this.closePhotoGallery();
+            }
+        });
+
+        // Desabilitar input do Phaser
+        if (this.activeScene && this.activeScene.input) {
+            this.activeScene.input.enabled = false;
+        }
+    }
+
+    /**
+     * Fechar galeria de fotos
+     */
+    closePhotoGallery() {
+        const overlay = document.getElementById('photo-gallery-overlay');
+        if (overlay) {
+            overlay.remove();
+        }
+
+        // Reabilitar input do Phaser
+        if (this.activeScene && this.activeScene.input) {
+            this.activeScene.input.enabled = true;
+        }
+    }
+
+    /**
+     * Mostrar foto em tamanho completo
+     */
+    showPhotoFullSize(photo) {
+        // Criar overlay para visualização
+        const overlay = document.createElement('div');
+        overlay.className = 'phaser-overlay active';
+        overlay.id = 'photo-fullsize-overlay';
+        overlay.style.background = 'rgba(0, 0, 0, 0.95)';
+
+        const container = document.createElement('div');
+        container.style.cssText = `
+            position: relative;
+            max-width: 90vw;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        `;
+
+        const img = document.createElement('img');
+        img.src = photo.imageData;
+        img.style.cssText = `
+            max-width: 100%;
+            max-height: 80vh;
+            border: 2px solid #f0a500;
+            border-radius: 8px;
+        `;
+        container.appendChild(img);
+
+        const info = document.createElement('div');
+        info.style.cssText = `
+            color: #f0a500;
+            margin-top: 15px;
+            text-align: center;
+        `;
+        info.innerHTML = `
+            <div>${new Date(photo.timestamp).toLocaleString('pt-BR')}</div>
+            <div>${photo.location || 'Local desconhecido'}</div>
+        `;
+        container.appendChild(info);
+
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'phaser-close-btn';
+        closeBtn.textContent = '✕';
+        closeBtn.addEventListener('click', () => {
+            overlay.remove();
+        });
+        container.appendChild(closeBtn);
+
+        overlay.appendChild(container);
+        document.body.appendChild(overlay);
+
+        // Fechar ao clicar fora
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                overlay.remove();
+            }
+        });
     }
 }
 
