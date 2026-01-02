@@ -5428,32 +5428,33 @@
                         { x: 30, y: 20 }     // Bottom-right
                     ];
 
-                    // Rotate vertices based on slot rotation
-                    const vertices = baseVertices.map(v => {
-                        const angle = (slot.rotation * Math.PI) / 180;
-                        const cos = Math.cos(angle);
-                        const sin = Math.sin(angle);
-                        return {
-                            x: slot.x + (v.x * cos - v.y * sin),
-                            y: slot.y + (v.x * sin + v.y * cos)
-                        };
-                    });
+                    // Rotate vertices based on slot rotation (default to 0 if undefined)
+                    const rotation = slot.rotation || 0;
+                    const angle = (rotation * Math.PI) / 180;
+                    const cos = Math.cos(angle);
+                    const sin = Math.sin(angle);
 
-                    // Define edges (only straight edges can be entry points)
+                    const vertices = baseVertices.map(v => ({
+                        x: slot.x + (v.x * cos - v.y * sin),
+                        y: slot.y + (v.x * sin + v.y * cos)
+                    }));
+
+                    // Define ALL edges and test against them
                     const edges = [
                         { start: vertices[0], end: vertices[1], type: 'straight' },  // Left edge
                         { start: vertices[1], end: vertices[2], type: 'hypotenuse' }, // Hypotenuse
                         { start: vertices[2], end: vertices[0], type: 'straight' }   // Bottom edge
                     ];
 
-                    // Test laser ray against straight edges only
+                    // Test laser ray against ALL edges (not just straight ones for collision detection)
                     for (let edge of edges) {
-                        if (edge.type === 'straight') {
-                            const intersection = lineIntersection(
-                                currentX, currentY, nextX, nextY,
-                                edge.start.x, edge.start.y, edge.end.x, edge.end.y
-                            );
-                            if (intersection) {
+                        const intersection = lineIntersection(
+                            currentX, currentY, nextX, nextY,
+                            edge.start.x, edge.start.y, edge.end.x, edge.end.y
+                        );
+                        if (intersection) {
+                            // Only accept straight edges as valid entry points
+                            if (edge.type === 'straight') {
                                 hitSlot = slot;
                                 break;
                             }
