@@ -325,14 +325,35 @@ class LaserPrismPuzzle {
             const hitPrism = this.checkPrismCollision(currentX, currentY, nextPoint.x, nextPoint.y);
 
             if (hitPrism) {
-                // Desenhar até o prisma
-                this.laserPath.lineTo(hitPrism.x, hitPrism.y);
+                // Calcular caminho ATRAVÉS do prisma (entrada → reflexão → saída)
+                const prismPath = this.calculatePrismPath(currentX, currentY, direction, hitPrism);
 
-                // Calcular nova direção (desvio de 90°)
-                direction = this.calculateReflection(direction, hitPrism.rotation);
+                if (prismPath) {
+                    // Desenhar laser externo até entrada do prisma
+                    this.laserPath.lineTo(prismPath.entry.x, prismPath.entry.y);
+                    this.laserPath.strokePath();
 
-                currentX = hitPrism.x;
-                currentY = hitPrism.y;
+                    // Desenhar caminho interno (azul claro)
+                    this.laserPath.lineStyle(3, 0x88ddff, 1);
+                    this.laserPath.beginPath();
+                    this.laserPath.moveTo(prismPath.entry.x, prismPath.entry.y);
+                    this.laserPath.lineTo(prismPath.reflection.x, prismPath.reflection.y);
+                    this.laserPath.lineTo(prismPath.exit.x, prismPath.exit.y);
+                    this.laserPath.strokePath();
+
+                    // Retomar laser externo (amarelo) saindo do prisma
+                    this.laserPath.lineStyle(3, 0xffff00, 1);
+                    this.laserPath.beginPath();
+                    this.laserPath.moveTo(prismPath.exit.x, prismPath.exit.y);
+
+                    currentX = prismPath.exit.x;
+                    currentY = prismPath.exit.y;
+                    direction = prismPath.exitDirection;
+                } else {
+                    // Falha ao calcular caminho, pular prisma
+                    currentX = nextPoint.x;
+                    currentY = nextPoint.y;
+                }
             } else {
                 // Desenhar até o próximo ponto
                 this.laserPath.lineTo(nextPoint.x, nextPoint.y);
@@ -472,7 +493,9 @@ class LaserPrismPuzzle {
                         return {
                             x: intersection.x,
                             y: intersection.y,
-                            rotation: slot.prism.rotation
+                            rotation: slot.prism.rotation,
+                            slotX: slot.x,
+                            slotY: slot.y
                         };
                     }
                 }
@@ -496,6 +519,103 @@ class LaserPrismPuzzle {
         }
 
         return null;
+    }
+
+    calculatePrismPath(startX, startY, laserDir, hitPrism) {
+        const rad = Phaser.Math.DegToRad(laserDir);
+        const dx = Math.cos(rad);
+        const dy = Math.sin(rad);
+
+        // Triangle vertices at rotation 0
+        const baseVertices = [
+            { x: -18, y: 12 },   // Bottom-left (90° angle)
+            { x: -18, y: -12 },  // Top-left
+            { x: 18, y: 12 }     // Bottom-right
+        ];
+
+        // Rotate vertices based on prism rotation
+        const prismRad = Phaser.Math.DegToRad(hitPrism.rotation);
+        const cos = Math.cos(prismRad);
+        const sin = Math.sin(prismRad);
+
+        // Get slot position from hitPrism
+        const slotX = hitPrism.slotX || hitPrism.x;
+        const slotY = hitPrism.slotY || hitPrism.y;
+
+        const vertices = baseVertices.map(v => ({
+            x: slotX + (v.x * cos - v.y * sin),
+            y: slotY + (v.x * sin + v.y * cos)
+        }));
+
+        // Define edges
+        const edges = [
+            { start: vertices[0], end: vertices[1], type: 'straight' },  // Left edge
+            { start: vertices[1], end: vertices[2], type: 'hypotenuse' }, // Hypotenuse
+            { start: vertices[2], end: vertices[0], type: 'straight' }   // Bottom edge
+        ];
+
+        // Find entry point (intersection with straight edges only)
+        let entryPoint = null;
+        let entryEdge = null;
+
+        for (let edge of edges) {
+            if (edge.type === 'straight') {
+                const intersection = this.lineIntersection(
+                    startX, startY, startX + dx * 100, startY + dy * 100,
+                    edge.start.x, edge.start.y, edge.end.x, edge.end.y
+                );
+                if (intersection && !entryPoint) {
+                    entryPoint = intersection;
+                    entryEdge = edge;
+                    break;
+                }
+            }
+        }
+
+        if (!entryPoint) return null;
+
+        // Find hypotenuse
+        const hypotenuse = edges.find(e => e.type === 'hypotenuse');
+        if (!hypotenuse) return null;
+
+        // Calculate where internal ray hits hypotenuse
+        const reflectionPoint = this.lineIntersection(
+            entryPoint.x, entryPoint.y, entryPoint.x + dx * 50, entryPoint.y + dy * 50,
+            hypotenuse.start.x, hypotenuse.start.y, hypotenuse.end.x, hypotenuse.end.y
+        );
+
+        if (!reflectionPoint) return null;
+
+        // Calculate refracted direction
+        const exitDirection = this.calculateReflection(laserDir, hitPrism.rotation);
+        const exitRad = Phaser.Math.DegToRad(exitDirection);
+        const exitDx = Math.cos(exitRad);
+        const exitDy = Math.sin(exitRad);
+
+        // Find exit point (intersection with other straight edge)
+        let exitPoint = null;
+        for (let edge of edges) {
+            if (edge.type === 'straight' && edge !== entryEdge) {
+                const intersection = this.lineIntersection(
+                    reflectionPoint.x, reflectionPoint.y,
+                    reflectionPoint.x + exitDx * 50, reflectionPoint.y + exitDy * 50,
+                    edge.start.x, edge.start.y, edge.end.x, edge.end.y
+                );
+                if (intersection) {
+                    exitPoint = intersection;
+                    break;
+                }
+            }
+        }
+
+        if (!exitPoint) return null;
+
+        return {
+            entry: entryPoint,
+            reflection: reflectionPoint,
+            exit: exitPoint,
+            exitDirection: exitDirection
+        };
     }
 
     isPointNearReceptor(x, y) {
