@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Spider Atlas Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #1a1a1a;
+            font-family: monospace;
+            color: #fff;
+        }
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.7);
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 1000;
+        }
+        #game-container {
+            margin-top: 150px;
+        }
+    </style>
+</head>
+<body>
+    <div id="info">
+        <h2>Spider Animation Test - Texture Atlas</h2>
+        <div id="stats"></div>
+    </div>
+    <div id="game-container"></div>
+
+    <script>
+        document.getElementById('stats').innerHTML = `
+            <strong>File Sizes (from conversion):</strong><br>
+            Original GIF: 292.66 KB<br>
+            Atlas PNG: 7671.32 KB<br>
+            Atlas JSON: 22.41 KB<br>
+            <strong>Total Atlas: 7693.74 KB</strong><br>
+            <br>
+            Difference: <span style="color: #ff6b6b">+7401 KB (+2530%)</span><br>
+            <br>
+            Frames: 67<br>
+            Atlas Grid: 9x8<br>
+            Frame Size: 500x215px<br>
+            <br>
+            <span style="color: #ffd700">⚠️ Precisa rodar com servidor HTTP</span>
+        `;
+
+        const config = {
+            type: Phaser.AUTO,
+            width: 800,
+            height: 400,
+            parent: 'game-container',
+            backgroundColor: '#2d2d2d',
+            scene: {
+                preload: preload,
+                create: create
+            }
+        };
+
+        const game = new Phaser.Game(config);
+
+        function preload() {
+            this.load.on('loaderror', function(file) {
+                console.error('Error loading:', file.key, file.url);
+                document.getElementById('stats').innerHTML += '<br><br><span style="color: #ff6b6b">❌ Erro ao carregar arquivos!<br>Execute com servidor HTTP.</span>';
+            });
+
+            this.load.on('filecomplete', function(key) {
+                console.log('Loaded:', key);
+            });
+
+            this.load.atlas('spider', 'images/objects/spider_atlas.png', 'images/objects/spider_atlas.json');
+        }
+
+        function create() {
+            if (!this.textures.exists('spider')) {
+                console.error('Spider texture not loaded!');
+                this.add.text(400, 200, 'ERRO: Arquivos não carregaram\nAbra com servidor HTTP\n\nRode: python -m http.server 8000', {
+                    fontSize: '16px',
+                    color: '#ff6b6b',
+                    align: 'center'
+                }).setOrigin(0.5);
+                return;
+            }
+
+            // Create animation from atlas
+            this.anims.create({
+                key: 'spider_walk',
+                frames: this.anims.generateFrameNames('spider', {
+                    prefix: 'spider_',
+                    start: 0,
+                    end: 16,
+                    zeroPad: 0
+                }),
+                frameRate: 10,
+                repeat: -1
+            });
+
+            // Add sprite - definir frame inicial antes de mostrar
+            const spider = this.add.sprite(400, 200, 'spider', 'spider_0');
+            spider.setScale(0.5); // Scale down to fit better
+
+            // Aguardar um frame antes de iniciar animação
+            this.time.delayedCall(50, () => {
+                spider.play('spider_walk');
+            });
+
+            // Add text
+            this.add.text(400, 350, 'Texture Atlas Animation - OK!', {
+                fontSize: '20px',
+                color: '#51cf66'
+            }).setOrigin(0.5);
+        }
+    </script>
+</body>
+</html>

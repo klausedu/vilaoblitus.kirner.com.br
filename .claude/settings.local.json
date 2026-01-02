@@ -56,7 +56,16 @@
       "Bash(cmd /c dir \"C:\\\\src\\\\codex.oblitus\\\\images\\\\objects\\\\arvore*.png\" /b)",
       "Bash(ls:*)",
       "Bash(powershell:*)",
-      "Bash(node backup.js:*)"
+      "Bash(node backup.js:*)",
+      "Bash(cmd /c dir \"images\\\\objects\\\\spider*.*\" \"images\\\\objects\\\\a1*.*\")",
+      "Bash(node convert-gif-to-atlas.js:*)",
+      "Bash(start test-spider-atlas.html)",
+      "Bash(start http://localhost:8000/test-spider-atlas.html)",
+      "WebFetch(domain:docs.phaser.io)",
+      "WebFetch(domain:phaser.io)",
+      "WebFetch(domain:www.codeandweb.com)",
+      "Bash(node optimize-png.js:*)",
+      "Bash(node create-atlas-from-pngs.js:*)"
     ],
     "deny": [],
     "ask": []
