@@ -333,11 +333,21 @@ class LaserPrismPuzzle {
                     this.laserPath.lineTo(prismPath.entry.x, prismPath.entry.y);
                     this.laserPath.strokePath();
 
-                    // Desenhar caminho interno (azul claro)
-                    this.laserPath.lineStyle(3, 0x88ddff, 1);
+                    // Segment 1: Entry → Reflection (before refraction)
+                    this.laserPath.lineStyle(3, 0x88ddff, 1);  // Light blue
                     this.laserPath.beginPath();
                     this.laserPath.moveTo(prismPath.entry.x, prismPath.entry.y);
                     this.laserPath.lineTo(prismPath.reflection.x, prismPath.reflection.y);
+                    this.laserPath.strokePath();
+
+                    // Mark reflection point
+                    this.laserPath.fillStyle(0xff00ff, 1);  // Magenta dot
+                    this.laserPath.fillCircle(prismPath.reflection.x, prismPath.reflection.y, 3);
+
+                    // Segment 2: Reflection → Exit (after 90° refraction)
+                    this.laserPath.lineStyle(3, 0x00ffff, 1);  // Cyan
+                    this.laserPath.beginPath();
+                    this.laserPath.moveTo(prismPath.reflection.x, prismPath.reflection.y);
                     this.laserPath.lineTo(prismPath.exit.x, prismPath.exit.y);
                     this.laserPath.strokePath();
 

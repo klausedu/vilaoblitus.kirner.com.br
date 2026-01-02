@@ -5472,11 +5472,26 @@
 
                         // Draw internal path (light blue to show it's inside prism)
                         ctx.stroke();
+
+                        // Segment 1: Entry → Reflection (before refraction)
                         ctx.beginPath();
-                        ctx.strokeStyle = '#88ddff';
+                        ctx.strokeStyle = '#88ddff';  // Light blue
                         ctx.lineWidth = 2;
                         ctx.moveTo(centerX + prismPath.entry.x, centerY + prismPath.entry.y);
                         ctx.lineTo(centerX + prismPath.reflection.x, centerY + prismPath.reflection.y);
+                        ctx.stroke();
+
+                        // Mark reflection point
+                        ctx.fillStyle = '#ff00ff';  // Magenta dot at reflection
+                        ctx.beginPath();
+                        ctx.arc(centerX + prismPath.reflection.x, centerY + prismPath.reflection.y, 3, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        // Segment 2: Reflection → Exit (after 90° refraction)
+                        ctx.beginPath();
+                        ctx.strokeStyle = '#00ffff';  // Cyan (different color after refraction)
+                        ctx.lineWidth = 2;
+                        ctx.moveTo(centerX + prismPath.reflection.x, centerY + prismPath.reflection.y);
                         ctx.lineTo(centerX + prismPath.exit.x, centerY + prismPath.exit.y);
                         ctx.stroke();
 
