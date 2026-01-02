@@ -5364,10 +5364,10 @@
                 ctx.translate(x, y);
                 ctx.rotate((slot.rotation * Math.PI) / 180);
                 ctx.beginPath();
-                // Right triangle: 90° angle at origin, pointing up-right
-                ctx.moveTo(-18, 12);    // Bottom-left (90° angle here)
-                ctx.lineTo(-18, -12);   // Top-left (vertical edge)
-                ctx.lineTo(18, 12);     // Bottom-right (horizontal base - MAIOR)
+                // Right triangle: 90° angle at origin (same size as demo)
+                ctx.moveTo(-30, 20);    // Bottom-left (90° angle here)
+                ctx.lineTo(-30, -20);   // Top-left (vertical edge)
+                ctx.lineTo(30, 20);     // Bottom-right (horizontal base - MAIOR)
                 ctx.closePath();
                 ctx.fill();
                 ctx.stroke();
@@ -5375,7 +5375,7 @@
                 // Draw a small dot at the 90° angle to make it clearer
                 ctx.fillStyle = '#ff6600';
                 ctx.beginPath();
-                ctx.arc(-18, 12, 3, 0, Math.PI * 2);
+                ctx.arc(-30, 20, 4, 0, Math.PI * 2);
                 ctx.fill();
 
                 ctx.restore();
@@ -5421,11 +5421,11 @@
                 // Check for slot collision - proper line-triangle intersection
                 let hitSlot = null;
                 for (let slot of laserPreviewState.slots) {
-                    // Get triangle vertices
+                    // Get triangle vertices (same size as working demo)
                     const baseVertices = [
-                        { x: -18, y: 12 },   // Bottom-left (90° angle)
-                        { x: -18, y: -12 },  // Top-left
-                        { x: 18, y: 12 }     // Bottom-right
+                        { x: -30, y: 20 },   // Bottom-left (90° angle)
+                        { x: -30, y: -20 },  // Top-left
+                        { x: 30, y: 20 }     // Bottom-right
                     ];
 
                     // Rotate vertices based on slot rotation
@@ -5542,11 +5542,11 @@
             const dx = Math.cos(rad);
             const dy = Math.sin(rad);
 
-            // Triangle vertices at rotation 0 (relative to slot center)
+            // Triangle vertices at rotation 0 (same size as working demo)
             const baseVertices = [
-                { x: -18, y: 12 },   // Bottom-left (90° angle)
-                { x: -18, y: -12 },  // Top-left
-                { x: 18, y: 12 }     // Bottom-right
+                { x: -30, y: 20 },   // Bottom-left (90° angle)
+                { x: -30, y: -20 },  // Top-left
+                { x: 30, y: 20 }     // Bottom-right
             ];
 
             // Rotate vertices based on slot rotation

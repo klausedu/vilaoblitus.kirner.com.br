@@ -257,18 +257,22 @@ class LaserPrismPuzzle {
     drawPrismTriangle(graphics, rotation) {
         graphics.clear();
 
-        // Desenhar triângulo (prisma de vidro)
+        // Desenhar triângulo RETÂNGULO (90° angle) - same as demo
         graphics.fillStyle(0x88ccff, 0.6);
         graphics.lineStyle(2, 0x4488cc, 1);
 
-        // Triângulo apontando para cima (rotação 0)
+        // Right triangle (90° angle at bottom-left)
         graphics.beginPath();
-        graphics.moveTo(0, -20);   // topo
-        graphics.lineTo(-17, 17);  // base esquerda
-        graphics.lineTo(17, 17);   // base direita
+        graphics.moveTo(-30, 20);    // Bottom-left (90° angle here)
+        graphics.lineTo(-30, -20);   // Top-left (vertical edge)
+        graphics.lineTo(30, 20);     // Bottom-right (horizontal base - hypotenuse)
         graphics.closePath();
         graphics.fillPath();
         graphics.strokePath();
+
+        // Mark 90° angle with orange dot
+        graphics.fillStyle(0xff6600, 1);
+        graphics.fillCircle(-30, 20, 4);
 
         // Aplicar rotação
         graphics.angle = rotation;
@@ -470,11 +474,11 @@ class LaserPrismPuzzle {
         for (let slot of this.slots) {
             if (!slot.prism) continue;
 
-            // Get triangle vertices (base shape at rotation 0)
+            // Get triangle vertices (same size as working demo)
             const baseVertices = [
-                { x: -18, y: 12 },   // Bottom-left (90° angle)
-                { x: -18, y: -12 },  // Top-left
-                { x: 18, y: 12 }     // Bottom-right
+                { x: -30, y: 20 },   // Bottom-left (90° angle)
+                { x: -30, y: -20 },  // Top-left
+                { x: 30, y: 20 }     // Bottom-right
             ];
 
             // Rotate vertices based on prism rotation
@@ -538,11 +542,11 @@ class LaserPrismPuzzle {
         const dx = Math.cos(rad);
         const dy = Math.sin(rad);
 
-        // Triangle vertices at rotation 0
+        // Triangle vertices at rotation 0 (same size as working demo)
         const baseVertices = [
-            { x: -18, y: 12 },   // Bottom-left (90° angle)
-            { x: -18, y: -12 },  // Top-left
-            { x: 18, y: 12 }     // Bottom-right
+            { x: -30, y: 20 },   // Bottom-left (90° angle)
+            { x: -30, y: -20 },  // Top-left
+            { x: 30, y: 20 }     // Bottom-right
         ];
 
         // Rotate vertices based on prism rotation
