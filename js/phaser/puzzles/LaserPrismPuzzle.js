@@ -590,9 +590,9 @@ class LaserPrismPuzzle {
         const hypotenuse = edges.find(e => e.type === 'hypotenuse');
         if (!hypotenuse) return null;
 
-        // Calculate where internal ray hits hypotenuse
+        // Calculate where internal ray hits hypotenuse (use large distance to ensure hit)
         const reflectionPoint = this.lineIntersection(
-            entryPoint.x, entryPoint.y, entryPoint.x + dx * 50, entryPoint.y + dy * 50,
+            entryPoint.x, entryPoint.y, entryPoint.x + dx * 500, entryPoint.y + dy * 500,
             hypotenuse.start.x, hypotenuse.start.y, hypotenuse.end.x, hypotenuse.end.y
         );
 
