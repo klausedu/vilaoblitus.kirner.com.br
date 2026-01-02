@@ -46,3 +46,9 @@ backup/
 cache/
 *.cache
 nul
+
+# Local development files (no auth)
+*-local.html
+game-phaser-local.html
+location-editor-db-local.html
+map-editor-local.html

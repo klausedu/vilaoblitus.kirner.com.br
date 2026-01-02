@@ -4972,6 +4972,32 @@
                     </div>
 
                     <div class="form-group">
+                        <label style="margin-bottom: 10px; display: block;">🎮 Preview Visual Interativo</label>
+                        <div style="background: #1a1a1a; padding: 20px; border-radius: 8px; border: 2px solid #4a90e2; margin-bottom: 20px;">
+                            <div style="text-align: center; margin-bottom: 15px;">
+                                <canvas id="laser-preview-canvas" width="800" height="500" style="border: 2px solid #333; border-radius: 4px; background: #0a0a0a; cursor: move;"></canvas>
+                            </div>
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; font-size: 11px; color: #aaa;">
+                                <div style="text-align: center;">
+                                    <strong style="color: #ff6666;">🔴 Laser</strong><br>
+                                    <span id="laser-preview-pos">(-200, 0)</span>
+                                </div>
+                                <div style="text-align: center;">
+                                    <strong style="color: #66ff66;">🟢 Sensor</strong><br>
+                                    <span id="sensor-preview-pos">(200, 0)</span>
+                                </div>
+                                <div style="text-align: center;">
+                                    <strong style="color: #ffaa00;">🟧 Slots</strong><br>
+                                    <span style="font-size: 10px;">Arraste com mouse</span>
+                                </div>
+                            </div>
+                            <div style="margin-top: 15px; padding: 10px; background: rgba(74, 144, 226, 0.1); border-radius: 4px; font-size: 11px; color: #4a90e2;">
+                                <strong>💡 Dica:</strong> Arraste o laser (vermelho), sensor (verde) e slots (laranja) para posicioná-los. O raio laser aparece em tempo real!
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
                         <label>Posição do Laser (x, y)</label>
                         <input type="text" id="laser-position" placeholder="-200, 0" onchange="savePuzzle()">
                         <div class="form-hint">Coordenadas x,y da fonte de laser (ex: -200, 0)</div>
@@ -5034,6 +5060,329 @@
             };
 
             container.innerHTML = templates[type] || '';
+
+            // Initialize laser preview canvas if laser_prism type
+            if (type === 'laser_prism') {
+                setTimeout(() => initLaserPreviewCanvas(), 100);
+            }
+        }
+
+        // 🔦 Laser Preview Canvas Logic
+        let laserPreviewState = {
+            laser: { x: -200, y: 0 },
+            sensor: { x: 200, y: 0 },
+            slots: [
+                { x: -100, y: -50, rotation: 0 },
+                { x: 0, y: -50, rotation: 90 },
+                { x: 0, y: 50, rotation: 180 },
+                { x: 100, y: 50, rotation: 270 }
+            ],
+            laserDirection: 0,
+            dragging: null,
+            dragOffset: { x: 0, y: 0 }
+        };
+
+        function initLaserPreviewCanvas() {
+            const canvas = document.getElementById('laser-preview-canvas');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            // Load current values from form fields
+            loadPreviewFromForm();
+
+            // Mouse events
+            canvas.addEventListener('mousedown', onPreviewMouseDown);
+            canvas.addEventListener('mousemove', onPreviewMouseMove);
+            canvas.addEventListener('mouseup', onPreviewMouseUp);
+            canvas.addEventListener('mouseleave', onPreviewMouseUp);
+
+            // Initial render
+            renderLaserPreview();
+        }
+
+        function loadPreviewFromForm() {
+            const laserPosEl = document.getElementById('laser-position');
+            if (laserPosEl && laserPosEl.value) {
+                const [x, y] = laserPosEl.value.split(',').map(n => parseFloat(n.trim()));
+                laserPreviewState.laser = { x: x || -200, y: y || 0 };
+            }
+
+            const laserDirEl = document.getElementById('laser-direction');
+            if (laserDirEl) {
+                laserPreviewState.laserDirection = parseInt(laserDirEl.value) || 0;
+            }
+
+            const sensorPosEl = document.getElementById('receptor-position');
+            if (sensorPosEl && sensorPosEl.value) {
+                const [x, y] = sensorPosEl.value.split(',').map(n => parseFloat(n.trim()));
+                laserPreviewState.sensor = { x: x || 200, y: y || 0 };
+            }
+
+            for (let i = 0; i < 4; i++) {
+                const posEl = document.getElementById(`slot${i + 1}-position`);
+                const rotEl = document.getElementById(`slot${i + 1}-rotation`);
+                if (posEl && posEl.value) {
+                    const [x, y] = posEl.value.split(',').map(n => parseFloat(n.trim()));
+                    laserPreviewState.slots[i].x = x || 0;
+                    laserPreviewState.slots[i].y = y || 0;
+                }
+                if (rotEl) {
+                    laserPreviewState.slots[i].rotation = parseInt(rotEl.value) || 0;
+                }
+            }
+        }
+
+        function savePreviewToForm() {
+            const laserPosEl = document.getElementById('laser-position');
+            if (laserPosEl) {
+                laserPosEl.value = `${Math.round(laserPreviewState.laser.x)}, ${Math.round(laserPreviewState.laser.y)}`;
+            }
+
+            const sensorPosEl = document.getElementById('receptor-position');
+            if (sensorPosEl) {
+                sensorPosEl.value = `${Math.round(laserPreviewState.sensor.x)}, ${Math.round(laserPreviewState.sensor.y)}`;
+            }
+
+            for (let i = 0; i < 4; i++) {
+                const posEl = document.getElementById(`slot${i + 1}-position`);
+                if (posEl) {
+                    const slot = laserPreviewState.slots[i];
+                    posEl.value = `${Math.round(slot.x)}, ${Math.round(slot.y)}`;
+                }
+            }
+
+            // Update position displays
+            document.getElementById('laser-preview-pos').textContent =
+                `(${Math.round(laserPreviewState.laser.x)}, ${Math.round(laserPreviewState.laser.y)})`;
+            document.getElementById('sensor-preview-pos').textContent =
+                `(${Math.round(laserPreviewState.sensor.x)}, ${Math.round(laserPreviewState.sensor.y)})`;
+
+            savePuzzle();
+        }
+
+        function onPreviewMouseDown(e) {
+            const canvas = document.getElementById('laser-preview-canvas');
+            const rect = canvas.getBoundingClientRect();
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const mouseX = (e.clientX - rect.left) - centerX;
+            const mouseY = (e.clientY - rect.top) - centerY;
+
+            // Check laser
+            if (Math.hypot(mouseX - laserPreviewState.laser.x, mouseY - laserPreviewState.laser.y) < 20) {
+                laserPreviewState.dragging = 'laser';
+                laserPreviewState.dragOffset = {
+                    x: mouseX - laserPreviewState.laser.x,
+                    y: mouseY - laserPreviewState.laser.y
+                };
+                return;
+            }
+
+            // Check sensor
+            if (Math.hypot(mouseX - laserPreviewState.sensor.x, mouseY - laserPreviewState.sensor.y) < 25) {
+                laserPreviewState.dragging = 'sensor';
+                laserPreviewState.dragOffset = {
+                    x: mouseX - laserPreviewState.sensor.x,
+                    y: mouseY - laserPreviewState.sensor.y
+                };
+                return;
+            }
+
+            // Check slots
+            for (let i = 0; i < 4; i++) {
+                const slot = laserPreviewState.slots[i];
+                if (Math.hypot(mouseX - slot.x, mouseY - slot.y) < 30) {
+                    laserPreviewState.dragging = `slot${i}`;
+                    laserPreviewState.dragOffset = {
+                        x: mouseX - slot.x,
+                        y: mouseY - slot.y
+                    };
+                    return;
+                }
+            }
+        }
+
+        function onPreviewMouseMove(e) {
+            if (!laserPreviewState.dragging) return;
+
+            const canvas = document.getElementById('laser-preview-canvas');
+            const rect = canvas.getBoundingClientRect();
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const mouseX = (e.clientX - rect.left) - centerX - laserPreviewState.dragOffset.x;
+            const mouseY = (e.clientY - rect.top) - centerY - laserPreviewState.dragOffset.y;
+
+            if (laserPreviewState.dragging === 'laser') {
+                laserPreviewState.laser.x = mouseX;
+                laserPreviewState.laser.y = mouseY;
+            } else if (laserPreviewState.dragging === 'sensor') {
+                laserPreviewState.sensor.x = mouseX;
+                laserPreviewState.sensor.y = mouseY;
+            } else if (laserPreviewState.dragging.startsWith('slot')) {
+                const slotIndex = parseInt(laserPreviewState.dragging.replace('slot', ''));
+                laserPreviewState.slots[slotIndex].x = mouseX;
+                laserPreviewState.slots[slotIndex].y = mouseY;
+            }
+
+            renderLaserPreview();
+        }
+
+        function onPreviewMouseUp() {
+            if (laserPreviewState.dragging) {
+                savePreviewToForm();
+                laserPreviewState.dragging = null;
+            }
+        }
+
+        function renderLaserPreview() {
+            const canvas = document.getElementById('laser-preview-canvas');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            // Clear canvas
+            ctx.fillStyle = '#0a0a0a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw grid
+            ctx.strokeStyle = '#222';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < canvas.width; x += 50) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += 50) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+
+            // Draw center crosshair
+            ctx.strokeStyle = '#444';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(centerX - 20, centerY);
+            ctx.lineTo(centerX + 20, centerY);
+            ctx.moveTo(centerX, centerY - 20);
+            ctx.lineTo(centerX, centerY + 20);
+            ctx.stroke();
+
+            // Draw laser beam
+            drawLaserBeam(ctx, centerX, centerY);
+
+            // Draw slots
+            laserPreviewState.slots.forEach((slot, i) => {
+                const x = centerX + slot.x;
+                const y = centerY + slot.y;
+
+                // Slot box
+                ctx.strokeStyle = '#ffaa00';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x - 25, y - 25, 50, 50);
+
+                // Slot number
+                ctx.fillStyle = '#ffaa00';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(`#${i + 1}`, x, y - 30);
+
+                // Prism triangle (if would be placed)
+                ctx.fillStyle = 'rgba(136, 204, 255, 0.4)';
+                ctx.strokeStyle = '#88ccff';
+                ctx.lineWidth = 2;
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate((slot.rotation * Math.PI) / 180);
+                ctx.beginPath();
+                ctx.moveTo(0, -15);
+                ctx.lineTo(-13, 13);
+                ctx.lineTo(13, 13);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+                ctx.restore();
+            });
+
+            // Draw laser source
+            const laserX = centerX + laserPreviewState.laser.x;
+            const laserY = centerY + laserPreviewState.laser.y;
+            ctx.fillStyle = '#ff0000';
+            ctx.fillRect(laserX - 15, laserY - 10, 30, 20);
+            ctx.strokeStyle = '#ff6666';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(laserX - 15, laserY - 10, 30, 20);
+
+            // Draw sensor
+            const sensorX = centerX + laserPreviewState.sensor.x;
+            const sensorY = centerY + laserPreviewState.sensor.y;
+            ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
+            ctx.beginPath();
+            ctx.arc(sensorX, sensorY, 20, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        }
+
+        function drawLaserBeam(ctx, centerX, centerY) {
+            let currentX = laserPreviewState.laser.x;
+            let currentY = laserPreviewState.laser.y;
+            let direction = laserPreviewState.laserDirection;
+
+            ctx.strokeStyle = '#ffff00';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(centerX + currentX, centerY + currentY);
+
+            const maxSteps = 20;
+            for (let step = 0; step < maxSteps; step++) {
+                const rad = (direction * Math.PI) / 180;
+                const nextX = currentX + Math.cos(rad) * 100;
+                const nextY = currentY + Math.sin(rad) * 100;
+
+                // Check for slot collision
+                let hitSlot = null;
+                for (let slot of laserPreviewState.slots) {
+                    const dist = Math.hypot((currentX + nextX) / 2 - slot.x, (currentY + nextY) / 2 - slot.y);
+                    if (dist < 30) {
+                        hitSlot = slot;
+                        break;
+                    }
+                }
+
+                if (hitSlot) {
+                    ctx.lineTo(centerX + hitSlot.x, centerY + hitSlot.y);
+                    direction = (direction + 90) % 360;
+                    currentX = hitSlot.x;
+                    currentY = hitSlot.y;
+                } else {
+                    ctx.lineTo(centerX + nextX, centerY + nextY);
+
+                    // Check if hit sensor
+                    const distToSensor = Math.hypot(nextX - laserPreviewState.sensor.x, nextY - laserPreviewState.sensor.y);
+                    if (distToSensor < 25) {
+                        break;
+                    }
+
+                    // Check if out of bounds
+                    if (Math.abs(nextX) > 400 || Math.abs(nextY) > 250) {
+                        break;
+                    }
+
+                    currentX = nextX;
+                    currentY = nextY;
+                }
+            }
+
+            ctx.stroke();
         }
 
         // 🔍 DEBUG: Função para inspecionar puzzles (chamar no console)
