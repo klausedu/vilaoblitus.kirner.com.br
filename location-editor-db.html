@@ -5098,6 +5098,7 @@
             canvas.addEventListener('mousemove', onPreviewMouseMove);
             canvas.addEventListener('mouseup', onPreviewMouseUp);
             canvas.addEventListener('mouseleave', onPreviewMouseUp);
+            canvas.addEventListener('contextmenu', onPreviewContextMenu);  // Right-click to rotate
 
             // Initial render
             renderLaserPreview();
@@ -5191,7 +5192,7 @@
                 return;
             }
 
-            // Check slots
+            // Check slots (right-click to rotate, left-click to drag)
             for (let i = 0; i < 4; i++) {
                 const slot = laserPreviewState.slots[i];
                 if (Math.hypot(mouseX - slot.x, mouseY - slot.y) < 30) {
@@ -5200,6 +5201,34 @@
                         x: mouseX - slot.x,
                         y: mouseY - slot.y
                     };
+                    return;
+                }
+            }
+        }
+
+        function onPreviewContextMenu(e) {
+            e.preventDefault();
+
+            const canvas = document.getElementById('laser-preview-canvas');
+            const rect = canvas.getBoundingClientRect();
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const mouseX = (e.clientX - rect.left) - centerX;
+            const mouseY = (e.clientY - rect.top) - centerY;
+
+            // Check if clicked on a slot - rotate it
+            for (let i = 0; i < 4; i++) {
+                const slot = laserPreviewState.slots[i];
+                if (Math.hypot(mouseX - slot.x, mouseY - slot.y) < 30) {
+                    // Rotate 90 degrees
+                    slot.rotation = (slot.rotation + 90) % 360;
+
+                    // Update form field
+                    const rotEl = document.getElementById(`slot${i + 1}-rotation`);
+                    if (rotEl) rotEl.value = slot.rotation;
+
+                    renderLaserPreview();
+                    savePuzzle();
                     return;
                 }
             }
@@ -5294,20 +5323,28 @@
                 ctx.textAlign = 'center';
                 ctx.fillText(`#${i + 1}`, x, y - 30);
 
-                // Prism triangle (if would be placed)
-                ctx.fillStyle = 'rgba(136, 204, 255, 0.4)';
-                ctx.strokeStyle = '#88ccff';
+                // Prism triangle - RIGHT TRIANGLE (90° angle at bottom-left)
+                ctx.fillStyle = 'rgba(136, 204, 255, 0.5)';
+                ctx.strokeStyle = '#4a9eff';
                 ctx.lineWidth = 2;
                 ctx.save();
                 ctx.translate(x, y);
                 ctx.rotate((slot.rotation * Math.PI) / 180);
                 ctx.beginPath();
-                ctx.moveTo(0, -15);
-                ctx.lineTo(-13, 13);
-                ctx.lineTo(13, 13);
+                // Right triangle: 90° angle at origin, pointing up-right
+                ctx.moveTo(-18, 12);    // Bottom-left (90° angle here)
+                ctx.lineTo(-18, -12);   // Top-left (vertical edge)
+                ctx.lineTo(18, 12);     // Bottom-right (horizontal base - MAIOR)
                 ctx.closePath();
                 ctx.fill();
                 ctx.stroke();
+
+                // Draw a small dot at the 90° angle to make it clearer
+                ctx.fillStyle = '#ff6600';
+                ctx.beginPath();
+                ctx.arc(-18, 12, 3, 0, Math.PI * 2);
+                ctx.fill();
+
                 ctx.restore();
             });
 
