@@ -604,13 +604,13 @@ class LaserPrismPuzzle {
         const exitDx = Math.cos(exitRad);
         const exitDy = Math.sin(exitRad);
 
-        // Find exit point (intersection with other straight edge)
+        // Find exit point (intersection with other straight edge, use large distance)
         let exitPoint = null;
         for (let edge of edges) {
             if (edge.type === 'straight' && edge !== entryEdge) {
                 const intersection = this.lineIntersection(
                     reflectionPoint.x, reflectionPoint.y,
-                    reflectionPoint.x + exitDx * 50, reflectionPoint.y + exitDy * 50,
+                    reflectionPoint.x + exitDx * 500, reflectionPoint.y + exitDy * 500,
                     edge.start.x, edge.start.y, edge.end.x, edge.end.y
                 );
                 if (intersection) {
