@@ -4993,9 +4993,9 @@
                             </div>
                             <div style="margin-top: 15px; padding: 10px; background: rgba(74, 144, 226, 0.1); border-radius: 4px; font-size: 11px; color: #4a90e2;">
                                 <strong>💡 Controles:</strong><br>
-                                🖱️ <strong>Clique esquerdo + arrastar:</strong> Mover laser, sensor ou slots<br>
-                                🖱️ <strong>Clique direito no slot:</strong> Rotacionar o prisma 90°<br>
-                                ⚡ O raio laser atualiza em tempo real! O ponto laranja marca o ângulo de 90°.
+                                🖱️ <strong>Arrastar:</strong> Mover laser (vermelho), sensor (verde) ou slots (laranja)<br>
+                                🔄 <strong>Rotacionar prisma:</strong> Duplo-clique OU botão direito no slot<br>
+                                ⚡ <strong>Laser em tempo real!</strong> Ponto laranja = ângulo de 90° do prisma
                             </div>
                         </div>
                     </div>
@@ -5102,9 +5102,36 @@
             canvas.addEventListener('mouseup', onPreviewMouseUp);
             canvas.addEventListener('mouseleave', onPreviewMouseUp);
             canvas.addEventListener('contextmenu', onPreviewContextMenu);  // Right-click to rotate
+            canvas.addEventListener('dblclick', onPreviewDoubleClick);     // Double-click to rotate
 
             // Initial render
             renderLaserPreview();
+        }
+
+        function onPreviewDoubleClick(e) {
+            const canvas = document.getElementById('laser-preview-canvas');
+            const rect = canvas.getBoundingClientRect();
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const mouseX = (e.clientX - rect.left) - centerX;
+            const mouseY = (e.clientY - rect.top) - centerY;
+
+            // Check if double-clicked on a slot - rotate it
+            for (let i = 0; i < 4; i++) {
+                const slot = laserPreviewState.slots[i];
+                if (Math.hypot(mouseX - slot.x, mouseY - slot.y) < 30) {
+                    // Rotate 90 degrees
+                    slot.rotation = (slot.rotation + 90) % 360;
+
+                    // Update form field
+                    const rotEl = document.getElementById(`slot${i + 1}-rotation`);
+                    if (rotEl) rotEl.value = slot.rotation;
+
+                    renderLaserPreview();
+                    savePuzzle();
+                    return;
+                }
+            }
         }
 
         function loadPreviewFromForm() {
