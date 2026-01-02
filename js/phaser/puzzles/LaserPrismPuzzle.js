@@ -433,25 +433,68 @@ class LaserPrismPuzzle {
     }
 
     checkPrismCollision(x1, y1, x2, y2) {
-        // Verificar se linha do laser cruza com algum prisma
+        // Verificar se linha do laser cruza com algum prisma usando intersecção real de linha-triângulo
         for (let slot of this.slots) {
             if (!slot.prism) continue;
 
-            const distance = Phaser.Math.Distance.Between(
-                (x1 + x2) / 2,
-                (y1 + y2) / 2,
-                slot.x,
-                slot.y
-            );
+            // Get triangle vertices (base shape at rotation 0)
+            const baseVertices = [
+                { x: -18, y: 12 },   // Bottom-left (90° angle)
+                { x: -18, y: -12 },  // Top-left
+                { x: 18, y: 12 }     // Bottom-right
+            ];
 
-            if (distance < 30) {  // Raio de colisão
-                return {
-                    x: slot.x,
-                    y: slot.y,
-                    rotation: slot.prism.rotation
-                };
+            // Rotate vertices based on prism rotation
+            const rad = Phaser.Math.DegToRad(slot.prism.rotation);
+            const cos = Math.cos(rad);
+            const sin = Math.sin(rad);
+
+            const vertices = baseVertices.map(v => ({
+                x: slot.x + (v.x * cos - v.y * sin),
+                y: slot.y + (v.x * sin + v.y * cos)
+            }));
+
+            // Define edges (only straight edges can be entry points)
+            const edges = [
+                { start: vertices[0], end: vertices[1], type: 'straight' },  // Left edge
+                { start: vertices[1], end: vertices[2], type: 'hypotenuse' }, // Hypotenuse
+                { start: vertices[2], end: vertices[0], type: 'straight' }   // Bottom edge
+            ];
+
+            // Test laser ray against straight edges only
+            for (let edge of edges) {
+                if (edge.type === 'straight') {
+                    const intersection = this.lineIntersection(
+                        x1, y1, x2, y2,
+                        edge.start.x, edge.start.y, edge.end.x, edge.end.y
+                    );
+                    if (intersection) {
+                        return {
+                            x: intersection.x,
+                            y: intersection.y,
+                            rotation: slot.prism.rotation
+                        };
+                    }
+                }
             }
         }
+        return null;
+    }
+
+    lineIntersection(x1, y1, x2, y2, x3, y3, x4, y4) {
+        const denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+        if (Math.abs(denom) < 0.0001) return null;
+
+        const t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom;
+        const u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denom;
+
+        if (t >= 0 && t <= 1 && u >= 0 && u <= 1) {
+            return {
+                x: x1 + t * (x2 - x1),
+                y: y1 + t * (y2 - y1)
+            };
+        }
+
         return null;
     }
 

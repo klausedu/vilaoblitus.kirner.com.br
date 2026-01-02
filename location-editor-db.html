@@ -5416,14 +5416,48 @@
                 const nextX = currentX + Math.cos(rad) * 100;
                 const nextY = currentY + Math.sin(rad) * 100;
 
-                // Check for slot collision
+                // Check for slot collision - proper line-triangle intersection
                 let hitSlot = null;
                 for (let slot of laserPreviewState.slots) {
-                    const dist = Math.hypot((currentX + nextX) / 2 - slot.x, (currentY + nextY) / 2 - slot.y);
-                    if (dist < 30) {
-                        hitSlot = slot;
-                        break;
+                    // Get triangle vertices
+                    const baseVertices = [
+                        { x: -18, y: 12 },   // Bottom-left (90° angle)
+                        { x: -18, y: -12 },  // Top-left
+                        { x: 18, y: 12 }     // Bottom-right
+                    ];
+
+                    // Rotate vertices based on slot rotation
+                    const vertices = baseVertices.map(v => {
+                        const angle = (slot.rotation * Math.PI) / 180;
+                        const cos = Math.cos(angle);
+                        const sin = Math.sin(angle);
+                        return {
+                            x: slot.x + (v.x * cos - v.y * sin),
+                            y: slot.y + (v.x * sin + v.y * cos)
+                        };
+                    });
+
+                    // Define edges (only straight edges can be entry points)
+                    const edges = [
+                        { start: vertices[0], end: vertices[1], type: 'straight' },  // Left edge
+                        { start: vertices[1], end: vertices[2], type: 'hypotenuse' }, // Hypotenuse
+                        { start: vertices[2], end: vertices[0], type: 'straight' }   // Bottom edge
+                    ];
+
+                    // Test laser ray against straight edges only
+                    for (let edge of edges) {
+                        if (edge.type === 'straight') {
+                            const intersection = lineIntersection(
+                                currentX, currentY, nextX, nextY,
+                                edge.start.x, edge.start.y, edge.end.x, edge.end.y
+                            );
+                            if (intersection) {
+                                hitSlot = slot;
+                                break;
+                            }
+                        }
                     }
+                    if (hitSlot) break;
                 }
 
                 if (hitSlot) {
