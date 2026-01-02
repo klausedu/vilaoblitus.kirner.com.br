@@ -2414,8 +2414,77 @@
                 `;
                 itemEl.appendChild(contentWrapper);
 
-                // ✅ Detectar se é spritesheet e animar
-                if (item.image && item.image.includes('_spritesheet.png')) {
+                // ✅ Detectar tipo de animação
+                if (item.image && item.image.includes('_atlas.png')) {
+                    // TEXTURE ATLAS: Carregar PNG + JSON
+                    const atlasImg = new Image();
+                    const jsonPath = item.image.replace('.png', '.json');
+
+                    // Carregar JSON primeiro
+                    fetch(jsonPath)
+                        .then(r => r.json())
+                        .then(atlasData => {
+                            atlasImg.onload = () => {
+                                // Criar canvas
+                                const canvas = document.createElement('canvas');
+                                const ctx = canvas.getContext('2d');
+                                canvas.style.cssText = `
+                                    width: 100%;
+                                    height: 100%;
+                                    display: block;
+                                `;
+                                contentWrapper.appendChild(canvas);
+
+                                // Pegar frames do JSON
+                                const frameKeys = Object.keys(atlasData.frames);
+                                const firstFrame = atlasData.frames[frameKeys[0]];
+
+                                canvas.width = firstFrame.frame.w;
+                                canvas.height = firstFrame.frame.h;
+
+                                let currentFrameIndex = 0;
+                                let lastFrameTime = 0;
+                                const frameRate = item.spritesheetFrameRate || 10;
+                                const frameDuration = 1000 / frameRate;
+
+                                function animate(timestamp) {
+                                    if (!lastFrameTime) lastFrameTime = timestamp;
+                                    const elapsed = timestamp - lastFrameTime;
+
+                                    if (elapsed >= frameDuration) {
+                                        const frameKey = frameKeys[currentFrameIndex];
+                                        const frameData = atlasData.frames[frameKey];
+                                        const frame = frameData.frame;
+
+                                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                                        ctx.drawImage(
+                                            atlasImg,
+                                            frame.x, frame.y, frame.w, frame.h,
+                                            0, 0, frame.w, frame.h
+                                        );
+
+                                        currentFrameIndex = (currentFrameIndex + 1) % frameKeys.length;
+                                        lastFrameTime = timestamp;
+                                    }
+
+                                    requestAnimationFrame(animate);
+                                }
+
+                                requestAnimationFrame(animate);
+                            };
+
+                            atlasImg.src = item.image;
+                        })
+                        .catch(err => {
+                            console.error('Erro ao carregar atlas JSON:', err);
+                            // Fallback para imagem estática
+                            const img = document.createElement('img');
+                            img.src = item.image;
+                            img.style.cssText = 'width: 100%; height: 100%; object-fit: contain;';
+                            contentWrapper.appendChild(img);
+                        });
+
+                } else if (item.image && item.image.includes('_spritesheet.png')) {
                     // SPRITESHEET: Carregar imagem primeiro, depois criar canvas
                     const spriteImg = new Image();
                     spriteImg.onload = () => {
