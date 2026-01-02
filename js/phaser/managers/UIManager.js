@@ -924,7 +924,7 @@ class UIManager {
             context.buildPayload = () => ({ answer: input.value });
             setSubmitEnabled(Boolean(context.onSubmit));
             setTimeout(() => input.focus(), 60);
-        } else if (puzzleType === 'direction' || puzzleType === 'riddle') {
+        } else if (puzzleType === 'riddle') {
             if (!optionsArray.length) {
                 addHelperText('Nenhuma opção configurada para este enigma.');
                 setSubmitEnabled(false);

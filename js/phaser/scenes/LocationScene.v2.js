@@ -2370,7 +2370,7 @@ class LocationScene extends Phaser.Scene {
             return;
         }
 
-        const supportedTypes = ['code', 'math', 'direction', 'riddle', 'sequence_symbols'];
+        const supportedTypes = ['code', 'math', 'riddle', 'sequence_symbols'];
         if (supportedTypes.includes(puzzleType)) {
             const openDialog = () => {
                 const overlay = document.getElementById('puzzle-overlay');
