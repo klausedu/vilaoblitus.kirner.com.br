@@ -5053,7 +5053,7 @@
                 const questionEl = document.getElementById('puzzle-question');
                 if (questionEl) questionEl.value = puzzle.question || '';
 
-                if (puzzle.type === 'direction' || puzzle.type === 'riddle') {
+                if (puzzle.type === 'riddle') {
                     const optionsEl = document.getElementById('puzzle-options');
                     if (optionsEl && puzzle.options) {
                         optionsEl.value = puzzle.options.join('\n');
