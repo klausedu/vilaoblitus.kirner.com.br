@@ -4819,6 +4819,11 @@
                         <textarea id="puzzle-question" placeholder="Digite a pergunta..." onchange="savePuzzle()"></textarea>
                     </div>
                     <div class="form-group">
+                        <label>Símbolos/Opções Disponíveis (um por linha)</label>
+                        <textarea id="puzzle-options" placeholder="🌙 Lua\n⭐ Estrela\n☀️ Sol" onchange="savePuzzle()" rows="4"></textarea>
+                        <div class="form-hint">Digite cada símbolo em uma linha. Podem ser emojis, texto, números, etc.</div>
+                    </div>
+                    <div class="form-group">
                         <label>Sequência Correta (números separados por vírgula, começando em 0)</label>
                         <input type="text" id="puzzle-sequence" placeholder="0,2,1" onchange="savePuzzle()">
                         <div class="form-hint">Exemplo: 0,2,1 significa primeira opção, terceira opção, segunda opção</div>
@@ -5063,6 +5068,10 @@
                     const hintEl = document.getElementById('puzzle-hint');
                     if (hintEl && puzzle.hint) hintEl.value = puzzle.hint;
                 } else if (puzzle.type === 'sequence_symbols') {
+                    const optionsEl = document.getElementById('puzzle-options');
+                    if (optionsEl && puzzle.options) {
+                        optionsEl.value = puzzle.options.join('\n');
+                    }
                     const seqEl = document.getElementById('puzzle-sequence');
                     if (seqEl && puzzle.correctSequence) {
                         seqEl.value = puzzle.correctSequence.join(',');
@@ -5160,7 +5169,6 @@
 
         function getPuzzleTypeName(type) {
             const names = {
-                direction: 'Direção',
                 riddle: 'Charada',
                 sequence_symbols: 'Sequência',
                 math: 'Matemática',
@@ -5361,7 +5369,7 @@
             const questionEl = document.getElementById('puzzle-question');
             if (questionEl) puzzle.question = questionEl.value;
 
-            if (currentPuzzleType === 'direction' || currentPuzzleType === 'riddle') {
+            if (currentPuzzleType === 'riddle') {
                 const optionsEl = document.getElementById('puzzle-options');
                 if (optionsEl) puzzle.options = optionsEl.value.split('\n').filter(o => o.trim());
                 const answerEl = document.getElementById('puzzle-answer');
@@ -5369,6 +5377,8 @@
                 const hintEl = document.getElementById('puzzle-hint');
                 if (hintEl && hintEl.value) puzzle.hint = hintEl.value;
             } else if (currentPuzzleType === 'sequence_symbols') {
+                const optionsEl = document.getElementById('puzzle-options');
+                if (optionsEl) puzzle.options = optionsEl.value.split('\n').filter(o => o.trim());
                 const seqEl = document.getElementById('puzzle-sequence');
                 if (seqEl) puzzle.correctSequence = seqEl.value.split(',').map(n => parseInt(n.trim()));
             } else if (currentPuzzleType === 'math' || currentPuzzleType === 'code') {
